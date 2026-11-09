@@ -7,19 +7,28 @@ timer:SetMovable(true)
 timer:SetClampedToScreen(true)
 timer:EnableMouse(true)
 timer:RegisterForDrag("LeftButton")
-timer:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8", edgeFile="Interface\\Buttons\\WHITE8X8", edgeSize=1})
-timer:SetBackdropColor(0.035, 0.05, 0.075, 0.8)
-timer:SetBackdropBorderColor(0.3, 0.42, 0.51, 1)
-local iconBase = timer:CreateTexture(nil, "BACKGROUND")
-iconBase:SetPoint("TOPLEFT", 3, -3)
-iconBase:SetPoint("BOTTOMRIGHT", -3, 3)
-iconBase:SetTexture("Interface\\Icons\\INV_Elemental_Primal_Mana")
-iconBase:SetDesaturated(true)
-iconBase:SetAlpha(0.22)
-local iconFill = timer:CreateTexture(nil, "ARTWORK")
-iconFill:SetPoint("BOTTOMLEFT", 3, 3)
-iconFill:SetWidth(30)
-iconFill:SetTexture("Interface\\Icons\\INV_Elemental_Primal_Mana")
+-- Horizontal strips form a transparent, softly shaded droplet with no square icon.
+local strips = {}
+for i = 1, 26 do
+  local y = (i - 0.5) / 26
+  local halfWidth
+  if y < 0.45 then halfWidth = 12 * math.sqrt(math.max(0, 1 - ((y - 0.45) / 0.45) ^ 2))
+  else halfWidth = 12 * ((1 - y) / 0.55) ^ 0.72 end
+  local strip = timer:CreateTexture(nil, "ARTWORK")
+  strip:SetTexture("Interface\\Buttons\\WHITE8X8")
+  strip:SetPoint("BOTTOM", timer, "BOTTOM", 0, 4 + i)
+  strip:SetSize(math.max(0.5, 2 * halfWidth), 1.2)
+  strips[i] = strip
+end
+local particles = {}
+for _, point in ipairs({{-15, 5, 2}, {15, -5, 2}, {-11, -13, 1.5}, {13, 12, 1.5}}) do
+  local dot = timer:CreateTexture(nil, "OVERLAY")
+  dot:SetTexture("Interface\\Buttons\\WHITE8X8")
+  dot:SetPoint("CENTER", timer, "CENTER", point[1], point[2])
+  dot:SetSize(point[3], point[3])
+  dot:SetVertexColor(0.48, 0.85, 1, 1)
+  particles[#particles + 1] = dot
+end
 local glow = timer:CreateTexture(nil, "OVERLAY")
 glow:SetTexture("Interface\\Buttons\\UI-ActionButton-Border")
 glow:SetBlendMode("ADD")
@@ -27,9 +36,6 @@ glow:SetPoint("CENTER")
 glow:SetSize(62, 62)
 glow:SetVertexColor(0.25, 0.7, 1, 0.85)
 glow:Hide()
-local unknown = timer:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-unknown:SetPoint("CENTER")
-unknown:SetText("?")
 local ends, known = nil, false
 local function secret(value) return issecretvalue and issecretvalue(value) end
 local previousMana, lastLoss, lastCast
@@ -68,37 +74,37 @@ end)
 timer:SetScript("OnEnter", function(self)
   GameTooltip:SetOwner(self, "ANCHOR_TOP")
   GameTooltip:AddLine("Mana regeneration estimate")
-  GameTooltip:AddLine("The icon fills over five seconds and glows when regeneration is estimated to resume. ? means unknown.", 1, 1, 1, true)
+  GameTooltip:AddLine("The droplet fills over five seconds and glows when regeneration is estimated to resume.", 1, 1, 1, true)
+  GameTooltip:AddLine(known and "Status: estimated from observed mana use." or "Status: unknown until mana use can be observed.", 1, 1, 1, true)
   GameTooltip:AddLine("Based on observed mana loss near a successful cast. Free casts do not restart it. Client restrictions can make it unknown.", 1, 1, 1, true)
   GameTooltip:AddLine("Drag to move. Change visibility in /noki.", 1, 1, 1, true)
   GameTooltip:Show()
 end)
 timer:SetScript("OnLeave", GameTooltip_Hide)
-timer:SetScript("OnUpdate", function(self)
+local drawElapsed = 0
+timer:SetScript("OnUpdate", function(self, delta)
+  drawElapsed = drawElapsed + delta
+  if drawElapsed < 0.04 then return end
+  drawElapsed = 0
+  local fraction, isReady = 0, false
   if not known then
-    unknown:Show()
-    iconFill:Hide()
     glow:Hide()
-    self:SetBackdropBorderColor(0.3, 0.42, 0.51, 1)
   elseif ends and GetTime() < ends then
     local left = ends - GetTime()
-    local fraction = math.max(0.001, math.min(1, 1 - left / 5))
-    unknown:Hide()
+    fraction = math.max(0, math.min(1, 1 - left / 5))
     glow:Hide()
-    iconFill:SetHeight(30 * fraction)
-    iconFill:SetTexCoord(0, 1, 1 - fraction, 1)
-    iconFill:SetAlpha(0.35 + 0.65 * fraction)
-    iconFill:Show()
-    self:SetBackdropBorderColor(0.55, 0.46, 0.3, 1)
   else
-    unknown:Hide()
-    iconFill:SetHeight(30)
-    iconFill:SetTexCoord(0, 1, 0, 1)
-    iconFill:SetAlpha(1)
-    iconFill:Show()
+    fraction, isReady = 1, true
     glow:SetAlpha(InCombatLockdown() and 0.85 or 0.5)
     glow:Show()
-    self:SetBackdropBorderColor(0.4, 0.8, 1, 1)
+  end
+  for i, strip in ipairs(strips) do
+    local filled = known and i / #strips <= fraction
+    if filled then strip:SetVertexColor(0.23 + 0.16 * i / #strips, 0.64 + 0.22 * i / #strips, 1, 0.9)
+    else strip:SetVertexColor(0.25, 0.49, 0.61, known and 0.28 or 0.18) end
+  end
+  for i, dot in ipairs(particles) do
+    dot:SetAlpha(isReady and (0.55 + 0.35 * math.sin(GetTime() * 2 + i)) or 0.2 + fraction * 0.45)
   end
 end)
 local events = CreateFrame("Frame")
