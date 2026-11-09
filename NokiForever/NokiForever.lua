@@ -70,8 +70,16 @@ local function setSpell(id)
   end
   spellID = id
   ForeverRangeAccessDB.spellID = id
+  NokiForeverCharacterDB.spellID = id
   caption:SetText("SPELL: " .. info.name)
   print("Noki Forever: tracking " .. info.name .. " on your target.")
+end
+local function restoreSpell()
+  if not NokiForeverCharacterDB then return end
+  spellID = tonumber(NokiForeverCharacterDB.spellID)
+  if not spellID then return end
+  local info = C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(spellID)
+  caption:SetText("SPELL: " .. ((info and info.name) or ("ID " .. spellID)))
 end
 
 -- The handle moves the protected cast button and its attached range panel together.
@@ -311,17 +319,24 @@ events:RegisterEvent("PLAYER_LOGIN")
 events:RegisterEvent("PLAYER_REGEN_ENABLED")
 events:RegisterEvent("PLAYER_ENTERING_WORLD")
 events:RegisterEvent("BAG_UPDATE_DELAYED")
+events:RegisterEvent("SPELLS_CHANGED")
 events:SetScript("OnEvent", function(_, event, name)
   if event == "ADDON_LOADED" and name == ADDON then
     ForeverRangeAccessDB = ForeverRangeAccessDB or {}
+    NokiForeverCharacterDB = NokiForeverCharacterDB or {}
+    if not NokiForeverCharacterDB.spellID and not NokiForeverCharacterDB.migrated then
+      NokiForeverCharacterDB.spellID = ForeverRangeAccessDB.spellID
+    end
+    NokiForeverCharacterDB.migrated = true
     if ForeverRangeAccessDB.x and ForeverRangeAccessDB.y then
       button:ClearAllPoints()
       button:SetPoint("CENTER", UIParent, "CENTER", ForeverRangeAccessDB.x, ForeverRangeAccessDB.y)
     end
     positionMini(ForeverRangeAccessDB.minimapAngle)
     setToolkitVisible(not ForeverRangeAccessDB.hidden)
-    if ForeverRangeAccessDB.spellID then setSpell(ForeverRangeAccessDB.spellID) end
+    restoreSpell()
   end
+  if event == "PLAYER_LOGIN" or event == "PLAYER_ENTERING_WORLD" or event == "SPELLS_CHANGED" then restoreSpell() end
   if event == "PLAYER_LOGIN" or event == "PLAYER_REGEN_ENABLED" or event == "PLAYER_ENTERING_WORLD"
     or event == "BAG_UPDATE_DELAYED" or event == "ADDON_LOADED" then applyBagScale() end
 end)
