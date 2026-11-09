@@ -1,5 +1,5 @@
--- Estimated five-second rule. Only observed mana loss near a successful cast
--- starts the timer; inaccessible power data produces an unknown state.
+-- Estimated five-second rule. Prefer observed mana loss; if mana is secret,
+-- fall back to the reported current spell cost when it is readable.
 local timer = CreateFrame("Frame", "NokiForeverManaRegen", UIParent, "BackdropTemplate")
 timer:SetSize(36, 36)
 timer:SetPoint("CENTER", UIParent, "CENTER", 0, -120)
@@ -7,19 +7,16 @@ timer:SetMovable(true)
 timer:SetClampedToScreen(true)
 timer:EnableMouse(true)
 timer:RegisterForDrag("LeftButton")
--- Horizontal strips form a transparent, softly shaded droplet with no square icon.
-local strips = {}
-for i = 1, 26 do
-  local y = (i - 0.5) / 26
-  local halfWidth
-  if y < 0.45 then halfWidth = 12 * math.sqrt(math.max(0, 1 - ((y - 0.45) / 0.45) ^ 2))
-  else halfWidth = 12 * ((1 - y) / 0.55) ^ 0.72 end
-  local strip = timer:CreateTexture(nil, "ARTWORK")
-  strip:SetTexture("Interface\\Buttons\\WHITE8X8")
-  strip:SetPoint("BOTTOM", timer, "BOTTOM", 0, 4 + i)
-  strip:SetSize(math.max(0.5, 2 * halfWidth), 1.2)
-  strips[i] = strip
-end
+local iconBase = timer:CreateTexture(nil, "BACKGROUND")
+iconBase:SetPoint("TOPLEFT", 3, -3)
+iconBase:SetPoint("BOTTOMRIGHT", -3, 3)
+iconBase:SetTexture("Interface\\Icons\\INV_Elemental_Primal_Mana")
+iconBase:SetDesaturated(true)
+iconBase:SetAlpha(0.3)
+local iconFill = timer:CreateTexture(nil, "ARTWORK")
+iconFill:SetPoint("BOTTOMLEFT", 3, 3)
+iconFill:SetWidth(30)
+iconFill:SetTexture("Interface\\Icons\\INV_Elemental_Primal_Mana")
 local particles = {}
 for _, point in ipairs({{-15, 5, 2}, {15, -5, 2}, {-11, -13, 1.5}, {13, 12, 1.5}}) do
   local dot = timer:CreateTexture(nil, "OVERLAY")
@@ -38,13 +35,14 @@ glow:SetVertexColor(0.25, 0.7, 1, 0.85)
 glow:Hide()
 local ends, known = nil, false
 local function secret(value) return issecretvalue and issecretvalue(value) end
-local previousMana, lastLoss, lastCast
+local previousMana, lastLoss, lastCast, powerReadable
 local function observeMana()
   local ok, value = pcall(UnitPower, "player", 0)
   if not ok or secret(value) or type(value) ~= "number" then
-    previousMana, lastLoss, lastCast, known = nil, nil, nil, false
+    previousMana, lastLoss, powerReadable = nil, nil, false
     return
   end
+  powerReadable = true
   local now = GetTime()
   if previousMana and value < previousMana then
     lastLoss = now
@@ -54,6 +52,20 @@ local function observeMana()
     end
   end
   previousMana = value
+end
+local function reportedManaCost(spellID)
+  if secret(spellID) or not spellID or not C_Spell or not C_Spell.GetSpellPowerCost then return nil end
+  local ok, costs = pcall(C_Spell.GetSpellPowerCost, spellID)
+  if not ok or secret(costs) or type(costs) ~= "table" then return nil end
+  for _, cost in ipairs(costs) do
+    if secret(cost.type) then return nil end
+    if cost.type == 0 then
+      if secret(cost.cost) or secret(cost.costPercent) then return nil end
+      if type(cost.cost) ~= "number" and type(cost.costPercent) ~= "number" then return nil end
+      return (cost.cost or 0) > 0 or (cost.costPercent or 0) > 0
+    end
+  end
+  return false
 end
 local function updateVisibility()
   if not ForeverRangeAccessDB then timer:Hide(); return end
@@ -75,8 +87,8 @@ timer:SetScript("OnEnter", function(self)
   GameTooltip:SetOwner(self, "ANCHOR_TOP")
   GameTooltip:AddLine("Mana regeneration estimate")
   GameTooltip:AddLine("The droplet fills over five seconds and glows when regeneration is estimated to resume.", 1, 1, 1, true)
-  GameTooltip:AddLine(known and "Status: estimated from observed mana use." or "Status: unknown until mana use can be observed.", 1, 1, 1, true)
-  GameTooltip:AddLine("Based on observed mana loss near a successful cast. Free casts do not restart it. Client restrictions can make it unknown.", 1, 1, 1, true)
+  GameTooltip:AddLine(known and "Status: estimated timer." or "Status: unknown until a mana cost can be identified.", 1, 1, 1, true)
+  GameTooltip:AddLine("Uses observed mana loss or a reported spell cost. Free-cast effects may not always be reported accurately.", 1, 1, 1, true)
   GameTooltip:AddLine("Drag to move. Change visibility in /noki.", 1, 1, 1, true)
   GameTooltip:Show()
 end)
@@ -98,11 +110,13 @@ timer:SetScript("OnUpdate", function(self, delta)
     glow:SetAlpha(InCombatLockdown() and 0.85 or 0.5)
     glow:Show()
   end
-  for i, strip in ipairs(strips) do
-    local filled = known and i / #strips <= fraction
-    if filled then strip:SetVertexColor(0.23 + 0.16 * i / #strips, 0.64 + 0.22 * i / #strips, 1, 0.9)
-    else strip:SetVertexColor(0.25, 0.49, 0.61, known and 0.28 or 0.18) end
-  end
+  if known then
+    local visible = math.max(0.001, fraction)
+    iconFill:SetHeight(30 * visible)
+    iconFill:SetTexCoord(0, 1, 1 - visible, 1)
+    iconFill:SetAlpha(0.35 + 0.65 * fraction)
+    iconFill:Show()
+  else iconFill:Hide() end
   for i, dot in ipairs(particles) do
     dot:SetAlpha(isReady and (0.55 + 0.35 * math.sin(GetTime() * 2 + i)) or 0.2 + fraction * 0.45)
   end
@@ -114,7 +128,7 @@ events:RegisterEvent("UNIT_MAXPOWER")
 events:RegisterUnitEvent("UNIT_POWER_FREQUENT", "player")
 events:RegisterUnitEvent("UNIT_POWER_UPDATE", "player")
 events:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
-events:SetScript("OnEvent", function(_, event, unit, powerType)
+events:SetScript("OnEvent", function(_, event, unit, powerType, spellID)
   if event == "ADDON_LOADED" and unit == "NokiForever" then
     if ForeverRangeAccessDB and ForeverRangeAccessDB.manaRegenX and ForeverRangeAccessDB.manaRegenY then
       timer:ClearAllPoints()
@@ -136,7 +150,16 @@ events:SetScript("OnEvent", function(_, event, unit, powerType)
       ends, known = lastLoss + 5, true
       lastLoss, lastCast = nil, nil
     end
-    if C_Timer and C_Timer.After then C_Timer.After(0.15, observeMana) end
+    if C_Timer and C_Timer.After then
+      local cost = reportedManaCost(spellID)
+      C_Timer.After(0.15, function()
+        observeMana()
+        if not powerReadable then
+          if cost == true then ends, known = now + 5, true
+          elseif cost == nil then known = false end
+        end
+      end)
+    end
   end
 end)
 
