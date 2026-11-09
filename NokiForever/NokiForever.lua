@@ -192,6 +192,11 @@ choose:SetSize(260, 28)
 choose:SetPoint("TOP", button, "BOTTOM", 0, -3)
 choose:SetText("CHOOSE SPELL")
 choose:SetScript("OnClick", openPicker)
+local settings = CreateFrame("Button", nil, UIParent, "UIPanelButtonTemplate")
+settings:SetSize(260, 28)
+settings:SetPoint("TOP", choose, "BOTTOM", 0, -3)
+settings:SetText("NOKI SETTINGS")
+settings:SetScript("OnClick", function() if NokiForeverToggleMenu then NokiForeverToggleMenu() end end)
 
 -- Drag around the minimap; click to hide or restore the toolkit.
 local mini = CreateFrame("Button", "NokiForeverMinimapButton", Minimap)
@@ -216,7 +221,7 @@ local function positionMini(angle)
   mini:SetPoint("CENTER", Minimap, "CENTER", math.cos(radians) * radius, math.sin(radians) * radius)
 end
 local function setToolkitVisible(visible)
-  button:SetShown(visible); display:SetShown(visible); handle:SetShown(visible); choose:SetShown(visible)
+  button:SetShown(visible); display:SetShown(visible); handle:SetShown(visible); choose:SetShown(visible); settings:SetShown(visible)
   ForeverRangeAccessDB.hidden = not visible
 end
 mini:SetScript("OnDragStart", function(self)
@@ -234,15 +239,15 @@ end)
 mini:SetScript("OnDragStop", function(self) self.dragging = false; self:SetScript("OnUpdate", nil) end)
 mini:SetScript("OnClick", function(self, mouseButton)
   if self.dragging then return end
-  if mouseButton == "RightButton" then openPicker()
+  if mouseButton == "RightButton" then if NokiForeverToggleMenu then NokiForeverToggleMenu() else openPicker() end
   else setToolkitVisible(ForeverRangeAccessDB.hidden) end
 end)
 mini:SetScript("OnEnter", function(self)
   GameTooltip:SetOwner(self, "ANCHOR_LEFT")
   GameTooltip:AddLine("Noki Forever")
   GameTooltip:AddLine("Click: show or hide toolkit", 1, 1, 1)
-  GameTooltip:AddLine("Right-click: choose spell | Drag: move", 1, 1, 1)
-  GameTooltip:AddLine("/noki color: party name colors", 1, 1, 1)
+  GameTooltip:AddLine("Right-click: settings | Drag: move", 1, 1, 1)
+  GameTooltip:AddLine("/noki: open settings", 1, 1, 1)
   GameTooltip:Show()
 end)
 mini:SetScript("OnLeave", GameTooltip_Hide)
