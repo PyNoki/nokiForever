@@ -26,13 +26,11 @@ for _, point in ipairs({{-15, 5, 2}, {15, -5, 2}, {-11, -13, 1.5}, {13, 12, 1.5}
   dot:SetVertexColor(0.48, 0.85, 1, 1)
   particles[#particles + 1] = dot
 end
-local glow = timer:CreateTexture(nil, "OVERLAY")
-glow:SetTexture("Interface\\Buttons\\UI-ActionButton-Border")
-glow:SetBlendMode("ADD")
-glow:SetPoint("CENTER")
-glow:SetSize(62, 62)
-glow:SetVertexColor(0.25, 0.7, 1, 0.85)
-glow:Hide()
+local trim = CreateFrame("Frame", nil, timer, "BackdropTemplate")
+trim:SetAllPoints(timer)
+trim:SetFrameLevel(timer:GetFrameLevel() + 2)
+trim:SetBackdrop({edgeFile="Interface\\Buttons\\WHITE8X8", edgeSize=1})
+trim:SetBackdropBorderColor(0.85, 0.67, 0.32, 0.65)
 local ends, known = nil, false
 local function secret(value) return issecretvalue and issecretvalue(value) end
 local previousMana, lastLoss, lastCast, powerReadable
@@ -100,15 +98,14 @@ timer:SetScript("OnUpdate", function(self, delta)
   drawElapsed = 0
   local fraction, isReady = 0, false
   if not known then
-    glow:Hide()
+    trim:SetBackdropBorderColor(0.65, 0.5, 0.25, 0.55)
   elseif ends and GetTime() < ends then
     local left = ends - GetTime()
     fraction = math.max(0, math.min(1, 1 - left / 5))
-    glow:Hide()
+    trim:SetBackdropBorderColor(0.78, 0.6, 0.28, 0.75)
   else
     fraction, isReady = 1, true
-    glow:SetAlpha(InCombatLockdown() and 0.85 or 0.5)
-    glow:Show()
+    trim:SetBackdropBorderColor(1, 0.8, 0.4, 1)
   end
   if known then
     local visible = math.max(0.001, fraction)
