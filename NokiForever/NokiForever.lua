@@ -24,7 +24,14 @@ status:SetPoint("CENTER")
 status:SetText("SELECT AN ENEMY")
 local plateText, plateOwner, plateMarker
 -- Bag scaling is opt-in so the default UI remains untouched until requested.
-local bagFramesHooked = {}
+local bagFramesHooked, scalingBag = {}, false
+local function setBagScale(frame)
+  local scale = ForeverRangeAccessDB and ForeverRangeAccessDB.bagScale
+  if not scale or InCombatLockdown() or scalingBag then return end
+  scalingBag = true
+  pcall(frame.SetScale, frame, scale)
+  scalingBag = false
+end
 local function applyBagScale()
   if not ForeverRangeAccessDB or not ForeverRangeAccessDB.bagScale then return end
   if InCombatLockdown() then return end
@@ -32,13 +39,17 @@ local function applyBagScale()
     if not frame or (frame.IsForbidden and frame:IsForbidden()) then return end
     if not bagFramesHooked[frame] then
       frame:HookScript("OnShow", function()
-        if not InCombatLockdown() and ForeverRangeAccessDB.bagScale then
-          pcall(frame.SetScale, frame, ForeverRangeAccessDB.bagScale)
-        end
+        setBagScale(frame)
+        if C_Timer and C_Timer.After then C_Timer.After(0, function() setBagScale(frame) end) end
+      end)
+      -- Blizzard may recalculate bag scale after showing or laying out the bags.
+      pcall(hooksecurefunc, frame, "SetScale", function(self, scale)
+        if not scalingBag and ForeverRangeAccessDB and ForeverRangeAccessDB.bagScale
+          and scale ~= ForeverRangeAccessDB.bagScale then setBagScale(self) end
       end)
       bagFramesHooked[frame] = true
     end
-    pcall(frame.SetScale, frame, ForeverRangeAccessDB.bagScale)
+    setBagScale(frame)
   end
   apply(_G.ContainerFrameCombinedBags)
   for i = 1, (NUM_CONTAINER_FRAMES or 13) do apply(_G["ContainerFrame" .. i]) end
@@ -298,6 +309,8 @@ end)
 events:RegisterEvent("ADDON_LOADED")
 events:RegisterEvent("PLAYER_LOGIN")
 events:RegisterEvent("PLAYER_REGEN_ENABLED")
+events:RegisterEvent("PLAYER_ENTERING_WORLD")
+events:RegisterEvent("BAG_UPDATE_DELAYED")
 events:SetScript("OnEvent", function(_, event, name)
   if event == "ADDON_LOADED" and name == ADDON then
     ForeverRangeAccessDB = ForeverRangeAccessDB or {}
@@ -309,7 +322,8 @@ events:SetScript("OnEvent", function(_, event, name)
     setToolkitVisible(not ForeverRangeAccessDB.hidden)
     if ForeverRangeAccessDB.spellID then setSpell(ForeverRangeAccessDB.spellID) end
   end
-  if event == "PLAYER_LOGIN" or event == "PLAYER_REGEN_ENABLED" or event == "ADDON_LOADED" then applyBagScale() end
+  if event == "PLAYER_LOGIN" or event == "PLAYER_REGEN_ENABLED" or event == "PLAYER_ENTERING_WORLD"
+    or event == "BAG_UPDATE_DELAYED" or event == "ADDON_LOADED" then applyBagScale() end
 end)
 SLASH_FOREVERRANGEACCESS1 = "/fra"
 SlashCmdList.FOREVERRANGEACCESS = function(message)
