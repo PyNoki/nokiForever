@@ -3,6 +3,18 @@ $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
+function Find-ForeverFolder([string]$Path) {
+    if (-not $Path -or -not (Test-Path -LiteralPath $Path -PathType Container)) { return $null }
+    $item = Get-Item -LiteralPath $Path
+    $child = Join-Path $item.FullName '_forever_'
+    if (Test-Path -LiteralPath (Join-Path $child 'Wow.exe') -PathType Leaf) { return $child }
+    while ($item) {
+        if ($item.Name -ieq '_forever_' -and (Test-Path -LiteralPath (Join-Path $item.FullName 'Wow.exe') -PathType Leaf)) { return $item.FullName }
+        $item = $item.Parent
+    }
+    return $null
+}
+
 try {
     if (-not $ZipPath) {
         $download = Join-Path ([IO.Path]::GetTempPath()) ('NokiForeverDownload-' + [guid]::NewGuid().ToString('N') + '.zip')
@@ -14,25 +26,29 @@ try {
     if (-not (Test-Path -LiteralPath $ZipPath -PathType Leaf)) { throw 'The selected ZIP was not found.' }
 
     if (-not $GamePath) {
-        $candidates = @(
+        $candidates = @(@(
             "$env:ProgramFiles\World of Warcraft\_forever_",
             "${env:ProgramFiles(x86)}\World of Warcraft\_forever_",
             'C:\World of Warcraft\_forever_', 'C:\Games\World of Warcraft\_forever_'
-        ) | Where-Object { Test-Path -LiteralPath (Join-Path $_ 'Wow.exe') -PathType Leaf } | Select-Object -Unique
+        ) + @(Get-PSDrive -PSProvider FileSystem | ForEach-Object { Join-Path $_.Root 'Battle.net\World of Warcraft\_forever_' })) | Where-Object { Test-Path -LiteralPath (Join-Path $_ 'Wow.exe') -PathType Leaf } | Select-Object -Unique
+        $candidates = @($candidates)
         if ($candidates.Count -eq 1) {
             $answer = [System.Windows.Forms.MessageBox]::Show("Install to this Forever folder?`n`n$($candidates[0])`n`nChoose No to select another folder.", 'Noki Forever Updater', 'YesNoCancel', 'Question')
             if ($answer -eq 'Cancel') { throw 'Installation cancelled.' }
             if ($answer -eq 'Yes') { $GamePath = $candidates[0] }
         }
-        if (-not $GamePath) {
+        while (-not $GamePath) {
             $picker = New-Object System.Windows.Forms.FolderBrowserDialog
-            $picker.Description = 'Select your World of Warcraft folder or its _forever_ folder'
+            $picker.Description = 'Select the _forever_ folder, World of Warcraft folder, or a folder inside _forever_'
             if ($picker.ShowDialog() -ne [System.Windows.Forms.DialogResult]::OK) { throw 'No game folder selected. Nothing was installed.' }
-            $GamePath = $picker.SelectedPath
+            $GamePath = Find-ForeverFolder $picker.SelectedPath
+            if (-not $GamePath) {
+                [System.Windows.Forms.MessageBox]::Show("Could not find Wow.exe in _forever_. Select your World of Warcraft folder, _forever_ folder, or a folder inside _forever_.`n`nFor example: F:\Battle.net\World of Warcraft\_forever_", 'Choose a different folder', 'OK', 'Warning') | Out-Null
+            }
         }
     }
-    if (Test-Path -LiteralPath (Join-Path $GamePath '_forever_\Wow.exe') -PathType Leaf) { $GamePath = Join-Path $GamePath '_forever_' }
-    if (-not (Test-Path -LiteralPath (Join-Path $GamePath 'Wow.exe') -PathType Leaf)) { throw 'Could not find Wow.exe in the selected _forever_ folder. Select the active Forever installation.' }
+    $GamePath = Find-ForeverFolder $GamePath
+    if (-not $GamePath) { throw 'Could not find Wow.exe in the selected _forever_ folder. Select the active Forever installation.' }
 
     $archive = [IO.Compression.ZipFile]::OpenRead((Resolve-Path -LiteralPath $ZipPath).Path)
     try {
