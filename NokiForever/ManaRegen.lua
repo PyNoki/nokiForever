@@ -143,6 +143,9 @@ events:SetScript("OnEvent", function(_, event, unit, powerType, spellID)
   elseif (event == "UNIT_POWER_FREQUENT" or event == "UNIT_POWER_UPDATE") and unit == "player" then
     if not secret(powerType) and (not powerType or powerType == "MANA") then observeMana() end
   elseif event == "UNIT_SPELLCAST_SUCCEEDED" and unit == "player" then
+    -- Wand Shoot does not spend mana. Some clients do not report its cost,
+    -- which must not discard a valid timer or its completed glow.
+    if not secret(spellID) and spellID == 5019 then return end
     local now = GetTime()
     lastCast = now
     observeMana()
