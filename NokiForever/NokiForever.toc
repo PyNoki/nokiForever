@@ -1,0 +1,8 @@
+## Interface: 16001
+## Title: Noki Forever
+## Notes: Target range estimate and a manual spell button.
+## Version: 0.2.0
+## SavedVariables: ForeverRangeAccessDB
+NokiForever.lua
+
+
