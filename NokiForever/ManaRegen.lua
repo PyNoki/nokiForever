@@ -1,5 +1,5 @@
--- Estimated five-second rule. Spell cost and casting events may be restricted or
--- may not reflect temporary free-cast effects, so this is never server proof.
+-- Estimated five-second rule. Only observed mana loss near a successful cast
+-- starts the timer; inaccessible power data produces an unknown state.
 local timer = CreateFrame("Frame", "NokiForeverManaRegen", UIParent, "BackdropTemplate")
 timer:SetSize(36, 36)
 timer:SetPoint("CENTER", UIParent, "CENTER", 0, -120)
@@ -32,6 +32,23 @@ unknown:SetPoint("CENTER")
 unknown:SetText("?")
 local ends, known = nil, false
 local function secret(value) return issecretvalue and issecretvalue(value) end
+local previousMana, lastLoss, lastCast
+local function observeMana()
+  local ok, value = pcall(UnitPower, "player", 0)
+  if not ok or secret(value) or type(value) ~= "number" then
+    previousMana, lastLoss, lastCast, known = nil, nil, nil, false
+    return
+  end
+  local now = GetTime()
+  if previousMana and value < previousMana then
+    lastLoss = now
+    if lastCast and math.abs(now - lastCast) <= 1 then
+      ends, known = now + 5, true
+      lastLoss, lastCast = nil, nil
+    end
+  end
+  previousMana = value
+end
 local function updateVisibility()
   if not ForeverRangeAccessDB then timer:Hide(); return end
   local ok, maximum = pcall(UnitPowerMax, "player", 0)
@@ -52,7 +69,7 @@ timer:SetScript("OnEnter", function(self)
   GameTooltip:SetOwner(self, "ANCHOR_TOP")
   GameTooltip:AddLine("Mana regeneration estimate")
   GameTooltip:AddLine("The icon fills over five seconds and glows when regeneration is estimated to resume. ? means unknown.", 1, 1, 1, true)
-  GameTooltip:AddLine("Based on mana-cost spell casts; free casts and client restrictions may affect accuracy.", 1, 1, 1, true)
+  GameTooltip:AddLine("Based on observed mana loss near a successful cast. Free casts do not restart it. Client restrictions can make it unknown.", 1, 1, 1, true)
   GameTooltip:AddLine("Drag to move. Change visibility in /noki.", 1, 1, 1, true)
   GameTooltip:Show()
 end)
@@ -88,28 +105,32 @@ local events = CreateFrame("Frame")
 events:RegisterEvent("ADDON_LOADED")
 events:RegisterEvent("PLAYER_ENTERING_WORLD")
 events:RegisterEvent("UNIT_MAXPOWER")
+events:RegisterUnitEvent("UNIT_POWER_FREQUENT", "player")
+events:RegisterUnitEvent("UNIT_POWER_UPDATE", "player")
 events:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
-events:SetScript("OnEvent", function(_, event, unit, _, spellID)
+events:SetScript("OnEvent", function(_, event, unit, powerType)
   if event == "ADDON_LOADED" and unit == "NokiForever" then
     if ForeverRangeAccessDB and ForeverRangeAccessDB.manaRegenX and ForeverRangeAccessDB.manaRegenY then
       timer:ClearAllPoints()
       timer:SetPoint("CENTER", UIParent, "CENTER", ForeverRangeAccessDB.manaRegenX, ForeverRangeAccessDB.manaRegenY)
     end
     updateVisibility()
+    observeMana()
   elseif event == "PLAYER_ENTERING_WORLD" or (event == "UNIT_MAXPOWER" and unit == "player") then
     updateVisibility()
+    previousMana, lastLoss, lastCast, known = nil, nil, nil, false
+    observeMana()
+  elseif (event == "UNIT_POWER_FREQUENT" or event == "UNIT_POWER_UPDATE") and unit == "player" then
+    if not secret(powerType) and (not powerType or powerType == "MANA") then observeMana() end
   elseif event == "UNIT_SPELLCAST_SUCCEEDED" and unit == "player" then
-    if not spellID or not C_Spell or not C_Spell.GetSpellPowerCost then known = false; return end
-    local ok, costs = pcall(C_Spell.GetSpellPowerCost, spellID)
-    if not ok or secret(costs) or type(costs) ~= "table" then known = false; return end
-    for _, cost in ipairs(costs) do
-      if secret(cost.type) or secret(cost.cost) then known = false; return end
-      if cost.type == 0 and type(cost.cost) == "number" and cost.cost > 0 then
-        known, ends = true, GetTime() + 5
-        timer:SetBackdropBorderColor(0.55, 0.46, 0.3, 1)
-        return
-      end
+    local now = GetTime()
+    lastCast = now
+    observeMana()
+    if lastLoss and now - lastLoss <= 1 then
+      ends, known = lastLoss + 5, true
+      lastLoss, lastCast = nil, nil
     end
+    if C_Timer and C_Timer.After then C_Timer.After(0.15, observeMana) end
   end
 end)
 
