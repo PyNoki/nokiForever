@@ -116,7 +116,7 @@ local function build()
     row.expand:SetScript("OnClick",function()
       local item=row.item;if not item then return end
       if selectedID==item.id then selectedID=nil;analysis=nil;analysisPage=0;recipeList={};recipeOffset=0;refreshRecipes();refreshAnalysis();render();return end
-      selectedID=item.id;analysis=nil;analysisPage=0;analysisMode="best";recipeList=core.DemandRecipes(item.id);recipeOffset=0;refreshRecipes();analysisStatus:SetText("Checking live price tiers for "..item.name.."...");refreshAnalysis(true);render()
+      selectedID=item.id;analysis=nil;analysisPage=0;analysisMode="best";recipeList=core.DemandRecipes(item.id);recipeOffset=0;refreshRecipes();analysisStatus:SetText("Queued: "..item.name.." | checking when the current scan or listing query finishes...");refreshAnalysis(true);render()
       local ok,err=core.CheckBuyout(item.key,function(result,message)
         if selectedID~=item.id then return end
         analysis=result;analysisPage=0;analysisStatus:SetText(result and ("LIVE BUYOUT: "..item.name.." | Checked "..date("%H:%M:%S",result.checked)) or ("BUYOUT: "..item.name.." | "..(message or "Unavailable")));refreshAnalysis(true)

@@ -2,6 +2,7 @@
 local core=NokiUnifiedCore
 local owned, competitions={},{}
 local state={queue={},index=1,search=nil,alerted=false}
+function core.IsCompetitionSearchActive() return state.search~=nil end
 local startChecks
 local panel, summary, status, page, rows, scrollOffset, scrollbar, updatingScrollbar
 local requestedNames={}
@@ -195,6 +196,7 @@ local function refreshOwned()
 end
 local function requestOwned()
   if not core.active or not C_AuctionHouse or not C_AuctionHouse.QueryOwnedAuctions then return end
+  if core.working.buyout then return end
   if C_AuctionHouse.IsThrottledMessageSystemReady and not C_AuctionHouse.IsThrottledMessageSystemReady() then return end
   local ok=pcall(C_AuctionHouse.QueryOwnedAuctions,{})
   if ok then state.ownedRequested=(GetServerTime and GetServerTime()) or time() end
@@ -367,7 +369,7 @@ local interval=0;f:SetScript("OnUpdate",function(_,delta)
   if state.autoScanPending and not core.AutoScanEnabled() then state.autoScanPending=false;core.SetWorking("pending",false) end
   if state.autoScanPending and core.active then
     local n=(GetServerTime and GetServerTime()) or time()
-    if core.working.competition then state.scanPendingSince=n
+    if core.working.competition or core.working.buyout then state.scanPendingSince=n
     elseif n-(state.scanPendingSince or n)>45 then state.autoScanPending=false;state.autoRetryAfter=n+core.AutoScanInterval()*60;core.SetWorking("pending",false);print("Noki Trading: automatic scan could not start; use Scan now to retry.")
     elseif n-(state.scanPendingSince or n)>=3 and core.phase=="idle" then
       local ok=core.Scan();if ok then state.autoScanPending=false end

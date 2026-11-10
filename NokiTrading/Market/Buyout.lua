@@ -59,27 +59,36 @@ local function collect()
   if #offers==0 then finish(nil,"No buyout listings found.");return end
   local result=core.CalculateBuyout(offers);result.checked=now();finish(result)
 end
+local function tryStart()
+  local p=pending
+  if not p or p.started or core.phase~="idle" or (core.IsCompetitionSearchActive and core.IsCompetitionSearchActive()) then return end
+  local api=C_AuctionHouse
+  if api.IsThrottledMessageSystemReady and not api.IsThrottledMessageSystemReady() then return end
+  local info=api.GetItemKeyInfo(p.key)
+  if not info or type(info.isCommodity)~="boolean" then finish(nil,"Item details are not ready; try again.");return end
+  p.commodity=info.isCommodity;p.started=now()
+  local ok=pcall(api.SendSearchQuery,p.key,{},true)
+  if not ok then finish(nil,"Could not request price tiers.") end
+end
 function core.CheckBuyout(key,callback)
   if not core.active or not AuctionHouseFrame or not AuctionHouseFrame:IsShown() then return false,"Open the auction house first." end
-  if pending or core.phase~="idle" or core.working.competition or core.working.pending then return false,"Wait for the scan or listing checks to finish." end
+  if pending then return false,"Another price check is running; try again shortly." end
   local api=C_AuctionHouse
   if not api or not api.SendSearchQuery or not api.GetItemKeyInfo then return false,"Auction search is unavailable." end
-  if api.IsThrottledMessageSystemReady and not api.IsThrottledMessageSystemReady() then return false,"Auction requests are busy; try again." end
-  local info=api.GetItemKeyInfo(key)
-  if not info or type(info.isCommodity)~="boolean" then return false,"Item details are not ready; try again." end
-  pending={key=key,commodity=info.isCommodity,started=now(),callback=callback};core.SetWorking("buyout",true)
-  local ok=pcall(api.SendSearchQuery,key,{},true)
-  if not ok then finish(nil,"Could not request price tiers.");return true end
+  pending={key=key,queued=now(),callback=callback};core.SetWorking("buyout",true)
+  tryStart()
   return true
 end
 local events=CreateFrame("Frame")
 for _,event in ipairs({"COMMODITY_SEARCH_RESULTS_UPDATED","COMMODITY_SEARCH_RESULTS_ADDED","ITEM_SEARCH_RESULTS_UPDATED","ITEM_SEARCH_RESULTS_ADDED","AUCTION_HOUSE_CLOSED"}) do pcall(events.RegisterEvent,events,event) end
 events:SetScript("OnEvent",function(_,event,arg)
   if event=="AUCTION_HOUSE_CLOSED" then if pending then finish(nil,"Auction house closed.") end;return end
-  local p=pending;if not p then return end
+  local p=pending;if not p or not p.started then return end
   if (p.commodity and (event=="COMMODITY_SEARCH_RESULTS_UPDATED" or event=="COMMODITY_SEARCH_RESULTS_ADDED") and arg==p.key.itemID) or (not p.commodity and (event=="ITEM_SEARCH_RESULTS_UPDATED" or event=="ITEM_SEARCH_RESULTS_ADDED") and keyEqual(arg,p.key)) then p.seen=true;p.requested=false;collect() end
 end)
 local elapsed=0;events:SetScript("OnUpdate",function(_,delta)
   if not pending then return end;elapsed=elapsed+delta;if elapsed<.5 then return end;elapsed=0
-  if now()-pending.started>45 then finish(nil,"Price check timed out; try again.") else collect() end
+  if not pending.started then
+    if now()-pending.queued>240 then finish(nil,"Price check waited too long; try again.") else tryStart() end
+  elseif now()-pending.started>45 then finish(nil,"Price check timed out; try again.") else collect() end
 end)
