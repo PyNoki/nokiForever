@@ -87,6 +87,35 @@ function NokiUnifiedAPI.GetMarket() return core.Market() end
 function NokiUnifiedAPI.GetTableInfo() local t=getTable();if not t then return nil end;return {market=t.market,updated=t.updated,count=t.count,snapshot=false} end
 function NokiUnifiedAPI.GetPrice(id) local t=getTable();local r=t and t.items[tonumber(id)];if not r then return nil end;return {market=t.market,updated=t.updated,soldPerDay=r.soldPerDay,minBuyout=r.minBuyout,quantity=r.quantity} end
 function core.Subscribe(fn) core.listeners[#core.listeners+1]=fn end
+local function setupSellScanNotice()
+  if not AuctionHouseFrame then return end
+  for _,key in ipairs({"CommoditiesSellFrame","ItemSellFrame"}) do
+    local frame=AuctionHouseFrame[key]
+    if frame and frame.PostButton and not frame.nokiScanNotice then
+      local notice=frame:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
+      notice:SetPoint("TOP",frame.PostButton,"BOTTOM",0,-5);notice:SetWidth(230)
+      notice:SetText("Auctions cannot be created while the scan is running.");notice:SetTextColor(1,.75,.25);notice:Hide()
+      frame.nokiScanNotice=notice
+      if hooksecurefunc and frame.UpdatePostButtonState then
+        hooksecurefunc(frame,"UpdatePostButtonState",function(self)
+          if core.phase~="idle" then self.PostButton:Disable() end
+        end)
+      end
+    end
+  end
+end
+local function updateSellScanNotice()
+  setupSellScanNotice()
+  if not AuctionHouseFrame then return end
+  for _,key in ipairs({"CommoditiesSellFrame","ItemSellFrame"}) do
+    local frame=AuctionHouseFrame[key]
+    if frame and frame.nokiScanNotice then
+      frame.nokiScanNotice:SetShown(core.phase~="idle")
+      if core.phase~="idle" then frame.PostButton:Disable()
+      elseif frame.UpdatePostButtonState then frame:UpdatePostButtonState() end
+    end
+  end
+end
 local indicator
 local function updateIndicator()
   if not indicator and AuctionHouseFrame then
@@ -111,6 +140,7 @@ end
 local function announce(event,rows)
   if event=="start" then core.SetWorking("pending",false);core.SetWorking("browse",true)
   elseif event=="complete" or event=="failed" then core.SetWorking("browse",false) end
+  updateSellScanNotice()
   for _,fn in ipairs(core.listeners) do local ok,err=pcall(fn,event,rows);if not ok then print("Noki Trading listener: "..tostring(err)) end end
 end
 local function ready()
@@ -196,7 +226,7 @@ for _,event in ipairs({"ADDON_LOADED","PLAYER_LOGIN","AUCTION_HOUSE_SHOW","AUCTI
 events:SetScript("OnEvent",function(_,event,arg)
   if event=="ADDON_LOADED" and arg=="NokiTrading" then NokiUnifiedCoreDB=NokiUnifiedCoreDB or {};NokiUnifiedCoreDB.prices=NokiUnifiedCoreDB.prices or {};if NokiUnifiedCoreDB.autoScan==nil then NokiUnifiedCoreDB.autoScan=true end;core.SetAutoScanInterval(NokiUnifiedCoreDB.scanIntervalMinutes or 30)
   elseif event=="PLAYER_LOGIN" then core.RestoreQuantitiesFromScan()
-  elseif event=="AUCTION_HOUSE_SHOW" then core.active=true;if core.OnOpen then core.OnOpen() end
+  elseif event=="AUCTION_HOUSE_SHOW" then core.active=true;updateSellScanNotice();if core.OnOpen then core.OnOpen() end
   elseif event=="AUCTION_HOUSE_CLOSED" then
     core.active=false;if core.phase~="idle" then core.phase="idle";announce("failed") end
     core.working={};updateIndicator()

@@ -39,13 +39,35 @@ local function stackCount(tooltip,id)
   if count then return count,cost,true end
   local owner=tooltip.GetOwner and tooltip:GetOwner()
   if not owner then return nil end
+  if AuctionHouseFrame then
+    for _,key in ipairs({"CommoditiesSellFrame","ItemSellFrame"}) do
+      local frame=AuctionHouseFrame[key]
+      local cursor=owner
+      for _=1,8 do
+        if not cursor then break end
+        if frame and cursor==frame then
+          local location=frame.GetItem and frame:GetItem()
+          local itemID=location and C_Item and C_Item.GetItemID and C_Item.GetItemID(location)
+          local quantity=frame.GetQuantity and frame:GetQuantity()
+          if itemID==id and type(quantity)=="number" and quantity>0 then return quantity,nil,false,true end
+          break
+        end
+        cursor=cursor.GetParent and cursor:GetParent()
+      end
+    end
+  end
   local bag=owner.GetBagID and owner:GetBagID()
   local slot=owner.GetID and owner:GetID()
+  local name=owner.GetName and owner:GetName()
+  -- The main bank uses its own item buttons rather than a container frame.
+  if name and name:match("^BankFrameItem%d+$") then
+    bag=(Enum and Enum.BagIndex and Enum.BagIndex.Bank) or BANK_CONTAINER or -1
+  end
   local parent=owner.GetParent and owner:GetParent()
   if type(bag)~="number" and parent and parent.GetName and (parent:GetName() or ""):match("^ContainerFrame%d+") then bag=parent.GetID and parent:GetID() end
   if type(bag)=="number" and type(slot)=="number" and C_Container and C_Container.GetContainerItemInfo then
     local info=C_Container.GetContainerItemInfo(bag,slot)
-    if type(info)=="table" and type(info.stackCount)=="number" and info.stackCount>0 then return info.stackCount end
+    if type(info)=="table" and (not info.itemID or info.itemID==id) and type(info.stackCount)=="number" and info.stackCount>0 then return info.stackCount end
   end
   return nil
 end
@@ -56,7 +78,7 @@ local function addValue(tooltip,data)
   if not id and tooltip.GetItem then local _,link=tooltip:GetItem();id=link and tonumber(link:match("item:(%d+)")) end
   if not id then return end
   local market=NokiUnifiedCore.Market();local book=market and NokiUnifiedCoreDB and NokiUnifiedCoreDB.prices and NokiUnifiedCoreDB.prices[market]
-  local row=book and book.items and book.items[id];local count,cost,isMerchant=stackCount(tooltip,id)
+  local row=book and book.items and book.items[id];local count,cost,isMerchant,isAuction=stackCount(tooltip,id)
   local now=(GetServerTime and GetServerTime()) or time()
   local scanAge=book and type(book.observed)=="number" and math.max(0,math.floor((now-book.observed)/60))
   local priceAge
@@ -79,7 +101,7 @@ local function addValue(tooltip,data)
     priceAge=type(row.observed)=="number" and math.max(0,math.floor((now-row.observed)/60)) or scanAge
     if count then
       local gross=row.price*count;local net=math.floor(gross*95/100)
-      pair("Stack price ("..count..")",money(gross))
+      pair((isAuction and "Auction quantity (" or "Stack price (")..count..")",money(gross))
       pair("After 5% AH cut",money(net))
       if isMerchant and type(cost)=="number" and cost>=0 then
         pair("Vendor pack cost",money(cost))
