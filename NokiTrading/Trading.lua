@@ -6,6 +6,7 @@ local startChecks
 local panel, summary, status, page, rows, scrollOffset, scrollbar, updatingScrollbar
 local requestedNames={}
 local expandedAuction
+local pendingDeposit
 scrollOffset=0
 local function formatMoney(n)
   if type(n)~="number" then return "--" end
@@ -68,6 +69,9 @@ local function auctionDeposit(item)
   local amount=item.depositAmount
   if amount==nil then amount=item.depositCost end
   if type(amount)=="number" and amount>=0 then return amount end
+  local saved=NokiUnifiedCoreDB and NokiUnifiedCoreDB.auctionDeposits
+  local entry=saved and saved[tostring(item.auctionID)]
+  if entry and entry.owner==((UnitGUID and UnitGUID("player")) or "") and entry.itemKey==keyString(item.itemKey) and entry.quantity==item.quantity and entry.buyout==item.buyoutAmount then return entry.amount end
   return nil
 end
 core.OwnedAuctionDeposit=auctionDeposit
@@ -298,12 +302,44 @@ function core.OnOpen()
   state.cancelPending=nil;state.cancelStarted=nil
   state.alerted=false;state.autoScanPending=core.AutoScanDue();state.opened=(GetServerTime and GetServerTime()) or time();state.scanPendingSince=state.opened;state.autoRetryAfter=nil
   core.SetWorking("pending",state.autoScanPending)
+  if AuctionHouseFrame then
+    for _,kind in ipairs({"CommoditiesSellFrame","ItemSellFrame"}) do
+      local sell=AuctionHouseFrame[kind]
+      local isCommodity=kind=="CommoditiesSellFrame"
+      if sell and sell.PostButton and sell.PostButton.HookScript and not sell.nokiDepositHook then
+        sell.nokiDepositHook=true
+        sell.PostButton:HookScript("PreClick",function()
+          pendingDeposit=nil
+          local ok,candidate=pcall(function()
+            local location=sell:GetItem();local key=location and C_AuctionHouse.GetItemKeyFromItem(location)
+            local quantity=sell:GetQuantity();local amount=sell:GetDepositAmount();local owner=UnitGUID and UnitGUID("player")
+            if type(amount)=="number" and C_AuctionHouse.SupportsCopperValues and not C_AuctionHouse.SupportsCopperValues() then amount=math.ceil(amount/100)*100 end
+            local buyout
+            if isCommodity then buyout=sell:GetUnitPrice()
+            else local _,price=sell:GetPrice();buyout=price end
+            if not key or type(quantity)~="number" or quantity<1 or type(amount)~="number" or amount<0 or not owner or type(buyout)~="number" then return nil end
+            -- Multi-item sales may create several auctions with different deposits.
+            if not isCommodity and quantity~=1 then return nil end
+            return {itemKey=keyString(key),quantity=quantity,amount=amount,buyout=buyout,owner=owner,time=(GetServerTime and GetServerTime()) or time()}
+          end)
+          if ok then pendingDeposit=candidate end
+        end)
+      end
+    end
+  end
   if C_Timer and C_Timer.After then C_Timer.After(1,function() if core.active then createPanel();requestOwned() end end) end
 end
 local f=CreateFrame("Frame")
-for _,e in ipairs({"OWNED_AUCTIONS_UPDATED","AUCTION_CANCELED","ITEM_SEARCH_RESULTS_UPDATED","ITEM_SEARCH_RESULTS_ADDED","COMMODITY_SEARCH_RESULTS_UPDATED","COMMODITY_SEARCH_RESULTS_ADDED","AUCTION_HOUSE_CLOSED","GET_ITEM_INFO_RECEIVED","ITEM_KEY_ITEM_INFO_RECEIVED"}) do pcall(f.RegisterEvent,f,e) end
+for _,e in ipairs({"OWNED_AUCTIONS_UPDATED","AUCTION_CANCELED","AUCTION_HOUSE_AUCTION_CREATED","ITEM_SEARCH_RESULTS_UPDATED","ITEM_SEARCH_RESULTS_ADDED","COMMODITY_SEARCH_RESULTS_UPDATED","COMMODITY_SEARCH_RESULTS_ADDED","AUCTION_HOUSE_CLOSED","GET_ITEM_INFO_RECEIVED","ITEM_KEY_ITEM_INFO_RECEIVED"}) do pcall(f.RegisterEvent,f,e) end
 f:SetScript("OnEvent",function(_,event,arg)
   if event=="OWNED_AUCTIONS_UPDATED" then refreshOwned()
+  elseif event=="AUCTION_HOUSE_AUCTION_CREATED" then
+    local now=(GetServerTime and GetServerTime()) or time()
+    if type(arg)=="number" and pendingDeposit and now-pendingDeposit.time<=60 and NokiUnifiedCoreDB then
+      NokiUnifiedCoreDB.auctionDeposits=NokiUnifiedCoreDB.auctionDeposits or {}
+      NokiUnifiedCoreDB.auctionDeposits[tostring(arg)]=pendingDeposit
+    end
+    pendingDeposit=nil;state.needOwned=true;state.ownedRequested=nil;requestOwned()
   elseif event=="AUCTION_CANCELED" then
     local id=state.cancelPending
     if id and (type(arg)~="number" or arg==id) then
@@ -313,7 +349,7 @@ f:SetScript("OnEvent",function(_,event,arg)
     end
     state.needOwned=true;state.ownedRequested=nil;requestOwned()
   elseif event=="GET_ITEM_INFO_RECEIVED" or event=="ITEM_KEY_ITEM_INFO_RECEIVED" then render()
-  elseif event=="AUCTION_HOUSE_CLOSED" then state.queue={};state.index=1;state.search=nil;core.SetWorking("competition",false);core.SetWorking("pending",false)
+  elseif event=="AUCTION_HOUSE_CLOSED" then pendingDeposit=nil;state.queue={};state.index=1;state.search=nil;core.SetWorking("competition",false);core.SetWorking("pending",false)
   elseif state.search and ((state.search.commodity and (event=="COMMODITY_SEARCH_RESULTS_UPDATED" or event=="COMMODITY_SEARCH_RESULTS_ADDED") and arg==state.search.key.itemID) or (not state.search.commodity and (event=="ITEM_SEARCH_RESULTS_UPDATED" or event=="ITEM_SEARCH_RESULTS_ADDED") and type(arg)=="table" and keyString(arg)==state.search.keyString)) then state.search.seen=true;checkDone() end
 end)
 local interval=0;f:SetScript("OnUpdate",function(_,delta)

@@ -16,9 +16,11 @@ The addon only reports range and does not cast spells. Its range estimates are a
 
 Noki Trading combines Market, Crafting, auction tracking, scanning, tooltips, and Help in one addon. It works without the AHledger or Auctionator addons. Daily sales estimates come from market data maintained by AHledger (ahledger.com).
 
-[Download Noki Trading 1.0.17](https://github.com/PyNoki/nokiForever/raw/refs/heads/main/NokiTrading-1.0.17.zip). Close WoW, extract the ZIP, and copy the `NokiTrading` folder to `World of Warcraft/_forever_/Interface/AddOns/`. Enable **Noki Trading** at the character screen and disable older Noki Market, Noki Crafting, Noki Trading Core, and unified beta addons.
+[Download Noki Trading 1.0.18](https://github.com/PyNoki/nokiForever/raw/refs/heads/main/NokiTrading-1.0.18.zip). Close WoW, extract the ZIP, and copy the `NokiTrading` folder to `World of Warcraft/_forever_/Interface/AddOns/`. Enable **Noki Trading** at the character screen and disable older Noki Market, Noki Crafting, Noki Trading Core, and unified beta addons.
 
 The Purchases tab records purchase events while the addon is enabled. Commodity prices are quotes, not verified payments; missing quantities and prices show as `--`. Earlier purchases and bids won later may not be recorded.
+
+For new listings made through the normal sell screen, Your Auctions saves the displayed deposit when it can match the confirmed listing. Deposits for older listings and ambiguous multi-item posts may be unavailable.
 
 Run `Noki Trading Updater.exe` from the ZIP, choose your region, ruleset and faction, and click **Update now**. Reload the game after updates. The updater also checks for newer addon versions; click **Install addon update** when one is available. For existing beta users, close WoW and use **Migrate old data** before opening the game. Existing saves remain intact. The updater is unsigned and Windows may show a warning.
 
