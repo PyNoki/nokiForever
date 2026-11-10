@@ -3,7 +3,7 @@ local core=NokiUnifiedCore
 local owned, competitions={},{}
 local state={queue={},index=1,search=nil,alerted=false}
 local startChecks
-local panel, summary, status, page, rows, scrollOffset
+local panel, summary, status, page, rows, scrollOffset, scrollbar, updatingScrollbar
 local requestedNames={}
 local expandedAuction
 scrollOffset=0
@@ -130,6 +130,9 @@ end
 core.CompareOwned=comparison
 local function render()
   if not panel then return end
+  local maxOffset=math.max(0,#owned-8)
+  scrollOffset=math.max(0,math.min(scrollOffset,maxOffset))
+  if scrollbar then updatingScrollbar=true;scrollbar:SetMinMaxValues(0,maxOffset);scrollbar:SetValue(scrollOffset);scrollbar:SetShown(maxOffset>0);updatingScrollbar=false end
   local total,count=0,0
   for _,a in ipairs(owned) do local _,value=auctionValues(a);if value then total=total+value else count=count+1 end end
   local net=math.floor(total*95/100)
@@ -139,7 +142,7 @@ local function render()
     local item=owned[scrollOffset+i];row.item=item
     if item then
       local expanded=expandedAuction==item.auctionID
-      row:ClearAllPoints();row:SetPoint("TOPLEFT",panel,"TOPLEFT",12,rowY);row:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-12,rowY);row:SetHeight(expanded and 130 or 30)
+      row:ClearAllPoints();row:SetPoint("TOPLEFT",panel,"TOPLEFT",12,rowY);row:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-32,rowY);row:SetHeight(expanded and 130 or 30)
       rowY=rowY-(expanded and 132 or 32)
       local name=itemName(item)
       local unit,total=auctionValues(item)
@@ -167,7 +170,7 @@ local function render()
   end
   page:ClearAllPoints();page:SetPoint("TOPLEFT",panel,"TOPLEFT",16,rowY-8)
   status:SetText(#owned.." active auctions | "..(state.cancelPending and "Refreshing after cancellation..." or state.search and "Checking competition..." or (#state.queue>0 and state.index<=#state.queue and "Competition scan queued" or (#state.queue>0 and "Competition checks complete" or "Use Scan market to refresh comparisons"))))
-  page:SetText((#owned==0 and "No listings" or ((scrollOffset+1).."-"..math.min(scrollOffset+8,#owned).." of "..#owned)).."  |  Market low is per unit and can include yours  |  -- = unavailable")
+  page:SetText((#owned==0 and "No listings" or ((scrollOffset+1).."-"..math.min(scrollOffset+8,#owned).." of "..#owned)).."  |  Scroll to browse  |  Market low can include yours  |  -- = unavailable")
 end
 local function refreshOwned()
   if not core.active or not C_AuctionHouse or not C_AuctionHouse.GetNumOwnedAuctions or not C_AuctionHouse.GetOwnedAuctionInfo then return end
@@ -208,11 +211,11 @@ local function createPanel()
   local title=panel:CreateFontString(nil,"OVERLAY","GameFontNormalLarge");title:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-12);title:SetText("YOUR AUCTIONS")
   local scan=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");scan:SetSize(120,24);scan:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-20,-8);scan:SetText("Scan market");scan:SetScript("OnClick",function() local ok,err=core.Scan();if not ok then print("Noki Trading: "..tostring(err)) end end)
   summary=rowText(panel,16,-40,700);status=rowText(panel,16,-60,700)
-  local header=CreateFrame("Frame",nil,panel,"BackdropTemplate");header:SetPoint("TOPLEFT",panel,"TOPLEFT",12,-82);header:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-12,-82);header:SetHeight(21);header:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});header:SetBackdropColor(.13,.18,.17,1)
+  local header=CreateFrame("Frame",nil,panel,"BackdropTemplate");header:SetPoint("TOPLEFT",panel,"TOPLEFT",12,-82);header:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-32,-82);header:SetHeight(21);header:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});header:SetBackdropColor(.13,.18,.17,1)
   for _,col in ipairs({{"ITEM",4,200},{"QTY",205,65},{"UNIT",270,80},{"TOTAL",350,90},{"MKT LOW",440,85},{"STATUS",525,75},{"LOWER",600,65},{"DEPOSIT",665,80},{"TIME",745,60}}) do local label=header:CreateFontString(nil,"OVERLAY","GameFontNormalSmall");label:SetPoint("TOPLEFT",header,"TOPLEFT",col[2],-4);label:SetWidth(col[3]);label:SetJustifyH("LEFT");label:SetText(col[1]) end
   rows={}
   for i=1,8 do
-    local row=CreateFrame("Frame",nil,panel,"BackdropTemplate");row:SetPoint("TOPLEFT",panel,"TOPLEFT",12,-104-(i-1)*32);row:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-12,-104-(i-1)*32);row:SetHeight(30);row:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});row:SetBackdropColor(i%2==0 and .12 or .08,.12,.12,.95)
+    local row=CreateFrame("Frame",nil,panel,"BackdropTemplate");row:SetPoint("TOPLEFT",panel,"TOPLEFT",12,-104-(i-1)*32);row:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-32,-104-(i-1)*32);row:SetHeight(30);row:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});row:SetBackdropColor(i%2==0 and .12 or .08,.12,.12,.95)
     row.expand=CreateFrame("Button",nil,row,"UIPanelButtonTemplate");row.expand:SetSize(18,20);row.expand:SetPoint("TOPLEFT",row,"TOPLEFT",3,-5);row.expand:SetText("+");row.expand:SetScript("OnClick",function() if row.item then if expandedAuction==row.item.auctionID then expandedAuction=nil else expandedAuction=row.item.auctionID end;render() end end)
     row.name=rowText(row,25,-8,179);row.quantity=rowText(row,205,-8,65);row.unit=rowText(row,270,-8,80);row.total=rowText(row,350,-8,90);row.low=rowText(row,440,-8,85);row.state=rowText(row,525,-8,75);row.ahead=rowText(row,600,-8,65);row.deposit=rowText(row,665,-8,80);row.time=rowText(row,745,-8,60)
     row.detail=rowText(row,25,-31,850);row.detail:SetWordWrap(true);row.detail:Hide()
@@ -235,8 +238,14 @@ local function createPanel()
     end)
     rows[i]=row
   end
+  scrollbar=CreateFrame("Slider","NokiTradingOwnedScrollBar",panel,"UIPanelScrollBarTemplate");scrollbar:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-14,-119);scrollbar:SetSize(16,210);scrollbar:SetMinMaxValues(0,0);scrollbar:SetValueStep(1)
+  if scrollbar.SetObeyStepOnDrag then scrollbar:SetObeyStepOnDrag(true) end
+  scrollbar:SetScript("OnValueChanged",function(_,value) if not updatingScrollbar then local nextOffset=math.max(0,math.min(math.max(0,#owned-8),math.floor(value+.5)));if nextOffset~=scrollOffset then scrollOffset=nextOffset;render() end end end)
   page=rowText(panel,16,-370,700)
-  panel:EnableMouseWheel(true);panel:SetScript("OnMouseWheel",function(_,delta) scrollOffset=math.max(0,math.min(math.max(0,#owned-8),scrollOffset-delta));render() end)
+  local function scrollBy(_,delta) scrollOffset=math.max(0,math.min(math.max(0,#owned-8),scrollOffset-delta));render() end
+  panel:EnableMouseWheel(true);panel:SetScript("OnMouseWheel",scrollBy)
+  for _,row in ipairs(rows) do row:EnableMouseWheel(true);row:SetScript("OnMouseWheel",scrollBy) end
+  scrollbar:EnableMouseWheel(true);scrollbar:SetScript("OnMouseWheel",scrollBy)
   panel:Hide();NokiUnifiedTabs:CreateTab("NokiUnifiedOwned",panel,"Your auctions");render()
 end
 local function checkDone()
