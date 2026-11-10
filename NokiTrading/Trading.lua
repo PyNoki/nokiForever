@@ -148,8 +148,8 @@ local function render()
     local item=owned[scrollOffset+i];row.item=item
     if item then
       local expanded=expandedAuction==item.auctionID
-      row:ClearAllPoints();row:SetPoint("TOPLEFT",panel,"TOPLEFT",12,rowY);row:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-32,rowY);row:SetHeight(expanded and 130 or 30)
-      rowY=rowY-(expanded and 132 or 32)
+      row:ClearAllPoints();row:SetPoint("TOPLEFT",panel,"TOPLEFT",12,rowY);row:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-32,rowY);row:SetHeight(expanded and 146 or 30)
+      rowY=rowY-(expanded and 148 or 32)
       local name=itemName(item)
       local unit,total=auctionValues(item)
       local condition,ahead=comparison(item)
@@ -169,7 +169,10 @@ local function render()
         end
         local source=vendor and ((vendor.observed and "Last seen at " or "Vendor reference: ")..tostring(vendor.vendor).." | 1 pack: "..vendor.pack.." for "..formatMoney(vendor.price).." | "..vendor.packs.." packs: "..formatMoney(vendor.cost)..(vendor.limited and " | LIMITED STOCK" or "").." | Whole packs; verify price") or "No vendor purchase price in reference data; profit unavailable."
         local remainder=vendor and (vendor.packs*vendor.pack-item.quantity) or 0
-        row.detail:SetText(source.."\n"..scenario("Current",current).."\n"..scenario("Match",match).."\n"..scenario("Under 1c",under).."\nProfit after 5% AH cut; whole-pack cost"..(remainder>0 and (" includes "..remainder.." extra units") or "").."; deposits excluded.")
+        local activity=NokiUnifiedMarketActivity and NokiUnifiedMarketActivity(item.itemKey.itemID)
+        local age=activity and activity.observed and math.max(0,math.floor((((GetServerTime and GetServerTime()) or time())-activity.observed)/60))
+        local daily="AHledger est. sales/day (item-wide): "..(activity and tostring(activity.sales) or "--")..(age and (" | data "..age.."m old"..(age>=1440 and " (stale)" or "")) or " | data age unavailable")
+        row.detail:SetText(daily.."\n"..source.."\n"..scenario("Current",current).."\n"..scenario("Match",match).."\n"..scenario("Under 1c",under).."\nProfit after 5% AH cut; whole-pack cost"..(remainder>0 and (" includes "..remainder.." extra units") or "").."; deposits excluded.")
       end
       row.cancel:SetEnabled(not state.cancelPending and item.auctionID~=nil);row:Show()
     else row:Hide() end
