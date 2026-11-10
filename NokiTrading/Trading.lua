@@ -280,7 +280,7 @@ local function checkDone()
   competitions[search.keyString]={complete=true,rows=rows,unresolved=unresolved};state.search=nil;state.index=state.index+1;render()
 end
 local function pump()
-  if not core.active or core.phase~="idle" or state.search or state.index>#state.queue then return end
+  if not core.active or core.phase~="idle" or core.working.buyout or state.search or state.index>#state.queue then return end
   if C_AuctionHouse.IsThrottledMessageSystemReady and not C_AuctionHouse.IsThrottledMessageSystemReady() then return end
   local key=state.queue[state.index];local info=C_AuctionHouse.GetItemKeyInfo and C_AuctionHouse.GetItemKeyInfo(key)
   if not info or type(info.isCommodity)~="boolean" then state.index=state.index+1;return end

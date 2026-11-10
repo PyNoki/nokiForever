@@ -3,9 +3,12 @@ local core=NokiUnifiedCore
 local panel,search,status,footer,rows,columns=nil,nil,nil,nil,{},{}
 local data,filtered={},{}
 local sortKey,ascending,offset="pressure",false,0
+local selectedID,analysis,analysisStatus,analysisSummary,analysisRows,analysisPage=nil,nil,nil,nil,{},0
+local refreshAnalysis
 local pageSize=10
 local function money(n)
   if type(n)~="number" then return "--" end
+  if n<0 then return "-"..money(-n) end
   local g=math.floor(n/10000);local s=math.floor(n%10000/100);local c=n%100
   return (g>0 and (g.."g ") or "")..(s>0 and (s.."s ") or "")..string.format("%.2f",c):gsub("0+$",""):gsub("%.$","").."c"
 end
@@ -24,6 +27,7 @@ local function render()
     if item then
       row.name:SetText(item.name.."  |cff829494#"..item.id.."|r");row.price:SetText(money(item.price));row.listed:SetText(item.listed and tostring(item.listed) or "--")
       row.sales:SetText(number(item.sales));row.coverage:SetText(number(item.coverage,true));row.gap:SetText(item.gap and number(item.gap) or "--");row.pressure:SetText(number(item.pressure,true));row:Show()
+      row.expand:SetText(selectedID==item.id and "-" or "+")
     else row:Hide() end
   end
   footer:SetText((#filtered==0 and "No matching items" or ((offset+1).."-"..math.min(offset+pageSize,#filtered).." of "..#filtered)).." | Scroll to browse | -- = unavailable")
@@ -61,7 +65,9 @@ local function refresh()
         local listed=type(price.quantity)=="number" and price.quantity>=0 and price.quantity or nil
         local coverage=sales and sales>0 and listed and listed/sales or nil
         local pressure=coverage and math.sqrt(math.min(sales,1000))/(.25+coverage) or nil
-        data[#data+1]={id=id,name=name,price=price.price,listed=listed,sales=sales,coverage=coverage,gap=sales and listed and sales-listed or nil,pressure=pressure}
+        local level,suffix,pet=(price.variant or "0:0:0"):match("^([^:]+):([^:]+):([^:]+)$")
+        local key={itemID=id,itemLevel=tonumber(level) or 0,itemSuffix=tonumber(suffix) or 0,battlePetSpeciesID=tonumber(pet) or 0}
+        data[#data+1]={id=id,key=key,name=name,price=price.price,listed=listed,sales=sales,coverage=coverage,gap=sales and listed and sales-listed or nil,pressure=pressure}
       end
     end
   end
@@ -78,22 +84,60 @@ local function build()
   local reload=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");reload:SetSize(105,22);reload:SetPoint("LEFT",search,"RIGHT",12,0);reload:SetText("Refresh table");reload:SetScript("OnClick",refresh)
   status=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");status:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-74);status:SetJustifyH("LEFT")
   local header=CreateFrame("Frame",nil,panel,"BackdropTemplate");header:SetPoint("TOPLEFT",panel,"TOPLEFT",12,-96);header:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-25,-96);header:SetHeight(24);header:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});header:SetBackdropColor(.13,.18,.17,1)
-  local defs={{"ITEM","name",5,260},{"AH LOW","price",265,105},{"LISTED","listed",370,85},{"EST. / DAY","sales",455,105},{"LISTED / DAY","coverage",560,115},{"GAP / DAY","gap",675,100},{"PRESSURE","pressure",775,105}}
+  local defs={{"ITEM","name",5,260},{"AH LOW","price",265,105},{"LISTED","listed",370,85},{"EST. / DAY","sales",455,105},{"LISTED / DAY","coverage",560,115},{"GAP / DAY","gap",675,100},{"PRESSURE","pressure",775,75}}
   for _,def in ipairs(defs) do
     local col={label=def[1],key=def[2]};local button=CreateFrame("Button",nil,header,"UIPanelButtonTemplate");button:SetPoint("LEFT",header,"LEFT",def[3],0);button:SetSize(def[4]-3,22);col.button=button;columns[#columns+1]=col
     button:SetScript("OnClick",function() if sortKey==col.key then ascending=not ascending else sortKey=col.key;ascending=col.key=="name" or col.key=="coverage" end;filter() end)
   end
   for i=1,pageSize do
     local row=CreateFrame("Frame",nil,panel,"BackdropTemplate");row:SetPoint("TOPLEFT",panel,"TOPLEFT",12,-121-(i-1)*26);row:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-25,-121-(i-1)*26);row:SetHeight(25);row:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});row:SetBackdropColor(i%2==0 and .12 or .08,.12,.12,.95)
-    row.name=cell(row,5,250);row.price=cell(row,265,100);row.listed=cell(row,370,80);row.sales=cell(row,455,100);row.coverage=cell(row,560,110);row.gap=cell(row,675,95);row.pressure=cell(row,775,95);rows[i]=row
+    row.name=cell(row,5,250);row.price=cell(row,265,100);row.listed=cell(row,370,80);row.sales=cell(row,455,100);row.coverage=cell(row,560,110);row.gap=cell(row,675,95);row.pressure=cell(row,775,72);rows[i]=row
+    row.expand=CreateFrame("Button",nil,row,"UIPanelButtonTemplate");row.expand:SetSize(28,21);row.expand:SetPoint("LEFT",row,"LEFT",851,0)
+    row.expand:SetScript("OnClick",function()
+      local item=row.item;if not item then return end
+      if selectedID==item.id then selectedID=nil;analysis=nil;analysisPage=0;refreshAnalysis();render();return end
+      selectedID=item.id;analysis=nil;analysisPage=0;analysisStatus:SetText("Checking live price tiers for "..item.name.."...");refreshAnalysis(true);render()
+      local ok,err=core.CheckBuyout(item.key,function(result,message)
+        if selectedID~=item.id then return end
+        analysis=result;analysisPage=0;analysisStatus:SetText(result and ("LIVE BUYOUT: "..item.name.." | Checked "..date("%H:%M:%S",result.checked)) or ("BUYOUT: "..item.name.." | "..(message or "Unavailable")));refreshAnalysis(true)
+      end)
+      if not ok then analysisStatus:SetText("BUYOUT: "..item.name.." | "..err);refreshAnalysis(true) end
+    end)
+    row.view=CreateFrame("Button",nil,row,"UIPanelButtonTemplate");row.view:SetSize(48,21);row.view:SetPoint("LEFT",row,"LEFT",882,0);row.view:SetText("View")
+    row.view:SetScript("OnClick",function()
+      local item=row.item;if not item then return end
+      if core.phase~="idle" or core.working.buyout or core.working.competition or core.working.pending then print("Noki Trading: wait for the active scan or price check to finish.");return end
+      if not AuctionHouseFrame.SelectBrowseResult then print("Noki Trading: the auction buy view is unavailable.");return end
+      NokiUnifiedTabs:HideAll()
+      local ok,err=pcall(AuctionHouseFrame.SelectBrowseResult,AuctionHouseFrame,{itemKey=item.key,minPrice=item.price})
+      if not ok then print("Noki Trading: could not open item: "..tostring(err)) end
+    end)
     row:EnableMouse(true);row:SetScript("OnEnter",function(self) if self.item and GameTooltip then GameTooltip:SetOwner(self,"ANCHOR_RIGHT");GameTooltip:SetItemByID(self.item.id);GameTooltip:Show() end end);row:SetScript("OnLeave",function() if GameTooltip then GameTooltip:Hide() end end)
   end
   footer=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");footer:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-388)
-  local note=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");note:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-410);note:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-20,-410);note:SetJustifyH("LEFT");note:SetText("Listed / day = listed units / estimated sales per day. Gap = estimated sales per day - listed units. Pressure = sqrt(min(sales/day, 1,000)) / (0.25 + listed/day). This is a ranking, not a shortage forecast. Supply and prices are snapshots.")
+  local note=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");note:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-410);note:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-20,-410);note:SetJustifyH("LEFT");note:SetText("Listed/day = listed units / estimated sales per day. Pressure = sqrt(min(sales/day, 1,000)) / (0.25 + listed/day). Click + for live buyout tiers; View opens the game's buy screen.")
+  analysisStatus=panel:CreateFontString(nil,"OVERLAY","GameFontNormalSmall");analysisStatus:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-445);analysisStatus:SetWidth(900);analysisStatus:SetJustifyH("LEFT");analysisStatus:SetText("Select + on an item to check its live buyout tiers.")
+  analysisSummary=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");analysisSummary:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-464);analysisSummary:SetWidth(900);analysisSummary:SetJustifyH("LEFT");analysisSummary:SetWordWrap(true)
+  for i=1,4 do local line=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");line:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-501-(i-1)*18);line:SetWidth(900);line:SetJustifyH("LEFT");analysisRows[i]=line end
+  local older=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");older:SetSize(80,21);older:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-578);older:SetText("Previous")
+  local newer=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");newer:SetSize(80,21);newer:SetPoint("LEFT",older,"RIGHT",8,0);newer:SetText("Next")
+  refreshAnalysis=function(keepStatus)
+    if not keepStatus then analysisStatus:SetText("Select + on an item to check its live buyout tiers.") end
+    analysisSummary:SetText("");for _,line in ipairs(analysisRows) do line:SetText("") end
+    if not analysis then older:Hide();newer:Hide();return end
+    local tiers=analysis.tiers;analysisPage=math.max(0,math.min(analysisPage,math.max(0,#tiers-4)))
+    local best=analysis.best
+    analysisSummary:SetText("Buy all: "..analysis.totalQuantity.." units for "..money(analysis.totalCost).." | "..(best and ("Best estimate: through "..money(best.price).."; "..best.totalQuantity.." units, cost "..money(best.totalCost)..", est. gain "..money(best.profit)) or "No positive breakpoint found").."\nEstimate assumes resale at 1c under next tier, 5% cut, all units sell; excludes deposits. No next tier after buying all.")
+    for i,line in ipairs(analysisRows) do local t=tiers[analysisPage+i];if t then line:SetText("Through "..money(t.price).."  |  Buy "..t.totalQuantity.." for "..money(t.totalCost).."  |  Next "..(t.nextPrice and money(t.nextPrice) or "none").."  |  Est. gain "..(t.profit and money(t.profit) or "--")..(t==best and "  | BEST" or "")) end end
+    older:SetShown(analysisPage>0);newer:SetShown(analysisPage+4<#tiers)
+  end
+  older:SetScript("OnClick",function() analysisPage=math.max(0,analysisPage-4);refreshAnalysis(true) end)
+  newer:SetScript("OnClick",function() analysisPage=math.min(math.max(0,#analysis.tiers-4),analysisPage+4);refreshAnalysis(true) end)
+  refreshAnalysis()
   local function wheel(_,delta) offset=math.max(0,math.min(math.max(0,#filtered-pageSize),offset-delta));render() end
   panel:EnableMouseWheel(true);panel:SetScript("OnMouseWheel",wheel);for _,row in ipairs(rows) do row:EnableMouseWheel(true);row:SetScript("OnMouseWheel",wheel) end
   local width,height
-  panel:SetScript("OnShow",function() if not width then width,height=AuctionHouseFrame:GetWidth(),AuctionHouseFrame:GetHeight();AuctionHouseFrame:SetSize(width+220,height+160) end;refresh() end)
+  panel:SetScript("OnShow",function() if not width then width,height=AuctionHouseFrame:GetWidth(),AuctionHouseFrame:GetHeight();AuctionHouseFrame:SetSize(width+220,height+300) end;refresh() end)
   panel:SetScript("OnHide",function() if width then AuctionHouseFrame:SetSize(width,height);width=nil;height=nil end end)
   NokiUnifiedTabs:CreateTab("NokiDemand",panel,"Demand")
 end
