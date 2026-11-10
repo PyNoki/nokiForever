@@ -166,7 +166,7 @@ local function render()
     else row:Hide() end
   end
   page:ClearAllPoints();page:SetPoint("TOPLEFT",panel,"TOPLEFT",16,rowY-8)
-  status:SetText(#owned.." active auctions | "..(state.search and "Checking competition..." or (#state.queue>0 and state.index<=#state.queue and "Competition scan queued" or (#state.queue>0 and "Competition checks complete" or "Use Scan market to refresh comparisons"))))
+  status:SetText(#owned.." active auctions | "..(state.cancelPending and "Refreshing after cancellation..." or state.search and "Checking competition..." or (#state.queue>0 and state.index<=#state.queue and "Competition scan queued" or (#state.queue>0 and "Competition checks complete" or "Use Scan market to refresh comparisons"))))
   page:SetText((#owned==0 and "No listings" or ((scrollOffset+1).."-"..math.min(scrollOffset+8,#owned).." of "..#owned)).."  |  Market low is per unit and can include yours  |  -- = unavailable")
 end
 local function refreshOwned()
@@ -176,9 +176,12 @@ local function refreshOwned()
     local row=C_AuctionHouse.GetOwnedAuctionInfo(i)
     if type(row)=="table" and row.itemKey and row.auctionID and (row.status==nil or row.status==0 or (Enum and Enum.AuctionStatus and row.status==Enum.AuctionStatus.Active)) then result[#result+1]=row end
   end
-  owned=result;state.cancelPending=false;scrollOffset=math.min(scrollOffset,math.max(0,#owned-8));render()
+  owned=result;scrollOffset=math.min(scrollOffset,math.max(0,#owned-8));render()
   state.ownedComplete=not C_AuctionHouse.HasFullOwnedAuctionResults or C_AuctionHouse.HasFullOwnedAuctionResults()
-  if state.ownedComplete then state.needOwned=false end
+  local stillListed=false
+  if state.cancelPending then for _,auction in ipairs(owned) do if auction.auctionID==state.cancelPending then stillListed=true;break end end end
+  if state.ownedComplete and state.cancelPending and not stillListed then state.cancelPending=nil;state.cancelStarted=nil end
+  if state.ownedComplete and not state.cancelPending then state.needOwned=false end
   if state.ownedComplete and state.needChecks and startChecks then state.needChecks=false;startChecks() end
   render()
 end
@@ -200,7 +203,7 @@ local function createPanel()
     if not found then print("Noki Trading: that auction is no longer available.");return end
     if C_AuctionHouse.CanCancelAuction and not C_AuctionHouse.CanCancelAuction(id) then print("Noki Trading: this auction cannot be cancelled.");return end
     local ok,err=pcall(C_AuctionHouse.CancelAuction,id)
-    if ok then state.cancelPending=true;render() else print("Noki Trading: cancel failed: "..tostring(err)) end
+    if ok then state.cancelPending=id;state.cancelStarted=(GetServerTime and GetServerTime()) or time();state.needOwned=true;state.ownedRequested=nil;render() else print("Noki Trading: cancel failed: "..tostring(err)) end
   end}
   local title=panel:CreateFontString(nil,"OVERLAY","GameFontNormalLarge");title:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-12);title:SetText("YOUR AUCTIONS")
   local scan=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");scan:SetSize(120,24);scan:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-20,-8);scan:SetText("Scan market");scan:SetScript("OnClick",function() local ok,err=core.Scan();if not ok then print("Noki Trading: "..tostring(err)) end end)
@@ -281,6 +284,7 @@ function core.OnBrowseComplete() if state.needChecks then refreshOwned() end end
 function core.OnScanStarted() state.autoScanPending=false;state.autoRetryAfter=nil end
 function core.OnOpen()
   owned={};competitions={};state.ownedComplete=false;state.needOwned=true;state.ownedRequested=nil;state.needChecks=true
+  state.cancelPending=nil;state.cancelStarted=nil
   state.alerted=false;state.autoScanPending=core.AutoScanDue();state.opened=(GetServerTime and GetServerTime()) or time();state.scanPendingSince=state.opened;state.autoRetryAfter=nil
   core.SetWorking("pending",state.autoScanPending)
   if C_Timer and C_Timer.After then C_Timer.After(1,function() if core.active then createPanel();requestOwned() end end) end
@@ -289,7 +293,14 @@ local f=CreateFrame("Frame")
 for _,e in ipairs({"OWNED_AUCTIONS_UPDATED","AUCTION_CANCELED","ITEM_SEARCH_RESULTS_UPDATED","ITEM_SEARCH_RESULTS_ADDED","COMMODITY_SEARCH_RESULTS_UPDATED","COMMODITY_SEARCH_RESULTS_ADDED","AUCTION_HOUSE_CLOSED","GET_ITEM_INFO_RECEIVED","ITEM_KEY_ITEM_INFO_RECEIVED"}) do pcall(f.RegisterEvent,f,e) end
 f:SetScript("OnEvent",function(_,event,arg)
   if event=="OWNED_AUCTIONS_UPDATED" then refreshOwned()
-  elseif event=="AUCTION_CANCELED" then requestOwned()
+  elseif event=="AUCTION_CANCELED" then
+    local id=state.cancelPending
+    if id and (type(arg)~="number" or arg==id) then
+      for i=#owned,1,-1 do if owned[i].auctionID==id then table.remove(owned,i) end end
+      if expandedAuction==id then expandedAuction=nil end
+      state.cancelPending=nil;state.cancelStarted=nil;scrollOffset=math.min(scrollOffset,math.max(0,#owned-8));render()
+    end
+    state.needOwned=true;state.ownedRequested=nil;requestOwned()
   elseif event=="GET_ITEM_INFO_RECEIVED" or event=="ITEM_KEY_ITEM_INFO_RECEIVED" then render()
   elseif event=="AUCTION_HOUSE_CLOSED" then state.queue={};state.index=1;state.search=nil;core.SetWorking("competition",false);core.SetWorking("pending",false)
   elseif state.search and ((state.search.commodity and (event=="COMMODITY_SEARCH_RESULTS_UPDATED" or event=="COMMODITY_SEARCH_RESULTS_ADDED") and arg==state.search.key.itemID) or (not state.search.commodity and (event=="ITEM_SEARCH_RESULTS_UPDATED" or event=="ITEM_SEARCH_RESULTS_ADDED") and type(arg)=="table" and keyString(arg)==state.search.keyString)) then state.search.seen=true;checkDone() end
@@ -298,6 +309,9 @@ local interval=0;f:SetScript("OnUpdate",function(_,delta)
   interval=interval+delta;if interval<.5 then return end;interval=0
   if state.needOwned and core.active then
     local n=(GetServerTime and GetServerTime()) or time()
+    if state.cancelPending and state.cancelStarted and n-state.cancelStarted>20 then
+      state.cancelPending=nil;state.cancelStarted=nil;print("Noki Trading: cancellation not confirmed; refreshing auctions. Check the listing before trying again.");render()
+    end
     if not state.ownedRequested or n-state.ownedRequested>10 then requestOwned() end
   end
   if core.active and not state.autoScanPending and ((GetServerTime and GetServerTime()) or time())>=(state.autoRetryAfter or 0) and core.AutoScanDue() then
