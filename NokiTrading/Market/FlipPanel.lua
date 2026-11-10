@@ -88,6 +88,11 @@ local function setSelected(item)
     detailBody:SetText("Materials (AH lows): "..table.concat(inputs, ", ").."\nCost "..copper(item.cost).." / craft | Yield "..range.." | Sell "..copper(item.sell).." / unit\nProfit "..copper(item.gainMin)..(item.gainMin~=item.gainMax and (" to "..copper(item.gainMax)) or "").." / craft"..(item.conditional and " | HIGHER YIELD REQUIRED" or "").." | Est. "..item.sales.." units/day\n5% cut; no deposits. "..(r.trainerSkill and "*Recipe and trainer requirements differ; check in game. " or "").."Prices from AHledger (ahledger.com). Trainer data: Efficient Games (CC BY 4.0). Check live prices and binding.")
     return
   end
+  if viewMode == "scarcity" then
+    detailTitle:SetText(item.name.." | #"..item.id.." | "..item.uses.." catalog recipes")
+    detailBody:SetText("Listed "..item.quantity.." | estimated "..string.format("%.1f",item.remote.sales).." sold/day | listed / day "..string.format("%.2f",item.coverage).." | scan low "..copper(item.ah).."\nCatalog examples: "..table.concat(item.examples,", ").." | highest recipe skill "..tostring(item.maxSkill or "?").."\n"..historyText(item.remote).."\nSnapshot supply vs estimated daily sales, not a forecast or confirmed shortage. Catalog is incomplete; recipe skill is not proof of endgame demand.")
+    return
+  end
   local remote = item.remote
   if viewMode == "lookup" then
     local history = historyText(remote)
@@ -122,6 +127,9 @@ local function render()
         row.vendor:SetText(r.profession.." | skill "..tostring(r.required or "?")..(r.trainerSkill and "*" or "")..(item.known and " | known" or " | unknown")..(item.conditional and " | needs higher yield" or ""))
         row.buy:SetText(copper(item.cost));row.ah:SetText(copper(item.sell))
         row.gain:SetText(copper(item.gainMin));row.stackGain:SetText(r.yieldMin==r.yieldMax and tostring(r.yieldMin) or (r.yieldMin.."-"..r.yieldMax))
+      elseif viewMode == "scarcity" then
+        row.vendor:SetText(item.uses.." catalog recipes | max skill "..tostring(item.maxSkill or "?"))
+        row.buy:SetText(copper(item.ah));row.ah:SetText(tostring(item.quantity));row.gain:SetText(string.format("%.1f",item.remote.sales));row.stackGain:SetText(string.format("%.2f",item.coverage))
       elseif viewMode == "lookup" then
         row.vendor:SetText(item.cost and (item.vendor..(item.variant and (" | "..item.variant) or "")) or (item.variant or "No vendor purchase offer"))
         row.buy:SetText(item.cost and copper(item.cost / item.stack) or "--")
@@ -133,12 +141,12 @@ local function render()
         row.buy:SetText(copper(item.buyUnit)); row.ah:SetText(copper(item.sellUnit))
         row.gain:SetText(copper(item.gainUnit)); row.stackGain:SetText(copper(item.gainPack))
       end
-      row.activity:SetText(viewMode == "craft" and (tostring(item.sales).."/day") or (item.remote and item.remote.sales ~= nil and tostring(item.remote.sales) .. "/day" or "--"))
+      row.activity:SetText(viewMode == "scarcity" and tostring(item.uses) or viewMode == "craft" and (tostring(item.sales).."/day") or (item.remote and item.remote.sales ~= nil and tostring(item.remote.sales) .. "/day" or "--"))
       local listed=item.quantity
       row.listed:SetText(viewMode=="flips" and type(listed)=="number" and tostring(listed) or "--")
       row.listed:SetShown(viewMode=="flips")
-      row.gap:SetShown(viewMode~="craft")
-      if viewMode~="craft" and not item.variant and type(listed)=="number" and type(item.remote and item.remote.sales)=="number" then
+      row.gap:SetShown(viewMode~="craft" and viewMode~="scarcity")
+      if viewMode~="craft" and viewMode~="scarcity" and not item.variant and type(listed)=="number" and type(item.remote and item.remote.sales)=="number" then
         local gap=item.remote.sales-listed
         local value=math.floor(math.abs(gap)*10+0.5)/10
         row.gap:SetText(value==0 and "0" or ((gap>0 and "+" or "-")..string.format("%.1f",value):gsub("%.0$","")))
@@ -158,6 +166,10 @@ local function filterAndSort(resetScroll)
     if text == "" or item.name:lower():find(text,1,true) or (item.vendor or ""):lower():find(text,1,true) or tostring(item.id):find(text,1,true) then filtered[#filtered + 1] = item end
   end
   table.sort(filtered, function(a,b)
+    if viewMode=="scarcity" then
+      if a.score==b.score then return a.id<b.id end
+      return a.score>b.score
+    end
     if viewMode == "craft" then
       local av,bv
       if sortMode=="activity" then av,bv=a.sales,b.sales
@@ -226,9 +238,43 @@ local function calculateLookup()
   status:SetText("ITEM LOOKUP | Vendor offers first | Scan " .. (age and (age .. "m ago") or "unavailable") .. " | AHledger " .. source)
   filterAndSort()
 end
+local function calculateScarcity()
+  results={};selectedID=nil
+  local scan=latestSnapshot();local marketID,err=usableHistory()
+  local book=marketID and NokiUnifiedCoreDB and NokiUnifiedCoreDB.prices and NokiUnifiedCoreDB.prices[marketID]
+  if not scan or not book or not book.observed or not scan.completed or math.abs(book.observed-scan.completed)>5 then status:SetText("Run a fresh scan and load matching AHledger data. "..(err or ""));filterAndSort();return end
+  local uses={}
+  for _,recipe in pairs((NokiUnifiedCraftCraftCatalog and NokiUnifiedCraftCraftCatalog.recipes) or {}) do
+    local seen={}
+    for _,mat in ipairs(recipe.materials or {}) do
+      if mat.id and not seen[mat.id] then
+        seen[mat.id]=true;local u=uses[mat.id] or {count=0,maxSkill=0,examples={}};uses[mat.id]=u
+        u.count=u.count+1;u.maxSkill=math.max(u.maxSkill,tonumber(recipe.required) or 0)
+        u.examples[#u.examples+1]=recipe.name or ("Recipe #"..tostring(recipe.id))
+      end
+    end
+  end
+  local catalog=NokiUnifiedMarketDB.itemCatalog or {}
+  for id,u in pairs(uses) do
+    table.sort(u.examples);while #u.examples>3 do table.remove(u.examples) end
+    local row=book.items and book.items[id]
+    if row and not row.carried and type(row.quantity)=="number" and row.quantity>=0 and type(row.price)=="number" and row.price>0 then
+      local remote=marketActivity(id,marketID);local sales=remote and remote.sales
+      if type(sales)=="number" and sales>=10 and row.quantity<=sales then
+        local saved=catalog[tostring(id)] or catalog[id];local name=(saved and saved.name) or (GetItemInfo and GetItemInfo(id)) or ("Item #"..id)
+        local coverage=row.quantity/sales
+        results[#results+1]={id=id,name=name,quantity=row.quantity,ah=row.price,remote=remote,coverage=coverage,uses=u.count,maxSkill=u.maxSkill>0 and u.maxSkill or nil,examples=u.examples,score=math.sqrt(math.min(sales,1000))/(.25+coverage)}
+      end
+    end
+  end
+  local age=math.max(0,math.floor((((GetServerTime and GetServerTime()) or time())-scan.completed)/60))
+  status:SetText("REAGENT PRESSURE | Scan "..age.."m"..(age>=60 and " OLD" or "").." | AHledger "..marketID.." | >=10 est./day, listed <= 1 day")
+  filterAndSort()
+end
 local function calculate()
   if not panel or not NokiUnifiedMarketDB then return end
   if viewMode == "lookup" then calculateLookup(); return end
+  if viewMode == "scarcity" then calculateScarcity(); return end
   if viewMode == "craft" then
     results={};selectedID=nil
     local budget=tonumber(budgetBox:GetText());local sales=tonumber(minSalesBox:GetText());local gain=tonumber(minStackProfitBox:GetText())
@@ -396,7 +442,7 @@ local function createPanel()
   local importButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");importButton:SetSize(115,22);importButton:SetPoint("TOPLEFT",panel,"TOPLEFT",845,-77);importButton:SetText("Import data");importButton:SetScript("OnClick",function() NokiUnifiedCore.ShowImport() end)
   local applyButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");applyButton:SetSize(110,22);applyButton:SetPoint("TOPLEFT",panel,"TOPLEFT",470,-77);applyButton:SetText("Apply / Search");applyButton:SetScript("OnClick",function() scrollOffset=0;calculate() end)
   applyMode=function()
-    local lookup=viewMode=="lookup";local craft=viewMode=="craft"
+    local lookup=viewMode=="lookup" or viewMode=="scarcity";local scarcity=viewMode=="scarcity";local craft=viewMode=="craft"
     searchBox:ClearAllPoints();searchBox:SetPoint("TOPLEFT",panel,"TOPLEFT",lookup and 90 or 330,-54)
     searchHint:ClearAllPoints();searchHint:SetPoint("TOPLEFT",panel,"TOPLEFT",lookup and 18 or 365,lookup and -59 or -80);searchHint:SetText(lookup and "SEARCH" or "Search name, vendor or ID")
     modeButton:ClearAllPoints();modeButton:SetPoint("TOPLEFT",panel,"TOPLEFT",lookup and 355 or 220,lookup and -54 or -77)
@@ -411,14 +457,14 @@ local function createPanel()
     minSalesBox:SetText(tostring(craft and (NokiUnifiedMarketDB.craftMinSales or 1) or (NokiUnifiedMarketDB.flipMinSalesPerDay or 1)))
     minStackProfitBox:SetText(tostring(craft and (NokiUnifiedMarketDB.craftMinProfit or 0) or (NokiUnifiedMarketDB.flipMinPackProfitSilver or 0)))
     modeButton:SetShown(not craft)
-    modeButton:SetText(lookup and "Vendor flips" or "Item lookup")
-    title:SetText(lookup and "ITEM LOOKUP" or craft and "CRAFTING PROFIT" or "VENDOR FLIP FINDER")
-    subtitle:SetText(lookup and "Search loaded items by name, vendor or ID." or craft and "Buy materials at AH lows; profit is per craft. Capture recipes with a profession open." or "One-pack vendor cost vs sell price per unit. Select a row for details.")
-    local labels=lookup and {"ITEM / VARIANT","VENDOR / UNIT","AH LOW / UNIT","LISTED","VENDOR PACK","EST. / DAY","","GAP / 1D"} or craft and {"RECIPE / PROFESSION","COST / CRAFT","SELL / UNIT","GAIN / CRAFT","YIELD","EST. / DAY","",""} or {"ITEM / VENDOR","BUY / UNIT","SELL / UNIT","GAIN / UNIT","GAIN / PACK","EST. / DAY","LISTED","GAP / 1D"}
+    modeButton:SetText(scarcity and "Vendor flips" or lookup and "Reagent pressure" or "Item lookup")
+    title:SetText(scarcity and "REAGENT PRESSURE" or lookup and "ITEM LOOKUP" or craft and "CRAFTING PROFIT" or "VENDOR FLIP FINDER")
+    subtitle:SetText(scarcity and "Crafting reagents with high estimated activity relative to currently listed supply." or lookup and "Search loaded items by name, vendor or ID." or craft and "Buy materials at AH lows; profit is per craft. Capture recipes with a profession open." or "One-pack vendor cost vs sell price per unit. Select a row for details.")
+    local labels=scarcity and {"ITEM / CATALOG USE","AH LOW / UNIT","LISTED","EST. / DAY","LISTED / DAY","RECIPES","",""} or lookup and {"ITEM / VARIANT","VENDOR / UNIT","AH LOW / UNIT","LISTED","VENDOR PACK","EST. / DAY","","GAP / 1D"} or craft and {"RECIPE / PROFESSION","COST / CRAFT","SELL / UNIT","GAIN / CRAFT","YIELD","EST. / DAY","",""} or {"ITEM / VENDOR","BUY / UNIT","SELL / UNIT","GAIN / UNIT","GAIN / PACK","EST. / DAY","LISTED","GAP / 1D"}
     for i,label in ipairs(labels) do headerTexts[i]:SetText(label) end
     calculate()
   end
-  modeButton:SetScript("OnClick",function() viewMode=viewMode=="lookup" and "flips" or "lookup";scrollOffset=0;applyMode() end)
+  modeButton:SetScript("OnClick",function() viewMode=viewMode=="flips" and "lookup" or viewMode=="lookup" and "scarcity" or "flips";scrollOffset=0;applyMode() end)
   applyMode()
   panel:SetScript("OnShow",function() updateControls();calculate() end);panel:Hide()
   return panel
