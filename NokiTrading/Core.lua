@@ -87,6 +87,36 @@ function NokiUnifiedAPI.GetMarket() return core.Market() end
 function NokiUnifiedAPI.GetTableInfo() local t=getTable();if not t then return nil end;return {market=t.market,updated=t.updated,count=t.count,snapshot=false} end
 function NokiUnifiedAPI.GetPrice(id) local t=getTable();local r=t and t.items[tonumber(id)];if not r then return nil end;return {market=t.market,updated=t.updated,soldPerDay=r.soldPerDay,minBuyout=r.minBuyout,median=r.median,median7d=r.median7d,median30d=r.median30d,quantity=r.quantity} end
 function core.Subscribe(fn) core.listeners[#core.listeners+1]=fn end
+-- The native sell lists cache their column widths. Noki's wider tabs can leave
+-- those widths stale after the auction window returns to its normal size.
+local function setupSellListLayout()
+  if not AuctionHouseFrame then return end
+  for _,name in ipairs({"CommoditiesSellList","ItemSellList"}) do
+    local list=AuctionHouseFrame[name]
+    if list and list.HookScript and not list.nokiLayoutHooked then
+      list.nokiLayoutHooked=true
+      local pending=false
+      local function schedule()
+        if pending then return end
+        pending=true
+        local function refresh()
+          pending=false
+          if not list.IsVisible or not list:IsVisible() or not list.isInitialized then return end
+          local scroll=list.ScrollBox;local width=scroll and scroll.GetWidth and scroll:GetWidth()
+          if type(width)~="number" or width<=0 or width==list.nokiLayoutWidth then return end
+          if type(list.SetTableBuilderLayout)~="function" or type(list.tableBuilderLayoutFunction)~="function" then return end
+          list.nokiLayoutWidth=width
+          list:SetTableBuilderLayout(list.tableBuilderLayoutFunction)
+          if list.DirtyScrollFrame then list:DirtyScrollFrame() end
+        end
+        if C_Timer and C_Timer.After then C_Timer.After(0,refresh) else refresh() end
+      end
+      list:HookScript("OnShow",schedule)
+      if list.ScrollBox and list.ScrollBox.HookScript then list.ScrollBox:HookScript("OnSizeChanged",schedule) end
+      schedule()
+    end
+  end
+end
 local function setupSellScanNotice()
   if not AuctionHouseFrame then return end
   for _,key in ipairs({"CommoditiesSellFrame","ItemSellFrame"}) do
@@ -228,7 +258,7 @@ for _,event in ipairs({"ADDON_LOADED","PLAYER_LOGIN","AUCTION_HOUSE_SHOW","AUCTI
 events:SetScript("OnEvent",function(_,event,arg)
   if event=="ADDON_LOADED" and arg=="NokiTrading" then NokiUnifiedCoreDB=NokiUnifiedCoreDB or {};NokiUnifiedCoreDB.prices=NokiUnifiedCoreDB.prices or {};if NokiUnifiedCoreDB.autoScan==nil then NokiUnifiedCoreDB.autoScan=true end;core.SetAutoScanInterval(NokiUnifiedCoreDB.scanIntervalMinutes or 30)
   elseif event=="PLAYER_LOGIN" then core.RestoreQuantitiesFromScan()
-  elseif event=="AUCTION_HOUSE_SHOW" then core.active=true;updateSellScanNotice();if core.OnOpen then core.OnOpen() end
+  elseif event=="AUCTION_HOUSE_SHOW" then core.active=true;updateSellScanNotice();setupSellListLayout();if core.OnOpen then core.OnOpen() end
   elseif event=="AUCTION_HOUSE_CLOSED" then
     core.active=false;if core.phase~="idle" then core.phase="idle";announce("failed") end
     core.working={};updateIndicator()
