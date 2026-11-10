@@ -4,7 +4,9 @@ local panel,search,status,footer,rows,columns=nil,nil,nil,nil,{},{}
 local data,filtered={},{}
 local sortKey,ascending,offset="pressure",false,0
 local selectedID,analysis,analysisStatus,analysisSummary,analysisRows,analysisPage=nil,nil,nil,nil,{},0
-local refreshAnalysis
+local analysisMode="best"
+local refreshAnalysis,refreshRecipes
+local recipeRows,recipeOffset,recipeList={},0,{}
 local pageSize=10
 local function money(n)
   if type(n)~="number" then return "--" end
@@ -15,6 +17,24 @@ end
 local function number(n,decimals)
   if type(n)~="number" then return "--" end
   return string.format(decimals and "%.2f" or "%.1f",n):gsub("%.?0+$","")
+end
+function core.DemandRecipes(itemID)
+  local found={}
+  for _,recipe in pairs((NokiUnifiedCraftCraftCatalog and NokiUnifiedCraftCraftCatalog.recipes) or {}) do
+    for _,material in ipairs(recipe.materials or {}) do
+      if material.id==itemID then
+        found[#found+1]={name=recipe.name or ("Recipe #"..tostring(recipe.id)),profession=recipe.profession or "?",skill=tonumber(recipe.required),trainerSkill=tonumber(recipe.trainerSkill),quantity=material.quantity}
+        break
+      end
+    end
+  end
+  table.sort(found,function(a,b)
+    local x,y=a.skill or math.huge,b.skill or math.huge
+    if x~=y then return x<y end
+    if a.name~=b.name then return a.name<b.name end
+    return a.profession<b.profession
+  end)
+  return found
 end
 local function cell(parent,x,width,font)
   local text=parent:CreateFontString(nil,"OVERLAY",font or "GameFontHighlightSmall");text:SetPoint("LEFT",parent,"LEFT",x,0);text:SetWidth(width);text:SetJustifyH("LEFT");text:SetWordWrap(false);return text
@@ -95,8 +115,8 @@ local function build()
     row.expand=CreateFrame("Button",nil,row,"UIPanelButtonTemplate");row.expand:SetSize(28,21);row.expand:SetPoint("LEFT",row,"LEFT",851,0)
     row.expand:SetScript("OnClick",function()
       local item=row.item;if not item then return end
-      if selectedID==item.id then selectedID=nil;analysis=nil;analysisPage=0;refreshAnalysis();render();return end
-      selectedID=item.id;analysis=nil;analysisPage=0;analysisStatus:SetText("Checking live price tiers for "..item.name.."...");refreshAnalysis(true);render()
+      if selectedID==item.id then selectedID=nil;analysis=nil;analysisPage=0;recipeList={};recipeOffset=0;refreshRecipes();refreshAnalysis();render();return end
+      selectedID=item.id;analysis=nil;analysisPage=0;analysisMode="best";recipeList=core.DemandRecipes(item.id);recipeOffset=0;refreshRecipes();analysisStatus:SetText("Checking live price tiers for "..item.name.."...");refreshAnalysis(true);render()
       local ok,err=core.CheckBuyout(item.key,function(result,message)
         if selectedID~=item.id then return end
         analysis=result;analysisPage=0;analysisStatus:SetText(result and ("LIVE BUYOUT: "..item.name.." | Checked "..date("%H:%M:%S",result.checked)) or ("BUYOUT: "..item.name.." | "..(message or "Unavailable")));refreshAnalysis(true)
@@ -116,28 +136,65 @@ local function build()
   end
   footer=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");footer:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-388)
   local note=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");note:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-410);note:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-20,-410);note:SetJustifyH("LEFT");note:SetText("Listed/day = listed units / estimated sales per day. Pressure = sqrt(min(sales/day, 1,000)) / (0.25 + listed/day). Click + for live buyout tiers; View opens the game's buy screen.")
-  analysisStatus=panel:CreateFontString(nil,"OVERLAY","GameFontNormalSmall");analysisStatus:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-445);analysisStatus:SetWidth(900);analysisStatus:SetJustifyH("LEFT");analysisStatus:SetText("Select + on an item to check its live buyout tiers.")
-  analysisSummary=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");analysisSummary:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-464);analysisSummary:SetWidth(900);analysisSummary:SetJustifyH("LEFT");analysisSummary:SetWordWrap(true)
-  for i=1,4 do local line=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");line:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-501-(i-1)*18);line:SetWidth(900);line:SetJustifyH("LEFT");analysisRows[i]=line end
-  local older=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");older:SetSize(80,21);older:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-578);older:SetText("Previous")
+  analysisStatus=panel:CreateFontString(nil,"OVERLAY","GameFontNormalSmall");analysisStatus:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-445);analysisStatus:SetWidth(560);analysisStatus:SetJustifyH("LEFT");analysisStatus:SetText("Select + to check buyout tiers and recipe uses.")
+  analysisSummary=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");analysisSummary:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-464);analysisSummary:SetWidth(560);analysisSummary:SetJustifyH("LEFT");analysisSummary:SetWordWrap(true)
+  local listTitle=panel:CreateFontString(nil,"OVERLAY","GameFontNormalSmall");listTitle:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-554);listTitle:SetJustifyH("LEFT")
+  for i=1,4 do local line=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");line:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-572-(i-1)*18);line:SetWidth(560);line:SetJustifyH("LEFT");line:SetWordWrap(false);analysisRows[i]=line end
+  local older=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");older:SetSize(80,21);older:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-648);older:SetText("Previous")
   local newer=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");newer:SetSize(80,21);newer:SetPoint("LEFT",older,"RIGHT",8,0);newer:SetText("Next")
+  local mode=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");mode:SetSize(130,21);mode:SetPoint("LEFT",newer,"RIGHT",12,0)
+  local visibleTiers={}
   refreshAnalysis=function(keepStatus)
-    if not keepStatus then analysisStatus:SetText("Select + on an item to check its live buyout tiers.") end
-    analysisSummary:SetText("");for _,line in ipairs(analysisRows) do line:SetText("") end
-    if not analysis then older:Hide();newer:Hide();return end
-    local tiers=analysis.tiers;analysisPage=math.max(0,math.min(analysisPage,math.max(0,#tiers-4)))
+    if not keepStatus then analysisStatus:SetText("Select + to check buyout tiers and recipe uses.") end
+    analysisSummary:SetText("");listTitle:SetText("");for _,line in ipairs(analysisRows) do line:SetText("") end
+    if not analysis then older:Hide();newer:Hide();mode:Hide();return end
+    visibleTiers={}
+    for _,tier in ipairs(analysis.tiers) do if analysisMode=="all" or (tier.profit and tier.profit>0) then visibleTiers[#visibleTiers+1]=tier end end
+    if analysisMode=="best" then table.sort(visibleTiers,function(a,b) if a.profit==b.profit then return a.totalCost<b.totalCost end;return a.profit>b.profit end) end
+    analysisPage=math.max(0,math.min(analysisPage,math.max(0,#visibleTiers-4)))
     local best=analysis.best
-    analysisSummary:SetText("Buy all: "..analysis.totalQuantity.." units for "..money(analysis.totalCost).." | "..(best and ("Best estimate: through "..money(best.price).."; "..best.totalQuantity.." units, cost "..money(best.totalCost)..", est. gain "..money(best.profit)) or "No positive breakpoint found").."\nEstimate assumes resale at 1c under next tier, 5% cut, all units sell; excludes deposits. No next tier after buying all.")
-    for i,line in ipairs(analysisRows) do local t=tiers[analysisPage+i];if t then line:SetText("Through "..money(t.price).."  |  Buy "..t.totalQuantity.." for "..money(t.totalCost).."  |  Next "..(t.nextPrice and money(t.nextPrice) or "none").."  |  Est. gain "..(t.profit and money(t.profit) or "--")..(t==best and "  | BEST" or "")) end end
-    older:SetShown(analysisPage>0);newer:SetShown(analysisPage+4<#tiers)
+    if best then
+      local roi=best.totalCost>0 and string.format("%.0f%%",best.profit/best.totalCost*100) or "--"
+      analysisSummary:SetText("|cff7fe5a4BEST STOP: buy "..best.totalQuantity.." units through "..money(best.price).." each|r\nSPEND "..money(best.totalCost).."  |  EST. PROFIT "..money(best.profit).." ("..roi..")\nRELIST "..money(best.resell).." each  |  AFTER CUT "..money(best.net).."\nNext tier: "..best.nextQuantity.." units at "..money(best.nextPrice).."; thin tiers may vanish.\nBuy all: "..analysis.totalQuantity.." for "..money(analysis.totalCost)..". Assumes all sell; no deposits.")
+    else analysisSummary:SetText("No positive resale breakpoint found.\nBuy all: "..analysis.totalQuantity.." units for "..money(analysis.totalCost)..".\nNo next price remains after buying the final tier.") end
+    listTitle:SetText(analysisMode=="best" and ("TOP ESTIMATED BREAKPOINTS ("..#visibleTiers..")") or "ALL PRICE TIERS")
+    for i,line in ipairs(analysisRows) do local t=visibleTiers[analysisPage+i];if t then line:SetText("Stop "..money(t.price).." | "..t.totalQuantity.." units | Spend "..money(t.totalCost).." | Sell "..(t.resell and money(t.resell) or "--").." | Profit "..(t.profit and money(t.profit) or "--")..(t==best and " *" or "")) end end
+    older:SetShown(analysisPage>0);newer:SetShown(analysisPage+4<#visibleTiers);mode:SetText(analysisMode=="best" and "Show all tiers" or "Show best");mode:Show()
   end
   older:SetScript("OnClick",function() analysisPage=math.max(0,analysisPage-4);refreshAnalysis(true) end)
-  newer:SetScript("OnClick",function() analysisPage=math.min(math.max(0,#analysis.tiers-4),analysisPage+4);refreshAnalysis(true) end)
+  newer:SetScript("OnClick",function() analysisPage=math.min(math.max(0,#visibleTiers-4),analysisPage+4);refreshAnalysis(true) end)
+  mode:SetScript("OnClick",function() analysisMode=analysisMode=="best" and "all" or "best";analysisPage=0;refreshAnalysis(true) end)
   refreshAnalysis()
+  local recipeFrame=CreateFrame("Frame",nil,panel,"BackdropTemplate");recipeFrame:SetPoint("TOPLEFT",panel,"TOPLEFT",590,-440);recipeFrame:SetPoint("BOTTOMRIGHT",panel,"TOPRIGHT",-20,-671);recipeFrame:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1});recipeFrame:SetBackdropColor(.08,.11,.11,.95);recipeFrame:SetBackdropBorderColor(.24,.3,.28,1)
+  local recipeTitle=recipeFrame:CreateFontString(nil,"OVERLAY","GameFontNormalSmall");recipeTitle:SetPoint("TOPLEFT",recipeFrame,"TOPLEFT",10,-10);recipeTitle:SetJustifyH("LEFT")
+  local skillTitle=recipeFrame:CreateFontString(nil,"OVERLAY","GameFontNormalSmall");skillTitle:SetPoint("TOPRIGHT",recipeFrame,"TOPRIGHT",-12,-10);skillTitle:SetText("SKILL")
+  local recipePage=recipeFrame:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");recipePage:SetPoint("BOTTOMLEFT",recipeFrame,"BOTTOMLEFT",10,8);recipePage:SetJustifyH("LEFT")
+  for i=1,9 do
+    local line=CreateFrame("Frame",nil,recipeFrame);line:SetPoint("TOPLEFT",recipeFrame,"TOPLEFT",10,-30-(i-1)*19);line:SetPoint("TOPRIGHT",recipeFrame,"TOPRIGHT",-10,-30-(i-1)*19);line:SetHeight(18)
+    line.name=line:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");line.name:SetPoint("LEFT",line,"LEFT",0,0);line.name:SetPoint("RIGHT",line,"RIGHT",-42,0);line.name:SetJustifyH("LEFT");line.name:SetWordWrap(false)
+    line.skill=line:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");line.skill:SetPoint("RIGHT",line,"RIGHT",0,0);line.skill:SetWidth(38);line.skill:SetJustifyH("RIGHT");recipeRows[i]=line
+  end
+  local recipeUp=CreateFrame("Button",nil,recipeFrame,"UIPanelButtonTemplate");recipeUp:SetSize(25,19);recipeUp:SetPoint("BOTTOMRIGHT",recipeFrame,"BOTTOMRIGHT",-39,4);recipeUp:SetText("^")
+  local recipeDown=CreateFrame("Button",nil,recipeFrame,"UIPanelButtonTemplate");recipeDown:SetSize(25,19);recipeDown:SetPoint("LEFT",recipeUp,"RIGHT",4,0);recipeDown:SetText("v")
+  refreshRecipes=function()
+    recipeOffset=math.max(0,math.min(recipeOffset,math.max(0,#recipeList-9)))
+    recipeTitle:SetText("RECIPE USES ("..#recipeList..")")
+    for i,row in ipairs(recipeRows) do
+      local recipe=recipeList[recipeOffset+i]
+      if recipe then row.name:SetText(recipe.name.." | "..recipe.profession);row.skill:SetText(recipe.skill and (tostring(recipe.skill)..(recipe.trainerSkill and "*" or "")) or "?");row:Show() else row:Hide() end
+    end
+    recipePage:SetText(not selectedID and "Select an item" or #recipeList==0 and "No cataloged recipes; catalog incomplete" or ((recipeOffset+1).."-"..math.min(recipeOffset+9,#recipeList).." of "..#recipeList.." | * check trainer"))
+    recipeUp:SetShown(recipeOffset>0);recipeDown:SetShown(recipeOffset+9<#recipeList)
+  end
+  local function recipeScroll(_,delta) recipeOffset=recipeOffset-delta;refreshRecipes() end
+  recipeFrame:EnableMouseWheel(true);recipeFrame:SetScript("OnMouseWheel",recipeScroll)
+  recipeUp:SetScript("OnClick",function() recipeOffset=recipeOffset-9;refreshRecipes() end)
+  recipeDown:SetScript("OnClick",function() recipeOffset=recipeOffset+9;refreshRecipes() end)
+  refreshRecipes()
   local function wheel(_,delta) offset=math.max(0,math.min(math.max(0,#filtered-pageSize),offset-delta));render() end
   panel:EnableMouseWheel(true);panel:SetScript("OnMouseWheel",wheel);for _,row in ipairs(rows) do row:EnableMouseWheel(true);row:SetScript("OnMouseWheel",wheel) end
   local width,height
-  panel:SetScript("OnShow",function() if not width then width,height=AuctionHouseFrame:GetWidth(),AuctionHouseFrame:GetHeight();AuctionHouseFrame:SetSize(width+220,height+300) end;refresh() end)
+  panel:SetScript("OnShow",function() if not width then width,height=AuctionHouseFrame:GetWidth(),AuctionHouseFrame:GetHeight();AuctionHouseFrame:SetSize(width+220,height+365) end;refresh() end)
   panel:SetScript("OnHide",function() if width then AuctionHouseFrame:SetSize(width,height);width=nil;height=nil end end)
   NokiUnifiedTabs:CreateTab("NokiDemand",panel,"Demand")
 end

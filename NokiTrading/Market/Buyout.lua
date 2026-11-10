@@ -24,8 +24,8 @@ function core.CalculateBuyout(offers)
     tier.totalQuantity=total;tier.totalCost=cost
     local nextTier=tiers[i+1]
     if nextTier and nextTier.price>1 then
-      tier.nextPrice=nextTier.price;tier.resell=math.ceil(nextTier.price)-1
-      tier.profit=math.floor(tier.resell*total*.95)-cost
+      tier.nextPrice=nextTier.price;tier.nextQuantity=nextTier.quantity;tier.resell=math.ceil(nextTier.price)-1
+      tier.net=math.floor(tier.resell*total*.95);tier.profit=tier.net-cost
       if tier.profit>0 and (not best or tier.profit>best.profit) then best=tier end
     end
   end
