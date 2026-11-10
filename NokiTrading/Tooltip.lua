@@ -1,13 +1,13 @@
--- Noki local beta: Shift-hover valuation using the latest completed native scan.
+-- Show the last scanned unit price on hover and expanded valuation on Shift.
 local function money(n)
-  local c=math.floor(n+0.5);local g=math.floor(c/10000);local s=math.floor(c%10000/100);c=c%100
+  local c=math.floor(n*100+0.5)/100;local g=math.floor(c/10000);local s=math.floor(c%10000/100);c=c%100
   local gold="|TInterface\\MoneyFrame\\UI-GoldIcon:12:12:0:0|t"
   local silver="|TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t"
   local copper="|TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t"
   local parts={}
   if g>0 then parts[#parts+1]=g..gold end
   if s>0 then parts[#parts+1]=s..silver end
-  if c>0 or #parts==0 then parts[#parts+1]=c..copper end
+  if c>0 or #parts==0 then parts[#parts+1]=string.format("%.2f",c):gsub("0+$",""):gsub("%.$","")..copper end
   return table.concat(parts," ")
 end
 local function merchantDetails(tooltip,id)
@@ -51,7 +51,7 @@ local function stackCount(tooltip,id)
 end
 NokiUnifiedCore.ItemStackContext=stackCount
 local function addValue(tooltip,data)
-  if not IsShiftKeyDown() or (tooltip.IsForbidden and tooltip:IsForbidden()) then return end
+  if tooltip.IsForbidden and tooltip:IsForbidden() then return end
   local id=data and data.id
   if not id and tooltip.GetItem then local _,link=tooltip:GetItem();id=link and tonumber(link:match("item:(%d+)")) end
   if not id then return end
@@ -65,6 +65,17 @@ local function addValue(tooltip,data)
     else tooltip:AddLine(label.."  "..value,.45,.9,.7) end
   end
   if row and type(row.price)=="number" and row.price>0 then
+    local observed=type(row.observed)=="number" and math.max(0,math.floor((now-row.observed)/60)) or scanAge
+    pair("AH / unit"..(observed and (" ("..observed.."m ago)") or ""),money(row.price))
+  else
+    local reference=NokiUnifiedAPI and NokiUnifiedAPI.GetPrice(id)
+    if reference and type(reference.minBuyout)=="number" and reference.minBuyout>0 then
+      local minutes=type(reference.updated)=="number" and math.max(0,math.floor((now-reference.updated)/60))
+      pair("AH reference / unit"..(minutes and (" ("..minutes.."m ago)") or ""),money(reference.minBuyout))
+    else pair("AH / unit","--") end
+  end
+  if not IsShiftKeyDown or not IsShiftKeyDown() then tooltip:Show();return end
+  if row and type(row.price)=="number" and row.price>0 then
     priceAge=type(row.observed)=="number" and math.max(0,math.floor((now-row.observed)/60)) or scanAge
     if count then
       local gross=row.price*count;local net=math.floor(gross*95/100)
@@ -75,7 +86,7 @@ local function addValue(tooltip,data)
         local gain=net-cost
         pair("Est. pack profit",(gain<0 and "-" or "")..money(math.abs(gain)))
       end
-    else pair("Price per item",money(row.price));tooltip:AddLine("Stack size unavailable",.8,.8,.8) end
+    else tooltip:AddLine("Stack size unavailable",.8,.8,.8) end
     pair("Listed (last scan)",(not row.carried and type(row.quantity)=="number") and tostring(row.quantity) or "--")
   else tooltip:AddLine("Noki: no matching scan price. Scan the auction house.",1,.7,.3) end
   local activity=NokiUnifiedAPI and NokiUnifiedAPI.GetPrice(id)
