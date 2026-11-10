@@ -69,6 +69,16 @@ local function auctionDeposit(item)
   return nil
 end
 core.OwnedAuctionDeposit=auctionDeposit
+-- The market low includes the player's own listings when present in search results.
+local function lowestPrice(result)
+  if not result or not result.complete then return nil end
+  local lowest
+  for _,row in ipairs(result.rows or {}) do
+    if type(row.price)=="number" and row.price>0 and (not lowest or row.price<lowest) then lowest=row.price end
+  end
+  return lowest
+end
+core.LowestAuctionPrice=lowestPrice
 -- Counts only units at strictly lower prices, never treating ties as ahead.
 local function comparison(auction)
   local key=auction.itemKey;local result=key and competitions[keyString(key)]
@@ -97,13 +107,14 @@ local function render()
       local name=itemName(item)
       local unit,total=auctionValues(item)
       local condition,ahead=comparison(item)
-      row.name:SetText(name.." x"..tostring(item.quantity or "?"));row.unit:SetText(formatMoney(unit));row.total:SetText(formatMoney(total));row.state:SetText(condition);row.ahead:SetText(ahead~=nil and tostring(ahead) or "--");row.deposit:SetText(formatMoney(auctionDeposit(item)));row.time:SetText(timeLeft(item))
+      local marketLow=lowestPrice(item.itemKey and competitions[keyString(item.itemKey)])
+      row.name:SetText(name.." x"..tostring(item.quantity or "?"));row.unit:SetText(formatMoney(unit));row.total:SetText(formatMoney(total));row.low:SetText(formatMoney(marketLow));row.state:SetText(condition);row.ahead:SetText(ahead~=nil and tostring(ahead) or "--");row.deposit:SetText(formatMoney(auctionDeposit(item)));row.time:SetText(timeLeft(item))
       row.state:SetTextColor(condition=="undercut" and 1 or .75,condition=="undercut" and .3 or .85,.4)
       row.cancel:SetEnabled(not state.cancelPending and item.auctionID~=nil);row:Show()
     else row:Hide() end
   end
   status:SetText(#owned.." active auctions | "..(state.search and "Checking competition..." or (#state.queue>0 and state.index<=#state.queue and "Competition scan queued" or (#state.queue>0 and "Competition checks complete" or "Use Scan market to refresh comparisons"))))
-  page:SetText((#owned==0 and "No listings" or ((scrollOffset+1).."-"..math.min(scrollOffset+8,#owned).." of "..#owned)).."  |  Scroll to browse  |  Deposit -- = unavailable from the auction house")
+  page:SetText((#owned==0 and "No listings" or ((scrollOffset+1).."-"..math.min(scrollOffset+8,#owned).." of "..#owned)).."  |  Market low is per unit and can include yours  |  -- = unavailable")
 end
 local function refreshOwned()
   if not core.active or not C_AuctionHouse or not C_AuctionHouse.GetNumOwnedAuctions or not C_AuctionHouse.GetOwnedAuctionInfo then return end
@@ -131,11 +142,11 @@ local function createPanel()
   local scan=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");scan:SetSize(120,24);scan:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-20,-8);scan:SetText("Scan market");scan:SetScript("OnClick",function() local ok,err=core.Scan();if not ok then print("Noki Trading: "..tostring(err)) end end)
   summary=rowText(panel,16,-40,700);status=rowText(panel,16,-60,700)
   local header=CreateFrame("Frame",nil,panel,"BackdropTemplate");header:SetPoint("TOPLEFT",panel,"TOPLEFT",12,-82);header:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-12,-82);header:SetHeight(21);header:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});header:SetBackdropColor(.13,.18,.17,1)
-  for _,col in ipairs({{"ITEM / STACK",4,185},{"UNIT",195,75},{"TOTAL",270,75},{"STATUS",345,95},{"LOWER",440,55},{"DEPOSIT",495,75},{"TIME",570,60}}) do local label=header:CreateFontString(nil,"OVERLAY","GameFontNormalSmall");label:SetPoint("TOPLEFT",header,"TOPLEFT",col[2],-4);label:SetWidth(col[3]);label:SetJustifyH("LEFT");label:SetText(col[1]) end
+  for _,col in ipairs({{"ITEM / STACK",4,175},{"UNIT",180,65},{"TOTAL",245,75},{"MARKET LOW",320,78},{"STATUS",398,92},{"LOWER",490,55},{"DEPOSIT",545,72},{"TIME",617,50}}) do local label=header:CreateFontString(nil,"OVERLAY","GameFontNormalSmall");label:SetPoint("TOPLEFT",header,"TOPLEFT",col[2],-4);label:SetWidth(col[3]);label:SetJustifyH("LEFT");label:SetText(col[1]) end
   rows={}
   for i=1,8 do
     local row=CreateFrame("Frame",nil,panel,"BackdropTemplate");row:SetPoint("TOPLEFT",panel,"TOPLEFT",12,-104-(i-1)*32);row:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-12,-104-(i-1)*32);row:SetHeight(30);row:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});row:SetBackdropColor(i%2==0 and .12 or .08,.12,.12,.95)
-    row.name=rowText(row,4,-8,185);row.unit=rowText(row,195,-8,75);row.total=rowText(row,270,-8,75);row.state=rowText(row,345,-8,95);row.ahead=rowText(row,440,-8,55);row.deposit=rowText(row,495,-8,75);row.time=rowText(row,570,-8,60)
+    row.name=rowText(row,4,-8,175);row.unit=rowText(row,180,-8,65);row.total=rowText(row,245,-8,75);row.low=rowText(row,320,-8,78);row.state=rowText(row,398,-8,92);row.ahead=rowText(row,490,-8,55);row.deposit=rowText(row,545,-8,72);row.time=rowText(row,617,-8,50)
     row.cancel=CreateFrame("Button",nil,row,"UIPanelButtonTemplate");row.cancel:SetSize(72,22);row.cancel:SetPoint("RIGHT",row,"RIGHT",-4,0);row.cancel:SetText("Cancel");row.cancel:SetScript("OnClick",function()
       local item=row.item
       if not item or state.cancelPending or not core.active or not C_AuctionHouse.CancelAuction then return end
