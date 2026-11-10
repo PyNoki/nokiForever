@@ -72,10 +72,35 @@ local function stackCount(tooltip,id)
   return nil
 end
 NokiUnifiedCore.ItemStackContext=stackCount
+local function auctionTooltip(tooltip)
+  if not AuctionHouseFrame or not AuctionHouseFrame.IsShown or not AuctionHouseFrame:IsShown() then return false end
+  local cursor=tooltip.GetOwner and tooltip:GetOwner()
+  for _=1,16 do
+    if not cursor then break end
+    if cursor==AuctionHouseFrame then return true end
+    cursor=cursor.GetParent and cursor:GetParent()
+  end
+  return false
+end
+local function vendorSellValue(id,link)
+  local getInfo=(C_Item and C_Item.GetItemInfo) or GetItemInfo
+  if getInfo then
+    local info={pcall(getInfo,link or id)}
+    if info[1] and type(info[12])=="number" then return info[12] end
+  end
+  -- Catalog values are keyed by item ID and may differ for a modified item.
+  if not link then
+    local catalog=NokiUnifiedMarketDB and NokiUnifiedMarketDB.itemCatalog
+    local item=catalog and (catalog[tostring(id)] or catalog[id])
+    if item and type(item.vendorSell)=="number" then return item.vendorSell end
+  end
+  if C_Item and C_Item.RequestLoadItemDataByID then pcall(C_Item.RequestLoadItemDataByID,id) end
+end
 local function addValue(tooltip,data)
   if tooltip.IsForbidden and tooltip:IsForbidden() then return end
   local id=data and data.id
-  if not id and tooltip.GetItem then local _,link=tooltip:GetItem();id=link and tonumber(link:match("item:(%d+)")) end
+  local link;if tooltip.GetItem then local _;_,link=tooltip:GetItem() end
+  if not id then id=link and tonumber(link:match("item:(%d+)")) end
   if not id then return end
   local market=NokiUnifiedCore.Market();local book=market and NokiUnifiedCoreDB and NokiUnifiedCoreDB.prices and NokiUnifiedCoreDB.prices[market]
   local row=book and book.items and book.items[id];local count,cost,isMerchant,isAuction=stackCount(tooltip,id)
@@ -85,6 +110,10 @@ local function addValue(tooltip,data)
   local function pair(label,value)
     if tooltip.AddDoubleLine then tooltip:AddDoubleLine(label,value,.45,.9,.7,1,1,1)
     else tooltip:AddLine(label.."  "..value,.45,.9,.7) end
+  end
+  if auctionTooltip(tooltip) then
+    local sell=vendorSellValue(id,link)
+    pair("Vendor sell / unit",sell and money(sell) or "Loading...")
   end
   if row and type(row.price)=="number" and row.price>0 then
     local observed=type(row.observed)=="number" and math.max(0,math.floor((now-row.observed)/60)) or scanAge
@@ -128,7 +157,12 @@ local function addValue(tooltip,data)
 end
 if TooltipDataProcessor and Enum and Enum.TooltipDataType and Enum.TooltipDataType.Item then TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item,addValue)
 elseif GameTooltip and GameTooltip.HookScript then GameTooltip:HookScript("OnTooltipSetItem",addValue) end
-local f=CreateFrame("Frame");f:RegisterEvent("MODIFIER_STATE_CHANGED");f:SetScript("OnEvent",function(_,_,key)
-  if key~="LSHIFT" and key~="RSHIFT" then return end
+local f=CreateFrame("Frame");f:RegisterEvent("MODIFIER_STATE_CHANGED");f:RegisterEvent("GET_ITEM_INFO_RECEIVED");f:SetScript("OnEvent",function(_,event,key,success)
+  if event=="MODIFIER_STATE_CHANGED" then
+    if key~="LSHIFT" and key~="RSHIFT" then return end
+  else
+    if not success or not GameTooltip or not auctionTooltip(GameTooltip) or not GameTooltip.GetItem then return end
+    local _,link=GameTooltip:GetItem();if not link or tonumber(link:match("item:(%d+)"))~=key then return end
+  end
   if GameTooltip and GameTooltip.IsShown and GameTooltip:IsShown() and GameTooltip.RefreshData then GameTooltip:RefreshData() end
 end)
