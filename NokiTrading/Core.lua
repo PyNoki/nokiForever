@@ -78,14 +78,14 @@ local function getTable()
   local rows={};local n=0
   for line in src.text:gmatch("[^\n;]+") do
     local id,median,low,qty,m7,m30,lo,hi,sold=line:match("^(%d+):(%d*):(%d*):(%d*):(%d*):(%d*):(%d*):(%d*):?(%d*)$")
-    if id then rows[tonumber(id)]={minBuyout=tonumber(low),quantity=tonumber(qty),soldPerDay=tonumber(sold) and tonumber(sold)/10 or nil};n=n+1 end
+    if id then rows[tonumber(id)]={minBuyout=tonumber(low),median=tonumber(median),median7d=tonumber(m7),median30d=tonumber(m30),quantity=tonumber(qty),soldPerDay=tonumber(sold) and tonumber(sold)/10 or nil};n=n+1 end
   end
   cache={src=src,market=market,updated=src.updated,count=n,items=rows,snapshot=false};tableCache[market]=cache;return cache
 end
 NokiUnifiedAPI={}
 function NokiUnifiedAPI.GetMarket() return core.Market() end
 function NokiUnifiedAPI.GetTableInfo() local t=getTable();if not t then return nil end;return {market=t.market,updated=t.updated,count=t.count,snapshot=false} end
-function NokiUnifiedAPI.GetPrice(id) local t=getTable();local r=t and t.items[tonumber(id)];if not r then return nil end;return {market=t.market,updated=t.updated,soldPerDay=r.soldPerDay,minBuyout=r.minBuyout,quantity=r.quantity} end
+function NokiUnifiedAPI.GetPrice(id) local t=getTable();local r=t and t.items[tonumber(id)];if not r then return nil end;return {market=t.market,updated=t.updated,soldPerDay=r.soldPerDay,minBuyout=r.minBuyout,median=r.median,median7d=r.median7d,median30d=r.median30d,quantity=r.quantity} end
 function core.Subscribe(fn) core.listeners[#core.listeners+1]=fn end
 local function setupSellScanNotice()
   if not AuctionHouseFrame then return end

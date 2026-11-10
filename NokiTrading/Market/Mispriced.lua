@@ -1,10 +1,24 @@
 -- A user-started, read-only scan of the first two distinct buyout tiers.
 local core=NokiUnifiedCore
-local panel,search,threshold,status,footer,scanButton,rows=nil,nil,nil,nil,nil,nil,{}
+local panel,search,threshold,minSalesBox,maxQtyBox,maxCostBox,status,footer,scanButton,modeButton,rows=nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,{}
 local queue,results,filtered={},{},{}
-local index,checked,skipped,offset=1,0,0,0
-local running,inflight=false,false
+local index,checked,skipped,excluded,offset,batchEnd=1,0,0,0,0,0
+local running,inflight,fastMode=false,false,true
 local pageSize=9
+local batchSize=50
+local function readFilters()
+  local limit=tonumber(threshold:GetText())
+  if not limit or limit<0 or limit>100 then return nil,"Enter a discount from 0 to 100%." end
+  local function optional(box)
+    local value=(box:GetText() or ""):match("^%s*(.-)%s*$")
+    if value=="" then return nil end
+    local n=tonumber(value);if not n or n<0 or n~=n or n==math.huge then return false end
+    return n
+  end
+  local sales,qty,cost=optional(minSalesBox),optional(maxQtyBox),optional(maxCostBox)
+  if sales==false or qty==false or cost==false then return nil,"Enter non-negative numbers or leave filters blank." end
+  return {discount=limit,sales=sales,quantity=qty,cost=cost and cost*10000 or nil}
+end
 local function money(n)
   if type(n)~="number" then return "--" end
   if n<0 then return "-"..money(-n) end
@@ -19,11 +33,14 @@ local function cell(parent,x,width,font)
 end
 local function draw()
   if not panel then return end
-  local limit=tonumber(threshold:GetText())
-  if not limit or limit<0 or limit>100 then status:SetText("Enter a discount from 0 to 100%.");return end
+  local filters,err=readFilters()
+  if not filters then status:SetText(err);return end
   local term=(search:GetText() or ""):lower():match("^%s*(.-)%s*$")
   filtered={}
-  for _,item in ipairs(results) do if item.discount>=limit and (term=="" or item.name:lower():find(term,1,true) or tostring(item.id):find(term,1,true)) then filtered[#filtered+1]=item end end
+  for _,item in ipairs(results) do
+    local saleOK=not filters.sales or filters.sales==0 or (item.sales and item.sales>=filters.sales)
+    if item.discount>=filters.discount and saleOK and (not filters.quantity or item.quantity<=filters.quantity) and (not filters.cost or item.cost<=filters.cost) and (term=="" or item.name:lower():find(term,1,true) or tostring(item.id):find(term,1,true)) then filtered[#filtered+1]=item end
+  end
   table.sort(filtered,function(a,b) if a.discount==b.discount then return a.id<b.id end;return a.discount>b.discount end)
   offset=math.max(0,math.min(offset,math.max(0,#filtered-pageSize)))
   for i,row in ipairs(rows) do
@@ -32,15 +49,18 @@ local function draw()
       row.name:SetText(item.name.." |cff829494#"..item.id.."|r");row.low:SetText(money(item.low));row.next:SetText(money(item.next));row.discount:SetText(string.format("%.1f%%",item.discount));row.quantity:SetText(tostring(item.quantity));row.cost:SetText(money(item.cost));row.profit:SetText(money(item.profit));row.sales:SetText(item.sales and string.format("%.1f",item.sales) or "--");row:Show()
     else row:Hide() end
   end
-  local state=running and "Checking" or inflight and "Pausing after current check" or index>#queue and #queue>0 and "Finished" or #queue>0 and "Paused" or "Ready"
-  status:SetText(state.." | "..checked.." / "..#queue.." checked | "..skipped.." no comparison or unavailable | "..#filtered.." match")
+  local state=running and "Checking" or inflight and "Pausing after current check" or index>#queue and #queue>0 and "Finished" or #queue>0 and index>batchEnd and "Batch complete" or #queue>0 and "Paused" or "Ready"
+  status:SetText(state.." | "..checked.." / "..#queue.." checked | "..excluded.." prefiltered | "..skipped.." unavailable/no comparison | "..#filtered.." match")
   footer:SetText((#filtered==0 and "No matching results yet" or ((offset+1).."-"..math.min(offset+pageSize,#filtered).." of "..#filtered)).." | Scroll to browse | Recheck before buying")
-  scanButton:SetText(running and "Pause" or (#queue>0 and index<=#queue and "Resume" or "Check prices"))
+  scanButton:SetText(running and "Pause" or (#queue>0 and index<=#queue and (index>batchEnd and "Next 50" or "Resume") or "Check prices"))
+  modeButton:SetText(fastMode and "Fast: ON" or "Fast: OFF")
 end
 local function buildQueue()
+  local filters,filterError=readFilters();if not filters then return nil,filterError end
   local market=core.Market();local book=market and NokiUnifiedCoreDB and NokiUnifiedCoreDB.prices and NokiUnifiedCoreDB.prices[market]
   if not book or not book.items then return nil,"Run a market scan first." end
-  local out={};local catalog=NokiUnifiedMarketDB and NokiUnifiedMarketDB.itemCatalog or {}
+  local out={};local filteredOut=0;local catalog=NokiUnifiedMarketDB and NokiUnifiedMarketDB.itemCatalog or {}
+  local term=(search:GetText() or ""):lower():match("^%s*(.-)%s*$")
   local activityMarket=NokiUnifiedMarketActivityMarket and NokiUnifiedMarketActivityMarket()
   local activityAvailable=type(market)=="string" and activityMarket==market:lower():gsub("/", ".") and NokiUnifiedAPI and NokiUnifiedAPI.GetPrice
   for id,item in pairs(book.items) do
@@ -50,12 +70,22 @@ local function buildQueue()
       local saved=catalog[tostring(id)] or catalog[id];local name=(saved and saved.name) or (GetItemInfo and GetItemInfo(id)) or ("Item #"..id)
       local activity=activityAvailable and NokiUnifiedAPI.GetPrice(id);local sales=activity and activity.soldPerDay
       if type(sales)~="number" or sales<0 or sales~=sales or sales==math.huge then sales=nil end
-      out[#out+1]={id=id,key=key,name=name,price=item.price,sales=sales}
+      local reference
+      if activity then for _,value in ipairs({activity.median or 0,activity.median7d or 0,activity.median30d or 0}) do if type(value)=="number" and value>0 then reference=value;break end end end
+      local saleOK=not filters.sales or filters.sales==0 or (sales and sales>=filters.sales)
+      local match=term=="" or name:lower():find(term,1,true) or tostring(id):find(term,1,true)
+      local fastOK=not fastMode or (reference and item.price<=reference*(1-math.min(25,filters.discount/2)/100))
+      if match and saleOK and fastOK then
+        out[#out+1]={id=id,key=key,name=name,price=item.price,sales=sales,referenceDiscount=reference and (reference-item.price)/reference or nil}
+      else filteredOut=filteredOut+1 end
     end
   end
-  table.sort(out,function(a,b) local x,y=a.sales or -1,b.sales or -1;if x==y then return a.id<b.id end;return x>y end)
-  if #out==0 then return nil,"No unambiguous items in the latest scan." end
-  return out
+  table.sort(out,function(a,b)
+    if fastMode then local x,y=a.referenceDiscount or -math.huge,b.referenceDiscount or -math.huge;if x~=y then return x>y end end
+    local x,y=a.sales or -1,b.sales or -1;if x==y then return a.id<b.id end;return x>y
+  end)
+  if #out==0 then return nil,fastMode and "No fast candidates; lower filters or turn Fast OFF, then restart." or "No items match the scan filters." end
+  return out,nil,filteredOut
 end
 local function checkNext()
   if not running or inflight or index>#queue then return end
@@ -71,7 +101,7 @@ local function checkNext()
       local name=(saved and saved.name) or (GetItemInfo and GetItemInfo(candidate.id)) or candidate.name
       results[#results+1]={id=candidate.id,key=candidate.key,name=name,low=first.price,next=second.price,nextQuantity=second.quantity,quantity=first.quantity,cost=first.totalCost,discount=(second.price-first.price)/second.price*100,profit=math.floor(resell*first.quantity*.95)-first.totalCost,sales=activity and activity.sales,checked=result.checked}
     else skipped=skipped+1 end
-    if index>#queue then running=false end
+    if index>#queue or index>batchEnd then running=false end
     draw()
   end)
   if not ok then index=index-1;inflight=false;if not err or not err:find("Another price check") then running=false;status:SetText(err or "Price check unavailable.");return end end
@@ -81,20 +111,33 @@ local function build()
   if panel or not AuctionHouseFrame or not NokiUnifiedTabs then return end
   panel=CreateFrame("Frame",nil,AuctionHouseFrame,"BackdropTemplate");panel:Hide();panel:SetPoint("TOPLEFT",AuctionHouseFrame,"TOPLEFT",12,-75);panel:SetPoint("BOTTOMRIGHT",AuctionHouseFrame,"BOTTOMRIGHT",-12,35);panel:SetFrameStrata("DIALOG");panel:SetFrameLevel(AuctionHouseFrame:GetFrameLevel()+50);panel:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1});panel:SetBackdropColor(.055,.065,.07,1);panel:SetBackdropBorderColor(.24,.30,.28,1)
   local title=panel:CreateFontString(nil,"OVERLAY","GameFontNormalLarge");title:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-12);title:SetText("MISPRICED ITEMS")
-  local hint=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");hint:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-35);hint:SetText("Checks one item at a time, higher estimated activity first. A full scan may take a long time.")
-  search=CreateFrame("EditBox",nil,panel,"InputBoxTemplate");search:SetSize(170,24);search:SetPoint("TOPLEFT",panel,"TOPLEFT",20,-59);search:SetAutoFocus(false);search:SetMaxLetters(60);search:SetScript("OnTextChanged",function() offset=0;draw() end);search:SetScript("OnEscapePressed",function(self) self:ClearFocus() end)
-  local label=panel:CreateFontString(nil,"OVERLAY","GameFontNormalSmall");label:SetPoint("TOPLEFT",panel,"TOPLEFT",210,-64);label:SetText("MIN % (ENTER)")
-  threshold=CreateFrame("EditBox",nil,panel,"InputBoxTemplate");threshold:SetSize(50,24);threshold:SetPoint("TOPLEFT",panel,"TOPLEFT",325,-59);threshold:SetAutoFocus(false);threshold:SetNumeric(true);threshold:SetText("50");threshold:SetScript("OnEnterPressed",function(self) self:ClearFocus();offset=0;draw() end);threshold:SetScript("OnEscapePressed",function(self) self:ClearFocus() end)
-  scanButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");scanButton:SetSize(115,23);scanButton:SetPoint("TOPLEFT",panel,"TOPLEFT",395,-59);scanButton:SetText("Check prices")
+  local hint=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");hint:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-35);hint:SetText("Fast checks likely discounts first and may miss deals. Change scan filters, then click New scan.")
+  search=CreateFrame("EditBox",nil,panel,"InputBoxTemplate");search:SetSize(115,24);search:SetPoint("TOPLEFT",panel,"TOPLEFT",20,-59);search:SetAutoFocus(false);search:SetMaxLetters(60);search:SetScript("OnTextChanged",function() offset=0;draw() end);search:SetScript("OnEscapePressed",function(self) self:ClearFocus() end)
+  local function label(x,value) local t=panel:CreateFontString(nil,"OVERLAY","GameFontNormalSmall");t:SetPoint("TOPLEFT",panel,"TOPLEFT",x,-64);t:SetText(value) end
+  local function input(x,width,value)
+    local box=CreateFrame("EditBox",nil,panel,"InputBoxTemplate");box:SetSize(width,24);box:SetPoint("TOPLEFT",panel,"TOPLEFT",x,-59);box:SetAutoFocus(false);box:SetText(value or "");box:SetScript("OnEnterPressed",function(self) self:ClearFocus();offset=0;draw() end);box:SetScript("OnEscapePressed",function(self) self:ClearFocus() end);return box
+  end
+  label(145,"GAP %");threshold=input(195,42,"50")
+  label(245,"MIN/DAY");minSalesBox=input(310,48,"")
+  label(370,"MAX QTY");maxQtyBox=input(440,48,"")
+  label(500,"MAX BUY G");maxCostBox=input(585,55,"")
+  scanButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");scanButton:SetSize(105,23);scanButton:SetPoint("TOPLEFT",panel,"TOPLEFT",650,-59);scanButton:SetText("Check prices")
+  local function resetScan()
+    if running or inflight then print("Noki Trading: pause and wait for the current check before starting a new scan.");return false end
+    queue={};results={};filtered={};index=1;checked=0;skipped=0;excluded=0;offset=0;batchEnd=0;return true
+  end
   scanButton:SetScript("OnClick",function()
     if running then running=false;draw();return end
     if #queue==0 or index>#queue then
       if inflight then return end
-      local newQueue,err=buildQueue();if not newQueue then status:SetText(err);return end
-      queue=newQueue;results={};checked=0;skipped=0;index=1;offset=0
+      local newQueue,err,filteredOut=buildQueue();if not newQueue then status:SetText(err);return end
+      queue=newQueue;results={};checked=0;skipped=0;excluded=filteredOut or 0;index=1;offset=0;batchEnd=0
     end
+    if index>batchEnd then batchEnd=math.min(index+batchSize-1,#queue) end
     running=true;draw();checkNext()
   end)
+  local resetButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");resetButton:SetSize(78,23);resetButton:SetPoint("TOPLEFT",panel,"TOPLEFT",760,-59);resetButton:SetText("New scan");resetButton:SetScript("OnClick",function() if resetScan() then draw() end end)
+  modeButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");modeButton:SetSize(90,23);modeButton:SetPoint("TOPLEFT",panel,"TOPLEFT",843,-59);modeButton:SetScript("OnClick",function() if resetScan() then fastMode=not fastMode;draw() end end)
   status=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");status:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-91);status:SetWidth(900);status:SetJustifyH("LEFT")
   local header=CreateFrame("Frame",nil,panel,"BackdropTemplate");header:SetPoint("TOPLEFT",panel,"TOPLEFT",12,-110);header:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-20,-110);header:SetHeight(22);header:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});header:SetBackdropColor(.13,.18,.17,1)
   for _,col in ipairs({{"ITEM",5,220},{"LOW / UNIT",225,100},{"NEXT / UNIT",325,100},{"DISCOUNT",425,85},{"LOW QTY",510,75},{"BUY COST",585,100},{"EST. PROFIT",685,105},{"EST. / DAY",790,80}}) do cell(header,col[2],col[3],"GameFontNormalSmall"):SetText(col[1]) end
@@ -111,7 +154,7 @@ local function build()
     row:EnableMouse(true);row:SetScript("OnEnter",function(self) if self.item and GameTooltip then GameTooltip:SetOwner(self,"ANCHOR_RIGHT");GameTooltip:SetItemByID(self.item.id);GameTooltip:AddLine("Next price tier: "..self.item.nextQuantity.." units.",1,1,1,true);GameTooltip:AddLine("Checked "..date("%H:%M:%S",self.item.checked)..". Prices may have changed.",1,.8,.3,true);GameTooltip:Show() end end);row:SetScript("OnLeave",function() if GameTooltip then GameTooltip:Hide() end end);rows[i]=row
   end
   footer=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");footer:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-410)
-  local note=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");note:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-433);note:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-20,-433);note:SetJustifyH("LEFT");note:SetText("Discount = (next price - low price) / next price. Estimated profit assumes buying the entire low tier and selling all units at 1 copper under the next tier, after a 5% cut; deposits excluded. Other listings, prices, and demand may change. Own/account listings and incomplete or ambiguous results are skipped.")
+  local note=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");note:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-433);note:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-20,-433);note:SetJustifyH("LEFT");note:SetText("Fast uses AHledger median to shortlist; missing or stale data can hide deals. Fast OFF checks the broader list in batches of 50. Max qty and buy cost apply to the full lowest-price tier; max buy is in gold. Enter applies filters; New scan rebuilds candidates. Profit assumes all units resell 1c below the next tier after a 5% cut; deposits excluded. Prices can change.")
   local function wheel(_,delta) offset=math.max(0,math.min(math.max(0,#filtered-pageSize),offset-delta));draw() end
   panel:EnableMouseWheel(true);panel:SetScript("OnMouseWheel",wheel);for _,row in ipairs(rows) do row:EnableMouseWheel(true);row:SetScript("OnMouseWheel",wheel) end
   local width,height
