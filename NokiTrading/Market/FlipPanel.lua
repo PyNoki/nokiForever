@@ -132,7 +132,12 @@ local function render()
     local item = filtered[scrollOffset + i]
     row.item = item
     if item then
-      row.name:SetText(item.name .. "  |cff829494#" .. item.id .. "|r")
+      if viewMode=="flips" then
+        row.name:SetWidth(155);row.name:SetText(item.name)
+        local quantity=NokiUnifiedCore.OwnedItemQuantity and NokiUnifiedCore.OwnedItemQuantity(item.id)
+        local display=quantity~=nil and ((BreakUpLargeNumbers and BreakUpLargeNumbers(quantity)) or tostring(quantity)) or "--"
+        row.selling:SetText("|cff73e6a3"..display.." selling|r");row.selling:Show()
+      else row.name:SetWidth(245);row.name:SetText(item.name .. "  |cff829494#" .. item.id .. "|r");row.selling:Hide() end
       row.gain:SetTextColor(.45,.9,.64)
       if viewMode == "resale" then
         row.vendor:SetText(item.checking and "Checking live prices..." or item.live and "Live profitable tiers checked" or item.checkError and "Live prices unavailable" or item.viewed and "Viewed; awaiting recheck" or "Awaiting live price check")
@@ -511,6 +516,7 @@ local function createPanel()
   for i=1,ROWS_PER_PAGE do
     local row=CreateFrame("Button",nil,panel,"BackdropTemplate");row:SetPoint("TOPLEFT",panel,"TOPLEFT",10,-145-(i-1)*34);row:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-32,-145-(i-1)*34);row:SetHeight(33);row:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});row:SetBackdropColor(i%2==0 and 0.10 or 0.075,0.10,0.11,0.95)
     row.name=makeText(row,nil,8,-4,245,"GameFontHighlightSmall");row.vendor=makeText(row,nil,8,-19,245,"GameFontDisableSmall")
+    row.selling=makeText(row,nil,166,-4,88,"GameFontHighlightSmall");row.selling:SetJustifyH("RIGHT")
     row.buy=makeText(row,nil,265,-11,95);row.ah=makeText(row,nil,370,-11,95);row.gain=makeText(row,nil,475,-11,95);row.gain:SetTextColor(0.45,0.9,0.64);row.stackGain=makeText(row,nil,580,-11,100);row.stackGain:SetTextColor(0.45,0.9,0.64);row.activity=makeText(row,nil,690,-11,90);row.listed=makeText(row,nil,790,-11,75);row.gap=makeText(row,nil,875,-11,90)
     row.resaleView=CreateFrame("Button",nil,row,"UIPanelButtonTemplate");row.resaleView:SetSize(52,22);row.resaleView:SetPoint("TOPRIGHT",row,"TOPRIGHT",-5,-5);row.resaleView:SetText("View");row.resaleView:Hide();row.resaleView:SetScript("OnClick",function() if row.item then openResale(row.item) end end)
     row:SetScript("OnClick",function(self) if self.item then setSelected(self.item) end end);rows[i]=row
@@ -674,6 +680,7 @@ end)
 function NokiUnifiedMarketRefreshFlips()
   if panel and panel:IsShown() then if viewMode=="resale" then updateResaleStatus() else calculate() end end
 end
+function NokiUnifiedMarketOwnedChanged() if panel and panel:IsShown() and viewMode=="flips" then render() end end
 NokiUnifiedCore.Subscribe(function(event)
   if event~="complete" then return end
   resaleCache=nil

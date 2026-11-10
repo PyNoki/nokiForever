@@ -3,6 +3,17 @@ local core=NokiUnifiedCore
 local owned, competitions={},{}
 local state={queue={},index=1,search=nil,alerted=false}
 function core.IsCompetitionSearchActive() return state.search~=nil end
+function core.OwnedItemQuantity(id)
+  if not state.ownedComplete then return nil end
+  local total=0
+  for _,item in ipairs(owned) do
+    if item.itemKey and item.itemKey.itemID==id then
+      if type(item.quantity)~="number" or item.quantity<0 then return nil end
+      total=total+item.quantity
+    end
+  end
+  return total
+end
 local startChecks
 local panel, summary, status, page, rows, scrollOffset, scrollbar, updatingScrollbar
 local requestedNames={}
@@ -196,6 +207,7 @@ local function refreshOwned()
   if state.ownedComplete and not state.cancelPending then state.needOwned=false end
   if state.ownedComplete and state.needChecks and startChecks then state.needChecks=false;startChecks() end
   render()
+  if NokiUnifiedMarketOwnedChanged then NokiUnifiedMarketOwnedChanged() end
 end
 local function requestOwned()
   if not core.active or not C_AuctionHouse or not C_AuctionHouse.QueryOwnedAuctions then return end
@@ -344,7 +356,7 @@ f:SetScript("OnEvent",function(_,event,arg)
       NokiUnifiedCoreDB.auctionDeposits=NokiUnifiedCoreDB.auctionDeposits or {}
       NokiUnifiedCoreDB.auctionDeposits[tostring(arg)]=pendingDeposit
     end
-    pendingDeposit=nil;state.needOwned=true;state.ownedRequested=nil;requestOwned()
+    pendingDeposit=nil;state.ownedComplete=false;state.needOwned=true;state.ownedRequested=nil;if NokiUnifiedMarketOwnedChanged then NokiUnifiedMarketOwnedChanged() end;requestOwned()
   elseif event=="AUCTION_CANCELED" then
     local id=state.cancelPending
     if id and (type(arg)~="number" or arg==id) then
@@ -352,7 +364,7 @@ f:SetScript("OnEvent",function(_,event,arg)
       if expandedAuction==id then expandedAuction=nil end
       state.cancelPending=nil;state.cancelStarted=nil;scrollOffset=math.min(scrollOffset,math.max(0,#owned-8));render()
     end
-    state.needOwned=true;state.ownedRequested=nil;requestOwned()
+    state.ownedComplete=false;state.needOwned=true;state.ownedRequested=nil;if NokiUnifiedMarketOwnedChanged then NokiUnifiedMarketOwnedChanged() end;requestOwned()
   elseif event=="GET_ITEM_INFO_RECEIVED" or event=="ITEM_KEY_ITEM_INFO_RECEIVED" then render()
   elseif event=="AUCTION_HOUSE_CLOSED" then pendingDeposit=nil;state.queue={};state.index=1;state.search=nil;core.SetWorking("competition",false);core.SetWorking("pending",false)
   elseif state.search and ((state.search.commodity and (event=="COMMODITY_SEARCH_RESULTS_UPDATED" or event=="COMMODITY_SEARCH_RESULTS_ADDED") and arg==state.search.key.itemID) or (not state.search.commodity and (event=="ITEM_SEARCH_RESULTS_UPDATED" or event=="ITEM_SEARCH_RESULTS_ADDED") and type(arg)=="table" and keyString(arg)==state.search.keyString)) then state.search.seen=true;checkDone() end
