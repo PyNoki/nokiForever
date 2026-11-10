@@ -5,9 +5,11 @@ local state={queue={},index=1,search=nil,alerted=false}
 local startChecks
 local panel, summary, status, page, rows, scrollOffset
 local requestedNames={}
+local expandedAuction
 scrollOffset=0
 local function formatMoney(n)
   if type(n)~="number" then return "--" end
+  if n<0 then return "-"..formatMoney(-n) end
   local value=math.floor(n*100+0.5)/100;local g=math.floor(value/10000);local s=math.floor((value-g*10000)/100);local c=value-g*10000-s*100
   local copper=string.format("%.2f",c):gsub("0+$",""):gsub("%.$","")
   local goldIcon="|TInterface\\MoneyFrame\\UI-GoldIcon:12:12:0:0|t"
@@ -79,6 +81,28 @@ local function lowestPrice(result)
   return lowest
 end
 core.LowestAuctionPrice=lowestPrice
+-- Vendor offers are reference prices; whole packs may leave unused units.
+local function vendorCost(itemID,quantity)
+  if type(quantity)~="number" or quantity<=0 then return nil end
+  local best
+  for _,offer in ipairs(NokiUnifiedMarketVendorData or {}) do
+    local price,pack=offer[4],offer[5]
+    if offer[1]==itemID and type(price)=="number" and price>=0 and type(pack)=="number" and pack>0 then
+      local packs=math.ceil(quantity/pack);local cost=packs*price
+      if not best or cost<best.cost then best={cost=cost,packs=packs,pack=pack,price=price,vendor=offer[3],limited=offer[8]} end
+    end
+  end
+  return best
+end
+core.OwnedVendorCost=vendorCost
+local function relistValues(quantity,low,undercut)
+  if type(quantity)~="number" or quantity<=0 or type(low)~="number" or low<=0 then return nil end
+  local unit=undercut and math.floor(low)-1 or low
+  if unit<1 then return nil end
+  local gross=unit*quantity
+  return {unit=unit,gross=gross,net=math.floor(gross*.95)}
+end
+core.OwnedRelistValues=relistValues
 -- Counts only units at strictly lower prices, never treating ties as ahead.
 local function comparison(auction)
   local key=auction.itemKey;local result=key and competitions[keyString(key)]
@@ -101,18 +125,34 @@ local function render()
   for _,a in ipairs(owned) do local _,value=auctionValues(a);if value then total=total+value else count=count+1 end end
   local net=math.floor(total*95/100)
   summary:SetText((state.ownedComplete and "Gross: " or "Partial gross: ")..formatMoney(total).." | Est. after 5%: "..formatMoney(net)..(count>0 and (" | "..count.." price unknown") or "").." | Deposits excluded")
+  local rowY=-104
   for i,row in ipairs(rows) do
     local item=owned[scrollOffset+i];row.item=item
     if item then
+      local expanded=expandedAuction==item.auctionID
+      row:ClearAllPoints();row:SetPoint("TOPLEFT",panel,"TOPLEFT",12,rowY);row:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-12,rowY);row:SetHeight(expanded and 94 or 30)
+      rowY=rowY-(expanded and 96 or 32)
       local name=itemName(item)
       local unit,total=auctionValues(item)
       local condition,ahead=comparison(item)
       local marketLow=lowestPrice(item.itemKey and competitions[keyString(item.itemKey)])
       row.name:SetText(name);row.quantity:SetText(tostring(item.quantity or "?"));row.unit:SetText(formatMoney(unit));row.total:SetText(formatMoney(total));row.low:SetText(formatMoney(marketLow));row.state:SetText(condition=="no lower price" and "|TInterface\\RaidFrame\\ReadyCheck-Ready:14:14|t" or condition);row.ahead:SetText(ahead~=nil and tostring(ahead) or "--");row.deposit:SetText(formatMoney(auctionDeposit(item)));row.time:SetText(timeLeft(item))
       row.state:SetTextColor(condition=="undercut" and 1 or .75,condition=="undercut" and .3 or .85,.4)
+      row.expand:SetText(expanded and "-" or "+");row.detail:SetShown(expanded)
+      if expanded then
+        local match=relistValues(item.quantity,marketLow,false);local under=relistValues(item.quantity,marketLow,true)
+        local vendor=vendorCost(item.itemKey.itemID,item.quantity)
+        local function scenario(label,value)
+          if not value then return label..": --" end
+          return label..": "..formatMoney(value.unit).."/unit | Total "..formatMoney(value.gross).." | After 5% "..formatMoney(value.net)..(vendor and (" | Profit "..formatMoney(value.net-vendor.cost)) or "")
+        end
+        local source=vendor and ("Vendor reference: "..tostring(vendor.vendor).." | "..vendor.packs.." x "..vendor.pack.." for "..formatMoney(vendor.cost)..(vendor.limited and " | LIMITED STOCK" or "").." | Whole packs; verify availability") or "No vendor purchase price in reference data; profit unavailable."
+        row.detail:SetText(scenario("Match",match).."\n"..scenario("Under 1c",under).."\n"..source.." | Deposits excluded")
+      end
       row.cancel:SetEnabled(not state.cancelPending and item.auctionID~=nil);row:Show()
     else row:Hide() end
   end
+  page:ClearAllPoints();page:SetPoint("TOPLEFT",panel,"TOPLEFT",16,rowY-8)
   status:SetText(#owned.." active auctions | "..(state.search and "Checking competition..." or (#state.queue>0 and state.index<=#state.queue and "Competition scan queued" or (#state.queue>0 and "Competition checks complete" or "Use Scan market to refresh comparisons"))))
   page:SetText((#owned==0 and "No listings" or ((scrollOffset+1).."-"..math.min(scrollOffset+8,#owned).." of "..#owned)).."  |  Market low is per unit and can include yours  |  -- = unavailable")
 end
@@ -157,8 +197,10 @@ local function createPanel()
   rows={}
   for i=1,8 do
     local row=CreateFrame("Frame",nil,panel,"BackdropTemplate");row:SetPoint("TOPLEFT",panel,"TOPLEFT",12,-104-(i-1)*32);row:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-12,-104-(i-1)*32);row:SetHeight(30);row:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});row:SetBackdropColor(i%2==0 and .12 or .08,.12,.12,.95)
-    row.name=rowText(row,4,-8,200);row.quantity=rowText(row,205,-8,65);row.unit=rowText(row,270,-8,80);row.total=rowText(row,350,-8,90);row.low=rowText(row,440,-8,85);row.state=rowText(row,525,-8,75);row.ahead=rowText(row,600,-8,65);row.deposit=rowText(row,665,-8,80);row.time=rowText(row,745,-8,60)
-    row.view=CreateFrame("Button",nil,row,"UIPanelButtonTemplate");row.view:SetSize(50,22);row.view:SetPoint("RIGHT",row,"RIGHT",-60,0);row.view:SetText("View");row.view:SetScript("OnClick",function()
+    row.expand=CreateFrame("Button",nil,row,"UIPanelButtonTemplate");row.expand:SetSize(18,20);row.expand:SetPoint("TOPLEFT",row,"TOPLEFT",3,-5);row.expand:SetText("+");row.expand:SetScript("OnClick",function() if row.item then if expandedAuction==row.item.auctionID then expandedAuction=nil else expandedAuction=row.item.auctionID end;render() end end)
+    row.name=rowText(row,25,-8,179);row.quantity=rowText(row,205,-8,65);row.unit=rowText(row,270,-8,80);row.total=rowText(row,350,-8,90);row.low=rowText(row,440,-8,85);row.state=rowText(row,525,-8,75);row.ahead=rowText(row,600,-8,65);row.deposit=rowText(row,665,-8,80);row.time=rowText(row,745,-8,60)
+    row.detail=rowText(row,25,-33,850);row.detail:SetWordWrap(true);row.detail:Hide()
+    row.view=CreateFrame("Button",nil,row,"UIPanelButtonTemplate");row.view:SetSize(50,22);row.view:SetPoint("TOPRIGHT",row,"TOPRIGHT",-60,-4);row.view:SetText("View");row.view:SetScript("OnClick",function()
       local item=row.item
       if not item or not item.itemKey or not core.active then return end
       if core.phase~="idle" then print("Noki Trading: wait for the market scan to finish, then select View.");return end
@@ -170,7 +212,7 @@ local function createPanel()
       if not ok then print("Noki Trading: could not open the buy view: "..tostring(err));return end
       NokiUnifiedTabs:HideAll()
     end)
-    row.cancel=CreateFrame("Button",nil,row,"UIPanelButtonTemplate");row.cancel:SetSize(54,22);row.cancel:SetPoint("RIGHT",row,"RIGHT",-4,0);row.cancel:SetText("Cancel");row.cancel:SetScript("OnClick",function()
+    row.cancel=CreateFrame("Button",nil,row,"UIPanelButtonTemplate");row.cancel:SetSize(54,22);row.cancel:SetPoint("TOPRIGHT",row,"TOPRIGHT",-4,-4);row.cancel:SetText("Cancel");row.cancel:SetScript("OnClick",function()
       local item=row.item
       if not item or state.cancelPending or not core.active or not C_AuctionHouse.CancelAuction then return end
       StaticPopup_Show("NOKI_CONFIRM_CANCEL_AUCTION",itemName(item),nil,item.auctionID)

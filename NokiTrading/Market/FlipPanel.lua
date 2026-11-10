@@ -6,7 +6,7 @@ local panel, tabLib, budgetBox, minSalesBox, minStackProfitBox, searchBox, sortB
 local rows, results, filtered = {}, {}, {}
 local scrollOffset, sortMode, selectedID = 0, "gain", nil
 local scrollbar, updatingScrollbar
-local viewMode, modeButton, headerTexts, flipControls, title, subtitle = "lookup", nil, {}, {}, nil, nil
+local viewMode, modeButton, headerTexts, flipControls, title, subtitle = "flips", nil, {}, {}, nil, nil
 local knownButton, captureButton, minProfitLabel, searchHint
 local sortLabels = {gain="Gain per unit", roi="Return %", activity="Est. sales/day"}
 local ROWS_PER_PAGE = 7
@@ -397,6 +397,11 @@ local function createPanel()
   local applyButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");applyButton:SetSize(110,22);applyButton:SetPoint("TOPLEFT",panel,"TOPLEFT",470,-77);applyButton:SetText("Apply / Search");applyButton:SetScript("OnClick",function() scrollOffset=0;calculate() end)
   applyMode=function()
     local lookup=viewMode=="lookup";local craft=viewMode=="craft"
+    searchBox:ClearAllPoints();searchBox:SetPoint("TOPLEFT",panel,"TOPLEFT",lookup and 90 or 330,-54)
+    searchHint:ClearAllPoints();searchHint:SetPoint("TOPLEFT",panel,"TOPLEFT",lookup and 18 or 365,lookup and -59 or -80);searchHint:SetText(lookup and "SEARCH" or "Search name, vendor or ID")
+    modeButton:ClearAllPoints();modeButton:SetPoint("TOPLEFT",panel,"TOPLEFT",lookup and 355 or 220,lookup and -54 or -77)
+    applyButton:ClearAllPoints();applyButton:SetPoint("TOPLEFT",panel,"TOPLEFT",lookup and 235 or 470,lookup and -54 or -77)
+    importButton:ClearAllPoints();importButton:SetPoint("TOPLEFT",panel,"TOPLEFT",lookup and 495 or 845,lookup and -54 or -77)
     for _,control in ipairs(flipControls) do control:SetShown(not lookup) end
     knownButton:SetShown(craft);captureButton:SetShown(craft);searchHint:SetShown(not craft)
     knownButton:SetText(NokiUnifiedMarketDB.craftKnownOnly and "Known only" or "All recipes")
@@ -476,7 +481,7 @@ local function registerTab()
     return host
   end
   local success,err=pcall(function()
-    if not lib:DoesIDExist(TAB_ID) then lib:CreateTab(TAB_ID,makeHost("lookup"),"Noki Market","Noki Market") end
+    if not lib:DoesIDExist(TAB_ID) then lib:CreateTab(TAB_ID,makeHost("flips"),"Noki Market","Noki Market") end
   end)
   if success then tabLib=lib else print("Noki Market: tab registration failed: "..tostring(err)) end
 end
