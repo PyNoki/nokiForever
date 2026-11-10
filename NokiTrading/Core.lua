@@ -240,7 +240,7 @@ local elapsed=0;events:SetScript("OnUpdate",function(_,delta)
 end)
 -- Independent auction-house tabs; native tabs hide the Noki overlay when selected.
 NokiUnifiedTabs={tabs={},ordered={}}
-local tabOrder={NokiUnifiedHelp=1,NokiUnifiedMarketFlips=2,NokiUnifiedCraftCrafting=3,NokiUnifiedOwned=4}
+local tabOrder={NokiUnifiedHelp=1,NokiUnifiedMarketFlips=2,NokiUnifiedCraftCrafting=3,NokiUnifiedOwned=4,NokiPurchaseHistory=5}
 function NokiUnifiedTabs:DoesIDExist(id) return self.tabs[id]~=nil end
 function NokiUnifiedTabs:HideAll()
   self.selected=nil
