@@ -84,6 +84,15 @@ core.LowestAuctionPrice=lowestPrice
 -- Vendor offers are reference prices; whole packs may leave unused units.
 local function vendorCost(itemID,quantity)
   if type(quantity)~="number" or quantity<=0 then return nil end
+  local market=(GetRealmName and GetRealmName() or "Unknown realm").." - "..(UnitFactionGroup and UnitFactionGroup("player") or "Unknown faction")
+  local observed
+  for _,offer in pairs(NokiUnifiedMarketDB and NokiUnifiedMarketDB.vendorOffers or {}) do
+    if offer.itemID==itemID and offer.market==market and type(offer.price)=="number" and offer.price>=0 and type(offer.stack)=="number" and offer.stack>0 and offer.purchasable~=false and not offer.extended and (not offer.currencyID or offer.currencyID==0) and (not observed or (tonumber(offer.observed) or 0)>(tonumber(observed.observed) or 0)) then observed=offer end
+  end
+  if observed then
+    local packs=math.ceil(quantity/observed.stack)
+    return {cost=packs*observed.price,packs=packs,pack=observed.stack,price=observed.price,vendor=observed.vendor,limited=type(observed.available)=="number" and observed.available>=0,observed=true}
+  end
   local best
   for _,offer in ipairs(NokiUnifiedMarketVendorData or {}) do
     local price,pack=offer[4],offer[5]
@@ -144,10 +153,13 @@ local function render()
         local vendor=vendorCost(item.itemKey.itemID,item.quantity)
         local function scenario(label,value)
           if not value then return label..": --" end
-          return label..": "..formatMoney(value.unit).."/unit | Total "..formatMoney(value.gross).." | After 5% "..formatMoney(value.net)..(vendor and (" | Profit "..formatMoney(value.net-vendor.cost)) or "")
+          local pack=""
+          if vendor then local packGross=value.unit*vendor.pack;local packNet=math.floor(packGross*.95);pack=" | Pack gross "..formatMoney(packGross)..", profit "..formatMoney(packNet-vendor.price) end
+          return label..": "..formatMoney(value.unit).."/unit"..pack.." | Listing gross "..formatMoney(value.gross)..(vendor and (", profit "..formatMoney(value.net-vendor.cost)) or (", after cut "..formatMoney(value.net)))
         end
-        local source=vendor and ("Vendor reference: "..tostring(vendor.vendor).." | "..vendor.packs.." x "..vendor.pack.." for "..formatMoney(vendor.cost)..(vendor.limited and " | LIMITED STOCK" or "").." | Whole packs; verify availability") or "No vendor purchase price in reference data; profit unavailable."
-        row.detail:SetText(scenario("Match",match).."\n"..scenario("Under 1c",under).."\n"..source.." | Deposits excluded")
+        local source=vendor and ((vendor.observed and "Last seen at " or "Vendor reference: ")..tostring(vendor.vendor).." | 1 pack: "..vendor.pack.." for "..formatMoney(vendor.price).." | "..vendor.packs.." packs: "..formatMoney(vendor.cost)..(vendor.limited and " | LIMITED STOCK" or "").." | Whole packs; verify price") or "No vendor purchase price in reference data; profit unavailable."
+        local remainder=vendor and (vendor.packs*vendor.pack-item.quantity) or 0
+        row.detail:SetText(source.."\n"..scenario("Match",match).."\n"..scenario("Under 1c",under).."\nProfit after 5% AH cut; whole-pack cost"..(remainder>0 and (" includes "..remainder.." extra units") or "").."; deposits excluded.")
       end
       row.cancel:SetEnabled(not state.cancelPending and item.auctionID~=nil);row:Show()
     else row:Hide() end
@@ -199,7 +211,7 @@ local function createPanel()
     local row=CreateFrame("Frame",nil,panel,"BackdropTemplate");row:SetPoint("TOPLEFT",panel,"TOPLEFT",12,-104-(i-1)*32);row:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-12,-104-(i-1)*32);row:SetHeight(30);row:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});row:SetBackdropColor(i%2==0 and .12 or .08,.12,.12,.95)
     row.expand=CreateFrame("Button",nil,row,"UIPanelButtonTemplate");row.expand:SetSize(18,20);row.expand:SetPoint("TOPLEFT",row,"TOPLEFT",3,-5);row.expand:SetText("+");row.expand:SetScript("OnClick",function() if row.item then if expandedAuction==row.item.auctionID then expandedAuction=nil else expandedAuction=row.item.auctionID end;render() end end)
     row.name=rowText(row,25,-8,179);row.quantity=rowText(row,205,-8,65);row.unit=rowText(row,270,-8,80);row.total=rowText(row,350,-8,90);row.low=rowText(row,440,-8,85);row.state=rowText(row,525,-8,75);row.ahead=rowText(row,600,-8,65);row.deposit=rowText(row,665,-8,80);row.time=rowText(row,745,-8,60)
-    row.detail=rowText(row,25,-33,850);row.detail:SetWordWrap(true);row.detail:Hide()
+    row.detail=rowText(row,25,-31,850);row.detail:SetWordWrap(true);row.detail:Hide()
     row.view=CreateFrame("Button",nil,row,"UIPanelButtonTemplate");row.view:SetSize(50,22);row.view:SetPoint("TOPRIGHT",row,"TOPRIGHT",-60,-4);row.view:SetText("View");row.view:SetScript("OnClick",function()
       local item=row.item
       if not item or not item.itemKey or not core.active then return end
