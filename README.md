@@ -16,7 +16,9 @@ The addon only reports range and does not cast spells. Its range estimates are a
 
 Noki Trading combines Market, Crafting, auction tracking, scanning, tooltips, and Help in one addon. It works without the AHledger or Auctionator addons. Daily sales estimates come from market data maintained by AHledger (ahledger.com).
 
-[Download Noki Trading 1.0.35](https://github.com/PyNoki/nokiForever/raw/refs/heads/main/NokiTrading-1.0.35.zip). Close WoW, extract the ZIP, and copy the `NokiTrading` folder to `World of Warcraft/_forever_/Interface/AddOns/`. Enable **Noki Trading** at the character screen and disable older Noki Market, Noki Crafting, Noki Trading Core, and unified beta addons.
+[Download Noki Trading 1.0.36](https://github.com/PyNoki/nokiForever/raw/refs/heads/main/NokiTrading-1.0.36.zip). Close WoW, extract the ZIP, and copy the `NokiTrading` folder to `World of Warcraft/_forever_/Interface/AddOns/`. Enable **Noki Trading** at the character screen and disable older Noki Market, Noki Crafting, Noki Trading Core, and unified beta addons.
+
+In Noki Market, select Vendor resale for a shopping list of items whose last scanned auction low is below their known vendor sell price. Select a row and click Check tier to calculate live low-tier quantity, cost, and total vendor profit; View opens the game's buy screen. Returning to Noki Market preserves the list position and marks the viewed item for rechecking. Verify current prices, quantity, binding, and vendor acceptance before buying; values and available listings can change.
 
 The Demand tab shows scanned items with their auction low, listed quantity, estimated sales per day, listed-to-sales ratio, gap, and a pressure ranking. Search by name or item ID and click a column heading to sort. The table includes items outside the crafting catalog; missing data appears as `--`. These are snapshots and estimates, not confirmed shortages. Scan and AHledger ages matter.
 

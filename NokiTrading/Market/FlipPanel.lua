@@ -7,6 +7,10 @@ local rows, results, filtered = {}, {}, {}
 local scrollOffset, sortMode, selectedID = 0, "gain", nil
 local scrollbar, updatingScrollbar
 local viewMode, modeButton, headerTexts, flipControls, title, subtitle = "flips", nil, {}, {}, nil, nil
+local marketViewMode="flips"
+local selectedItem,resaleCheckButton,resaleViewButton
+local openResale,checkResaleItem
+local returningFromResaleView,skipNextMarketRefresh,resaleReturnItem=false,false,nil
 local knownButton, captureButton, minProfitLabel, searchHint
 local sortLabels = {gain="Gain per unit", roi="Return %", activity="Est. sales/day"}
 local ROWS_PER_PAGE = 7
@@ -72,9 +76,18 @@ local function makeText(parent, anchor, x, y, width, font)
 end
 local function setSelected(item)
   selectedID = item and (item.key or item.id) or nil
+  selectedItem=item
+  if resaleCheckButton then resaleCheckButton:SetEnabled(item~=nil and not item.checking) end
+  if resaleViewButton then resaleViewButton:SetEnabled(item~=nil) end
   if not item then
     detailTitle:SetText("SELECT AN ITEM")
-    detailBody:SetText("Choose a row to see vendor pack details and market history.")
+    detailBody:SetText(viewMode=="resale" and "Select an item, then check its live lowest-price tier." or "Choose a row to see vendor pack details and market history.")
+    return
+  end
+  if viewMode=="resale" then
+    detailTitle:SetText(item.name.." | #"..item.id)
+    local details=item.checking and "Checking the live lowest-price tier..." or item.live and ("Live lowest tier: "..item.lowQuantity.." units | Buy "..copper(item.buyCost).." | Vendor value "..copper(item.vendorSell*item.lowQuantity).." | Profit "..copper(item.totalGain)) or (item.checkError and ("Live tier unavailable: "..item.checkError) or item.viewed and "Previously viewed; check the live tier again before buying." or "Select Check tier for the current lowest-price quantity and total.")
+    detailBody:SetText("AH low "..copper(item.ah).."/unit | Vendor sell "..copper(item.vendorSell).."/unit | "..(item.unitGain>0 and "Gain " or "Loss ")..copper(math.abs(item.unitGain)).."/unit\n"..details.."\nVendor sell value is a reference; verify current price, quantity, binding and vendor acceptance before buying.")
     return
   end
   if viewMode == "craft" then
@@ -117,7 +130,12 @@ local function render()
     row.item = item
     if item then
       row.name:SetText(item.name .. "  |cff829494#" .. item.id .. "|r")
-      if viewMode == "craft" then
+      row.gain:SetTextColor(.45,.9,.64)
+      if viewMode == "resale" then
+        row.vendor:SetText(item.live and (item.unitGain>0 and "Live tier checked" or "Live price no longer profitable") or item.checkError and "Live tier unavailable" or item.viewed and "Viewed; check before buying" or "Market scan; check tier")
+        row.buy:SetText(copper(item.ah));row.ah:SetText(copper(item.vendorSell));row.gain:SetText(copper(item.unitGain));row.stackGain:SetText(item.lowQuantity and tostring(item.lowQuantity) or "--")
+        row.gain:SetTextColor(item.unitGain>0 and .45 or 1,item.unitGain>0 and .9 or .35,item.unitGain>0 and .64 or .35)
+      elseif viewMode == "craft" then
         local r=item.recipe
         row.vendor:SetText(r.profession.." | skill "..tostring(r.required or "?")..(r.trainerSkill and "*" or "")..(item.known and " | known" or " | unknown")..(item.conditional and " | needs higher yield" or ""))
         row.buy:SetText(copper(item.cost));row.ah:SetText(copper(item.sell))
@@ -133,12 +151,15 @@ local function render()
         row.buy:SetText(copper(item.buyUnit)); row.ah:SetText(copper(item.sellUnit))
         row.gain:SetText(copper(item.gainUnit)); row.stackGain:SetText(copper(item.gainPack))
       end
-      row.activity:SetText(viewMode == "craft" and (tostring(item.sales).."/day") or (item.remote and item.remote.sales ~= nil and tostring(item.remote.sales) .. "/day" or "--"))
+      row.activity:SetText(viewMode=="resale" and copper(item.buyCost) or viewMode == "craft" and (tostring(item.sales).."/day") or (item.remote and item.remote.sales ~= nil and tostring(item.remote.sales) .. "/day" or "--"))
       local listed=item.quantity
-      row.listed:SetText(viewMode=="flips" and type(listed)=="number" and tostring(listed) or "--")
-      row.listed:SetShown(viewMode=="flips")
-      row.gap:SetShown(viewMode~="craft")
-      if viewMode~="craft" and not item.variant and type(listed)=="number" and type(item.remote and item.remote.sales)=="number" then
+      row.listed:SetText(viewMode=="resale" and copper(item.totalGain) or viewMode=="flips" and type(listed)=="number" and tostring(listed) or "--")
+      row.listed:SetShown(viewMode=="flips" or viewMode=="resale")
+      row.gap:SetShown(viewMode~="craft" and viewMode~="resale")
+      row.resaleView:SetShown(viewMode=="resale")
+      if viewMode=="resale" then
+        row.gap:SetText(item.remote and item.remote.sales and tostring(item.remote.sales).."/day" or "--");row.gap:SetTextColor(.8,.8,.8)
+      elseif viewMode~="craft" and not item.variant and type(listed)=="number" and type(item.remote and item.remote.sales)=="number" then
         local gap=item.remote.sales-listed
         local value=math.floor(math.abs(gap)*10+0.5)/10
         row.gap:SetText(value==0 and "0" or ((gap>0 and "+" or "-")..string.format("%.1f",value):gsub("%.0$","")))
@@ -155,9 +176,10 @@ local function filterAndSort(resetScroll)
   local text = (searchBox:GetText() or ""):lower():match("^%s*(.-)%s*$")
   filtered = {}
   for _, item in ipairs(results) do
-    if text == "" or item.name:lower():find(text,1,true) or (item.vendor or ""):lower():find(text,1,true) or tostring(item.id):find(text,1,true) then filtered[#filtered + 1] = item end
+    if not (viewMode=="resale" and (item.soldOut or (item.live and item.unitGain<=0))) and (text == "" or item.name:lower():find(text,1,true) or (item.vendor or ""):lower():find(text,1,true) or tostring(item.id):find(text,1,true)) then filtered[#filtered + 1] = item end
   end
   table.sort(filtered, function(a,b)
+    if viewMode=="resale" then if a.unitGain==b.unitGain then return a.id<b.id end;return a.unitGain>b.unitGain end
     if viewMode == "craft" then
       local av,bv
       if sortMode=="activity" then av,bv=a.sales,b.sales
@@ -226,9 +248,34 @@ local function calculateLookup()
   status:SetText("ITEM LOOKUP | Vendor offers first | Scan " .. (age and (age .. "m ago") or "unavailable") .. " | AHledger " .. source)
   filterAndSort()
 end
+local function calculateResale()
+  results={};selectedID=nil
+  local marketID=NokiUnifiedCore and NokiUnifiedCore.Market()
+  local book=marketID and NokiUnifiedCoreDB and NokiUnifiedCoreDB.prices and NokiUnifiedCoreDB.prices[marketID]
+  if not book or not book.items then status:SetText("NO SCAN | Open the auction house and run a scan.");filterAndSort();return end
+  local catalog=NokiUnifiedMarketDB.itemCatalog or {};local activityMarket=usableHistory();local unknown=0
+  for id,row in pairs(book.items) do
+    if type(id)=="number" and type(row)=="table" and not row.carried and type(row.price)=="number" and row.price>0 then
+      local saved=catalog[tostring(id)] or catalog[id];local vendor=saved and saved.vendorSell;local name=saved and saved.name
+      if type(vendor)~="number" then
+        local getInfo=(C_Item and C_Item.GetItemInfo) or GetItemInfo
+        if getInfo then local fields={pcall(getInfo,id)};if fields[1] then vendor=fields[12];name=name or fields[2] end end
+      end
+      if type(vendor)~="number" then unknown=unknown+1
+      elseif vendor>0 and row.price<vendor then
+        local level,suffix,pet=(row.variant or "0:0:0"):match("^([^:]+):([^:]+):([^:]+)$")
+        results[#results+1]={id=id,name=name or ("Item #"..id),ah=row.price,vendorSell=vendor,unitGain=vendor-row.price,remote=marketActivity(id,activityMarket),auctionKey={itemID=id,itemLevel=tonumber(level) or 0,itemSuffix=tonumber(suffix) or 0,battlePetSpeciesID=tonumber(pet) or 0}}
+      end
+    end
+  end
+  local age=book.observed and math.max(0,math.floor((((GetServerTime and GetServerTime()) or time())-book.observed)/60))
+  status:SetText("VENDOR RESALE | "..#results.." candidates | Scan "..(age and (age.."m ago") or "age unknown").." | "..unknown.." vendor prices unavailable")
+  filterAndSort()
+end
 local function calculate()
   if not panel or not NokiUnifiedMarketDB then return end
   if viewMode == "lookup" then calculateLookup(); return end
+  if viewMode == "resale" then calculateResale(); return end
   if viewMode == "craft" then
     results={};selectedID=nil
     local budget=tonumber(budgetBox:GetText());local sales=tonumber(minSalesBox:GetText());local gain=tonumber(minStackProfitBox:GetText())
@@ -314,6 +361,30 @@ local function calculate()
   status:SetText("SCAN " .. (age and (math.floor(age/60) .. "m ago") or "unknown") .. "  |  " .. sourceAge .. "  | " .. (matchPrice and "MATCH" or "UNDERCUT 1c") .. " | excluded: " .. count(unknown) .. " unknown, " .. count(zero) .. " zero, " .. count(below) .. " below minimum")
   filterAndSort()
 end
+checkResaleItem=function(item)
+  if not item or item.checking then return end
+  item.checking=true;item.checkError=nil
+  if selectedItem==item and viewMode=="resale" then setSelected(item) end
+  local ok,err=NokiUnifiedCore.CheckBuyout(item.auctionKey,function(result,message)
+    item.checking=false
+    if result and result.tiers and result.tiers[1] then
+      local tier=result.tiers[1];item.ah=tier.price;item.unitGain=item.vendorSell-tier.price;item.lowQuantity=tier.quantity;item.buyCost=tier.totalCost;item.totalGain=item.vendorSell*tier.quantity-tier.totalCost;item.live=true;item.viewed=false;item.soldOut=false;item.checkError=nil
+    else item.live=false;item.lowQuantity=nil;item.buyCost=nil;item.totalGain=nil;item.checkError=message or "No usable listings";item.soldOut=message=="No buyout listings found." end
+    if panel and panel:IsShown() and viewMode=="resale" then
+      if item.soldOut or (item.live and item.unitGain<=0) then filterAndSort(false) else render() end
+    end
+  end)
+  if not ok then item.checking=false;item.checkError=err or "Price check unavailable";if selectedItem==item and viewMode=="resale" then setSelected(item) end end
+end
+openResale=function(item)
+  if viewMode~="resale" or not item then return end
+  if NokiUnifiedCore.phase~="idle" or NokiUnifiedCore.working.buyout or NokiUnifiedCore.working.competition or NokiUnifiedCore.working.pending then print("Noki Market: wait for the active scan or price check to finish.");return end
+  if not AuctionHouseFrame.SelectBrowseResult then print("Noki Market: auction buy view unavailable.");return end
+  setSelected(item);returningFromResaleView=true;resaleReturnItem=item
+  NokiUnifiedTabs:HideAll()
+  local ok,err=pcall(AuctionHouseFrame.SelectBrowseResult,AuctionHouseFrame,{itemKey=item.auctionKey,minPrice=item.ah})
+  if not ok then returningFromResaleView=false;resaleReturnItem=nil;print("Noki Market: could not open item: "..tostring(err));if tabLib then tabLib:SetSelected(TAB_ID) end end
+end
 local function createPanel()
   if panel or not AuctionHouseFrame then return panel end
   panel=CreateFrame("Frame","NokiUnifiedMarketFlipPanel",AuctionHouseFrame,"BackdropTemplate")
@@ -366,6 +437,7 @@ local function createPanel()
     local row=CreateFrame("Button",nil,panel,"BackdropTemplate");row:SetPoint("TOPLEFT",panel,"TOPLEFT",10,-145-(i-1)*34);row:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-32,-145-(i-1)*34);row:SetHeight(33);row:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});row:SetBackdropColor(i%2==0 and 0.10 or 0.075,0.10,0.11,0.95)
     row.name=makeText(row,nil,8,-4,245,"GameFontHighlightSmall");row.vendor=makeText(row,nil,8,-19,245,"GameFontDisableSmall")
     row.buy=makeText(row,nil,265,-11,95);row.ah=makeText(row,nil,370,-11,95);row.gain=makeText(row,nil,475,-11,95);row.gain:SetTextColor(0.45,0.9,0.64);row.stackGain=makeText(row,nil,580,-11,100);row.stackGain:SetTextColor(0.45,0.9,0.64);row.activity=makeText(row,nil,690,-11,90);row.listed=makeText(row,nil,790,-11,75);row.gap=makeText(row,nil,875,-11,90)
+    row.resaleView=CreateFrame("Button",nil,row,"UIPanelButtonTemplate");row.resaleView:SetSize(52,22);row.resaleView:SetPoint("TOPRIGHT",row,"TOPRIGHT",-5,-5);row.resaleView:SetText("View");row.resaleView:Hide();row.resaleView:SetScript("OnClick",function() if row.item then openResale(row.item) end end)
     row:SetScript("OnClick",function(self) if self.item then setSelected(self.item) end end);rows[i]=row
   end
   scrollbar=CreateFrame("Slider","NokiUnifiedMarketResultsScrollBar",panel,"UIPanelScrollBarTemplate")
@@ -388,6 +460,14 @@ local function createPanel()
   pageText=makeText(panel,nil,18,-391,450,"GameFontHighlightSmall")
   detailTitle=makeText(panel,nil,18,-416,850,"GameFontNormalSmall")
   detailBody=makeText(panel,nil,18,-432,850,"GameFontHighlightSmall");detailBody:SetWordWrap(true)
+  resaleCheckButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");resaleCheckButton:SetSize(105,22);resaleCheckButton:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-115,-411);resaleCheckButton:SetText("Check tier")
+  resaleCheckButton:SetScript("OnClick",function()
+    if viewMode=="resale" then checkResaleItem(selectedItem) end
+  end)
+  resaleViewButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");resaleViewButton:SetSize(80,22);resaleViewButton:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-25,-411);resaleViewButton:SetText("View")
+  resaleViewButton:SetScript("OnClick",function()
+    openResale(selectedItem)
+  end)
   flipControls={budgetLabel,budgetBox,minLabel,minSalesBox,minProfitLabel,minStackProfitBox,sortButton,pricing,undercut}
   modeButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");modeButton:SetSize(125,22);modeButton:SetPoint("TOPLEFT",panel,"TOPLEFT",220,-77)
   knownButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");knownButton:SetSize(125,22);knownButton:SetPoint("TOPLEFT",panel,"TOPLEFT",335,-77)
@@ -395,14 +475,15 @@ local function createPanel()
   captureButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");captureButton:SetSize(110,22);captureButton:SetPoint("TOPLEFT",panel,"TOPLEFT",590,-77);captureButton:SetText("Capture recipes");captureButton:SetScript("OnClick",function() if NokiUnifiedMarketCaptureRecipes then NokiUnifiedMarketCaptureRecipes();calculate() end end)
   local importButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");importButton:SetSize(115,22);importButton:SetPoint("TOPLEFT",panel,"TOPLEFT",845,-77);importButton:SetText("Import data");importButton:SetScript("OnClick",function() NokiUnifiedCore.ShowImport() end)
   local applyButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");applyButton:SetSize(110,22);applyButton:SetPoint("TOPLEFT",panel,"TOPLEFT",470,-77);applyButton:SetText("Apply / Search");applyButton:SetScript("OnClick",function() scrollOffset=0;calculate() end)
-  applyMode=function()
-    local lookup=viewMode=="lookup";local craft=viewMode=="craft"
-    searchBox:ClearAllPoints();searchBox:SetPoint("TOPLEFT",panel,"TOPLEFT",lookup and 90 or 330,-54)
-    searchHint:ClearAllPoints();searchHint:SetPoint("TOPLEFT",panel,"TOPLEFT",lookup and 18 or 365,lookup and -59 or -80);searchHint:SetText(lookup and "SEARCH" or "Search name, vendor or ID")
-    modeButton:ClearAllPoints();modeButton:SetPoint("TOPLEFT",panel,"TOPLEFT",lookup and 355 or 220,lookup and -54 or -77)
-    applyButton:ClearAllPoints();applyButton:SetPoint("TOPLEFT",panel,"TOPLEFT",lookup and 235 or 470,lookup and -54 or -77)
-    importButton:ClearAllPoints();importButton:SetPoint("TOPLEFT",panel,"TOPLEFT",lookup and 495 or 845,lookup and -54 or -77)
-    for _,control in ipairs(flipControls) do control:SetShown(not lookup) end
+  applyMode=function(preserveResale)
+    local lookup=viewMode=="lookup";local resale=viewMode=="resale";local simple=lookup or resale;local craft=viewMode=="craft"
+    searchBox:ClearAllPoints();searchBox:SetPoint("TOPLEFT",panel,"TOPLEFT",simple and 90 or 330,-54)
+    searchHint:ClearAllPoints();searchHint:SetPoint("TOPLEFT",panel,"TOPLEFT",simple and 18 or 365,simple and -59 or -80);searchHint:SetText(simple and "SEARCH" or "Search name, vendor or ID")
+    modeButton:ClearAllPoints();modeButton:SetPoint("TOPLEFT",panel,"TOPLEFT",simple and 355 or 220,simple and -54 or -77)
+    applyButton:ClearAllPoints();applyButton:SetPoint("TOPLEFT",panel,"TOPLEFT",simple and 235 or 470,simple and -54 or -77)
+    importButton:ClearAllPoints();importButton:SetPoint("TOPLEFT",panel,"TOPLEFT",simple and 495 or 845,simple and -54 or -77)
+    for _,control in ipairs(flipControls) do control:SetShown(not simple) end
+    resaleCheckButton:SetShown(resale);resaleViewButton:SetShown(resale);detailTitle:SetWidth(resale and 600 or 850);detailBody:SetWidth(resale and 650 or 850)
     knownButton:SetShown(craft);captureButton:SetShown(craft);searchHint:SetShown(not craft)
     knownButton:SetText(NokiUnifiedMarketDB.craftKnownOnly and "Known only" or "All recipes")
     minProfitLabel:SetText(craft and "MIN CRAFT GAIN (S)" or "MIN PACK GAIN (S)")
@@ -411,16 +492,16 @@ local function createPanel()
     minSalesBox:SetText(tostring(craft and (NokiUnifiedMarketDB.craftMinSales or 1) or (NokiUnifiedMarketDB.flipMinSalesPerDay or 1)))
     minStackProfitBox:SetText(tostring(craft and (NokiUnifiedMarketDB.craftMinProfit or 0) or (NokiUnifiedMarketDB.flipMinPackProfitSilver or 0)))
     modeButton:SetShown(not craft)
-    modeButton:SetText(lookup and "Vendor flips" or "Item lookup")
-    title:SetText(lookup and "ITEM LOOKUP" or craft and "CRAFTING PROFIT" or "VENDOR FLIP FINDER")
-    subtitle:SetText(lookup and "Search loaded items by name, vendor or ID." or craft and "Buy materials at AH lows; profit is per craft. Capture recipes with a profession open." or "One-pack vendor cost vs sell price per unit. Select a row for details.")
-    local labels=lookup and {"ITEM / VARIANT","VENDOR / UNIT","AH LOW / UNIT","LISTED","VENDOR PACK","EST. / DAY","","GAP / 1D"} or craft and {"RECIPE / PROFESSION","COST / CRAFT","SELL / UNIT","GAIN / CRAFT","YIELD","EST. / DAY","",""} or {"ITEM / VENDOR","BUY / UNIT","SELL / UNIT","GAIN / UNIT","GAIN / PACK","EST. / DAY","LISTED","GAP / 1D"}
+    modeButton:SetText(lookup and "Vendor flips" or resale and "Item lookup" or "Vendor resale")
+    title:SetText(lookup and "ITEM LOOKUP" or resale and "SELL TO VENDOR" or craft and "CRAFTING PROFIT" or "VENDOR FLIP FINDER")
+    subtitle:SetText(lookup and "Search loaded items by name, vendor or ID." or resale and "Auction lows below vendor sell value. Select an item to check the live tier." or craft and "Buy materials at AH lows; profit is per craft. Capture recipes with a profession open." or "One-pack vendor cost vs sell price per unit. Select a row for details.")
+    local labels=resale and {"ITEM","AH / UNIT","VENDOR / UNIT","GAIN / UNIT","LOW QTY","BUY TOTAL","PROFIT TOTAL","VIEW"} or lookup and {"ITEM / VARIANT","VENDOR / UNIT","AH LOW / UNIT","LISTED","VENDOR PACK","EST. / DAY","","GAP / 1D"} or craft and {"RECIPE / PROFESSION","COST / CRAFT","SELL / UNIT","GAIN / CRAFT","YIELD","EST. / DAY","",""} or {"ITEM / VENDOR","BUY / UNIT","SELL / UNIT","GAIN / UNIT","GAIN / PACK","EST. / DAY","LISTED","GAP / 1D"}
     for i,label in ipairs(labels) do headerTexts[i]:SetText(label) end
-    calculate()
+    if preserveResale then render() else calculate() end
   end
-  modeButton:SetScript("OnClick",function() viewMode=viewMode=="lookup" and "flips" or "lookup";scrollOffset=0;applyMode() end)
+  modeButton:SetScript("OnClick",function() viewMode=viewMode=="flips" and "resale" or viewMode=="resale" and "lookup" or "flips";marketViewMode=viewMode;scrollOffset=0;applyMode() end)
   applyMode()
-  panel:SetScript("OnShow",function() updateControls();calculate() end);panel:Hide()
+  panel:SetScript("OnShow",function() updateControls();if skipNextMarketRefresh then skipNextMarketRefresh=false;render() else calculate() end end);panel:Hide()
   return panel
 end
 function NokiUnifiedMarketExplainItem(id)
@@ -471,7 +552,13 @@ local function registerTab()
         AuctionHouseFrame:SetSize(previousWidth+220,previousHeight+160)
       end
       frame:Hide();frame:SetParent(self);frame:ClearAllPoints();frame:SetAllPoints(self)
-      viewMode=mode;scrollOffset=0;applyMode();frame:Show()
+      local preserve=mode=="flips" and marketViewMode=="resale" and returningFromResaleView
+      returningFromResaleView=false
+      viewMode=mode=="flips" and marketViewMode or mode;if not preserve then scrollOffset=0 end
+      applyMode(preserve);skipNextMarketRefresh=preserve;frame:Show()
+      if preserve and resaleReturnItem then
+        local item=resaleReturnItem;resaleReturnItem=nil;item.live=false;item.viewed=true;item.lowQuantity=nil;item.buyCost=nil;item.totalGain=nil;item.checkError=nil;render()
+      end
     end)
     host:SetScript("OnHide",function()
       if previousWidth and previousHeight then AuctionHouseFrame:SetSize(previousWidth,previousHeight) end
@@ -487,7 +574,8 @@ local function registerTab()
 end
 local events=CreateFrame("Frame")
 events:RegisterEvent("AUCTION_HOUSE_SHOW")
-events:SetScript("OnEvent",function() if C_Timer and C_Timer.After then C_Timer.After(0.5,registerTab) else registerTab() end end)
+events:RegisterEvent("AUCTION_HOUSE_CLOSED")
+events:SetScript("OnEvent",function(_,event) if event=="AUCTION_HOUSE_CLOSED" then returningFromResaleView=false;resaleReturnItem=nil;skipNextMarketRefresh=false elseif C_Timer and C_Timer.After then C_Timer.After(0.5,registerTab) else registerTab() end end)
 function NokiUnifiedMarketRefreshFlips() if panel and panel:IsShown() then calculate() end end
 function NokiUnifiedMarketShowCrafting()
   if not AuctionHouseFrame or not AuctionHouseFrame:IsShown() then print("Noki Market: open the auction house first.");return end
