@@ -3,7 +3,7 @@ local core=NokiUnifiedCore
 local panel,search,threshold,minSalesBox,maxQtyBox,maxCostBox,status,footer,scanButton,modeButton,rows=nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,{}
 local queue,results,filtered={},{},{}
 local index,checked,skipped,excluded,offset,batchEnd=1,0,0,0,0,0
-local running,inflight,fastMode=false,false,true
+local running,inflight,fastMode,continuous=false,false,false,false
 local pageSize=9
 local batchSize=50
 local function readFilters()
@@ -85,7 +85,7 @@ local function buildQueue()
     local x,y=a.sales or -1,b.sales or -1;if x==y then return a.id<b.id end;return x>y
   end)
   if #out==0 then return nil,fastMode and "No fast candidates; lower filters or turn Fast OFF, then restart." or "No items match the scan filters." end
-  return out,nil,filteredOut
+  return out,nil,filteredOut,filters.sales~=nil and filters.sales>0
 end
 local function checkNext()
   if not running or inflight or index>#queue then return end
@@ -101,7 +101,10 @@ local function checkNext()
       local name=(saved and saved.name) or (GetItemInfo and GetItemInfo(candidate.id)) or candidate.name
       results[#results+1]={id=candidate.id,key=candidate.key,name=name,low=first.price,next=second.price,nextQuantity=second.quantity,quantity=first.quantity,cost=first.totalCost,discount=(second.price-first.price)/second.price*100,profit=math.floor(resell*first.quantity*.95)-first.totalCost,sales=activity and activity.sales,checked=result.checked}
     else skipped=skipped+1 end
-    if index>#queue or index>batchEnd then running=false end
+    if index>#queue then running=false
+    elseif index>batchEnd then
+      if continuous then batchEnd=math.min(index+batchSize-1,#queue) else running=false end
+    end
     draw()
   end)
   if not ok then index=index-1;inflight=false;if not err or not err:find("Another price check") then running=false;status:SetText(err or "Price check unavailable.");return end end
@@ -111,27 +114,27 @@ local function build()
   if panel or not AuctionHouseFrame or not NokiUnifiedTabs then return end
   panel=CreateFrame("Frame",nil,AuctionHouseFrame,"BackdropTemplate");panel:Hide();panel:SetPoint("TOPLEFT",AuctionHouseFrame,"TOPLEFT",12,-75);panel:SetPoint("BOTTOMRIGHT",AuctionHouseFrame,"BOTTOMRIGHT",-12,35);panel:SetFrameStrata("DIALOG");panel:SetFrameLevel(AuctionHouseFrame:GetFrameLevel()+50);panel:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1});panel:SetBackdropColor(.055,.065,.07,1);panel:SetBackdropBorderColor(.24,.30,.28,1)
   local title=panel:CreateFontString(nil,"OVERLAY","GameFontNormalLarge");title:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-12);title:SetText("MISPRICED ITEMS")
-  local hint=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");hint:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-35);hint:SetText("Fast checks likely discounts first and may miss deals. Change scan filters, then click New scan.")
+  local hint=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");hint:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-35);hint:SetText("With a daily minimum, checks continue automatically. Change scan filters, then click New scan.")
   search=CreateFrame("EditBox",nil,panel,"InputBoxTemplate");search:SetSize(115,24);search:SetPoint("TOPLEFT",panel,"TOPLEFT",20,-59);search:SetAutoFocus(false);search:SetMaxLetters(60);search:SetScript("OnTextChanged",function() offset=0;draw() end);search:SetScript("OnEscapePressed",function(self) self:ClearFocus() end)
   local function label(x,value) local t=panel:CreateFontString(nil,"OVERLAY","GameFontNormalSmall");t:SetPoint("TOPLEFT",panel,"TOPLEFT",x,-64);t:SetText(value) end
   local function input(x,width,value)
     local box=CreateFrame("EditBox",nil,panel,"InputBoxTemplate");box:SetSize(width,24);box:SetPoint("TOPLEFT",panel,"TOPLEFT",x,-59);box:SetAutoFocus(false);box:SetText(value or "");box:SetScript("OnEnterPressed",function(self) self:ClearFocus();offset=0;draw() end);box:SetScript("OnEscapePressed",function(self) self:ClearFocus() end);return box
   end
   label(145,"GAP %");threshold=input(195,42,"50")
-  label(245,"MIN/DAY");minSalesBox=input(310,48,"")
+  label(245,"MIN/DAY");minSalesBox=input(310,48,"3000")
   label(370,"MAX QTY");maxQtyBox=input(440,48,"")
   label(500,"MAX BUY G");maxCostBox=input(585,55,"")
   scanButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");scanButton:SetSize(105,23);scanButton:SetPoint("TOPLEFT",panel,"TOPLEFT",650,-59);scanButton:SetText("Check prices")
   local function resetScan()
     if running or inflight then print("Noki Trading: pause and wait for the current check before starting a new scan.");return false end
-    queue={};results={};filtered={};index=1;checked=0;skipped=0;excluded=0;offset=0;batchEnd=0;return true
+    queue={};results={};filtered={};index=1;checked=0;skipped=0;excluded=0;offset=0;batchEnd=0;continuous=false;return true
   end
   scanButton:SetScript("OnClick",function()
     if running then running=false;draw();return end
     if #queue==0 or index>#queue then
       if inflight then return end
-      local newQueue,err,filteredOut=buildQueue();if not newQueue then status:SetText(err);return end
-      queue=newQueue;results={};checked=0;skipped=0;excluded=filteredOut or 0;index=1;offset=0;batchEnd=0
+      local newQueue,err,filteredOut,auto=buildQueue();if not newQueue then status:SetText(err);return end
+      queue=newQueue;results={};checked=0;skipped=0;excluded=filteredOut or 0;index=1;offset=0;batchEnd=0;continuous=auto
     end
     if index>batchEnd then batchEnd=math.min(index+batchSize-1,#queue) end
     running=true;draw();checkNext()
@@ -154,7 +157,7 @@ local function build()
     row:EnableMouse(true);row:SetScript("OnEnter",function(self) if self.item and GameTooltip then GameTooltip:SetOwner(self,"ANCHOR_RIGHT");GameTooltip:SetItemByID(self.item.id);GameTooltip:AddLine("Next price tier: "..self.item.nextQuantity.." units.",1,1,1,true);GameTooltip:AddLine("Checked "..date("%H:%M:%S",self.item.checked)..". Prices may have changed.",1,.8,.3,true);GameTooltip:Show() end end);row:SetScript("OnLeave",function() if GameTooltip then GameTooltip:Hide() end end);rows[i]=row
   end
   footer=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");footer:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-410)
-  local note=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");note:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-433);note:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-20,-433);note:SetJustifyH("LEFT");note:SetText("Fast uses AHledger median to shortlist; missing or stale data can hide deals. Fast OFF checks the broader list in batches of 50. Max qty and buy cost apply to the full lowest-price tier; max buy is in gold. Enter applies filters; New scan rebuilds candidates. Profit assumes all units resell 1c below the next tier after a 5% cut; deposits excluded. Prices can change.")
+  local note=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");note:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-433);note:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-20,-433);note:SetJustifyH("LEFT");note:SetText("Fast uses AHledger median to shortlist and may miss deals. Checks continue with a positive min/day; without one they pause every 50 items. Max qty and buy cost apply to the full lowest-price tier; max buy is in gold. Enter applies filters; New scan rebuilds candidates. Profit assumes all units resell 1c below the next tier after a 5% cut; deposits excluded. Prices can change.")
   local function wheel(_,delta) offset=math.max(0,math.min(math.max(0,#filtered-pageSize),offset-delta));draw() end
   panel:EnableMouseWheel(true);panel:SetScript("OnMouseWheel",wheel);for _,row in ipairs(rows) do row:EnableMouseWheel(true);row:SetScript("OnMouseWheel",wheel) end
   local width,height
@@ -164,4 +167,4 @@ local function build()
 end
 local events=CreateFrame("Frame");events:RegisterEvent("AUCTION_HOUSE_SHOW");events:RegisterEvent("AUCTION_HOUSE_CLOSED")
 events:SetScript("OnEvent",function(_,event) if event=="AUCTION_HOUSE_SHOW" then if C_Timer and C_Timer.After then C_Timer.After(.5,build) else build() end else running=false end end)
-local elapsed=0;events:SetScript("OnUpdate",function(_,delta) if not running then return end;elapsed=elapsed+delta;if elapsed<.5 then return end;elapsed=0;checkNext() end)
+local elapsed=0;events:SetScript("OnUpdate",function(_,delta) if not running then return end;elapsed=elapsed+delta;if elapsed<.75 then return end;elapsed=0;checkNext() end)
