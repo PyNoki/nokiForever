@@ -16,7 +16,7 @@ static class Program {
 sealed class Updater : Form {
  ComboBox region=new ComboBox(),ruleset=new ComboBox(),faction=new ComboBox();
  TextBox folder=new TextBox(); Label status=new Label(); Button update=new Button(); CheckBox auto=new CheckBox(); Timer timer=new Timer(), addonTimer=new Timer();
- bool loading=true; string availableVersion, lastNotifiedVersion; Button installAddon=new Button(); Label versionStatus=new Label();
+ bool loading=true; string availableVersion, availableCommit, lastNotifiedVersion; Button installAddon=new Button(); Label versionStatus=new Label();
  string cacheDir=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"NokiTradingUpdater");
  string settings { get { return Path.Combine(cacheDir,"settings.txt"); } }
  public Updater(){
@@ -97,8 +97,9 @@ sealed class Updater : Form {
   bool copiedTable=false;if(File.Exists(previous)&&(!File.Exists(update)||File.ReadAllText(update).IndexOf("NokiUnifiedTables[",StringComparison.Ordinal)<0)){string data=File.ReadAllText(previous);if(data.IndexOf("NokiBetaTables[",StringComparison.Ordinal)>=0||data.IndexOf("NokiUnifiedTables[",StringComparison.Ordinal)>=0){data=data.Replace("NokiBetaTables","NokiUnifiedTables");File.WriteAllText(update,data,new UTF8Encoding(false));copiedTable=true;}}
   return "Migrated " + copied + " account(s). " + skipped + " account(s) already had unified data and were left unchanged." + (copiedTable ? " Market data was also copied." : "") + " Original beta files remain in place.";
  }
- const string TocUrl="https://raw.githubusercontent.com/PyNoki/nokiForever/main/NokiTrading/NokiTrading.toc";
- const string ArchiveUrl="https://github.com/PyNoki/nokiForever/archive/refs/heads/main.zip";
+ const string CommitUrl="https://api.github.com/repos/PyNoki/nokiForever/commits/main";
+ const string TocUrl="https://raw.githubusercontent.com/PyNoki/nokiForever/{0}/NokiTrading/NokiTrading.toc";
+ const string ArchiveUrl="https://github.com/PyNoki/nokiForever/archive/{0}.zip";
  const string DownloadPage="https://github.com/PyNoki/nokiForever";
  static void OpenDownloadPage(){try{Process.Start(new ProcessStartInfo(DownloadPage){UseShellExecute=true});}catch{MessageBox.Show("Open this address in your browser:\n"+DownloadPage,"Download Noki Market");}}
  static string TocVersion(string text){var m=Regex.Match(text,@"(?m)^##\s*Version:\s*([^\r\n]+)");return m.Success?m.Groups[1].Value.Trim():null;}
@@ -109,17 +110,18 @@ sealed class Updater : Form {
   string xPre=a.Groups[4].Value,yPre=b.Groups[4].Value;if(xPre==yPre)return 0;if(xPre=="")return 1;if(yPre=="")return -1;
   string[] xParts=xPre.Split('.'),yParts=yPre.Split('.');for(int i=0;i<Math.Max(xParts.Length,yParts.Length);i++){if(i>=xParts.Length)return -1;if(i>=yParts.Length)return 1;long x,y;bool xn=long.TryParse(xParts[i],out x),yn=long.TryParse(yParts[i],out y);int c=xn&&yn?x.CompareTo(y):xn?-1:yn?1:string.CompareOrdinal(xParts[i],yParts[i]);if(c!=0)return c>0?1:-1;}return 0;
  }
- static string DownloadText(string url){ServicePointManager.SecurityProtocol=SecurityProtocolType.Tls12;using(var c=new WebClient()){c.Headers.Add(HttpRequestHeader.UserAgent,"NokiTradingUpdater/1.0");return c.DownloadString(url);}}
+ static string DownloadText(string url){ServicePointManager.SecurityProtocol=SecurityProtocolType.Tls12;using(var c=new WebClient()){c.Headers.Add(HttpRequestHeader.UserAgent,"NokiTradingUpdater/1.0");c.Headers.Add(HttpRequestHeader.CacheControl,"no-cache");return c.DownloadString(url);}}
+ static string PublishedCommit(){string json=DownloadText(CommitUrl+"?check="+Guid.NewGuid().ToString("N"));var match=Regex.Match(json,"\\\"sha\\\"\\s*:\\s*\\\"([0-9a-fA-F]{40})\\\"");if(!match.Success)throw new Exception("No published commit was found");return match.Groups[1].Value.ToLowerInvariant();}
  async Task CheckAddon(){
-  installAddon.Enabled=false;availableVersion=null;versionStatus.Text="Checking for addon updates...";string dir=folder.Text.Trim();
-  try{string localPath=Path.Combine(dir,"NokiTrading.toc");if(!File.Exists(localPath))throw new Exception("Select the NokiTrading addon folder");string local=TocVersion(File.ReadAllText(localPath));string remote=await Task.Run(()=>TocVersion(DownloadText(TocUrl)));if(remote==null)throw new Exception("No published addon version was found");
-   int cmp=CompareVersion(remote,local);if(cmp>0){availableVersion=remote;installAddon.Enabled=true;versionStatus.Text="New addon update detected: "+local+" to "+remote;if(lastNotifiedVersion!=remote){lastNotifiedVersion=remote;MessageBox.Show("A new addon update ("+remote+") is available. Click Install addon update to install it.","Noki Trading update");}}else versionStatus.Text="Addon is up to date ("+local+").";
+  installAddon.Enabled=false;availableVersion=null;availableCommit=null;versionStatus.Text="Checking for addon updates...";string dir=folder.Text.Trim();
+  try{string localPath=Path.Combine(dir,"NokiTrading.toc");if(!File.Exists(localPath))throw new Exception("Select the NokiTrading addon folder");string local=TocVersion(File.ReadAllText(localPath));var published=await Task.Run(()=>{string commit=PublishedCommit();return new[]{commit,TocVersion(DownloadText(string.Format(TocUrl,commit)))};});string remote=published[1];if(remote==null)throw new Exception("No published addon version was found");
+   int cmp=CompareVersion(remote,local);if(cmp>0){availableVersion=remote;availableCommit=published[0];installAddon.Enabled=true;versionStatus.Text="New addon update detected: "+local+" to "+remote;if(lastNotifiedVersion!=remote){lastNotifiedVersion=remote;MessageBox.Show("A new addon update ("+remote+") is available. Click Install addon update to install it.","Noki Trading update");}}else versionStatus.Text="Addon is up to date ("+local+").";
   }catch(WebException e){var response=e.Response as HttpWebResponse;if(response!=null&&response.StatusCode==HttpStatusCode.NotFound)versionStatus.Text="No published addon update found (404). Market-data updates still work.";else versionStatus.Text="Could not check addon updates: "+e.Message+". Check the GitHub repository.";}
   catch(Exception e){versionStatus.Text="Could not check addon updates: "+e.Message+". Check the GitHub repository.";}
  }
  async Task InstallAddon(){
-  if(availableVersion==null)return;string wanted=availableVersion;string dir=folder.Text.Trim();installAddon.Enabled=false;versionStatus.Text="Downloading addon update...";
-  try{await Task.Run(()=>{ServicePointManager.SecurityProtocol=SecurityProtocolType.Tls12;byte[] archive;using(var c=new WebClient()){c.Headers.Add(HttpRequestHeader.UserAgent,"NokiTradingUpdater/1.0");archive=c.DownloadData(ArchiveUrl);}InstallArchive(archive,dir,wanted);});versionStatus.Text="Addon updated to "+wanted+". Type /reload in game.";availableVersion=null;}
+  if(availableVersion==null||availableCommit==null)return;string wanted=availableVersion,commit=availableCommit;string dir=folder.Text.Trim();installAddon.Enabled=false;versionStatus.Text="Downloading addon update...";
+  try{await Task.Run(()=>{ServicePointManager.SecurityProtocol=SecurityProtocolType.Tls12;byte[] archive;using(var c=new WebClient()){c.Headers.Add(HttpRequestHeader.UserAgent,"NokiTradingUpdater/1.0");archive=c.DownloadData(string.Format(ArchiveUrl,commit));}InstallArchive(archive,dir,wanted);});versionStatus.Text="Addon updated to "+wanted+". Type /reload in game.";availableVersion=null;availableCommit=null;}
   catch(Exception e){versionStatus.Text="Addon update failed: "+e.Message+". Use the download link.";installAddon.Enabled=true;}
  }
  static void InstallArchive(byte[] archive,string dir,string wanted){
