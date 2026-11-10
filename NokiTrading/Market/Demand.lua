@@ -53,7 +53,9 @@ local function render()
   footer:SetText((#filtered==0 and "No matching items" or ((offset+1).."-"..math.min(offset+pageSize,#filtered).." of "..#filtered)).." | Scroll to browse | -- = unavailable")
   for _,col in ipairs(columns) do col.button:SetText(col.label..(sortKey==col.key and (ascending and " ^" or " v") or "")) end
 end
-local function filter()
+local function filter(preservePosition)
+  local previousOffset=offset
+  local anchor=preservePosition and filtered[offset+1] and filtered[offset+1].id
   local term=search and (search:GetText() or ""):lower():match("^%s*(.-)%s*$") or ""
   filtered={}
   for _,item in ipairs(data) do if term=="" or item.name:lower():find(term,1,true) or tostring(item.id):find(term,1,true) then filtered[#filtered+1]=item end end
@@ -65,7 +67,9 @@ local function filter()
     if av==bv then return a.id<b.id end
     return ascending and av<bv or (not ascending and av>bv)
   end)
-  offset=0;render()
+  offset=preservePosition and previousOffset or 0
+  if anchor then for i,item in ipairs(filtered) do if item.id==anchor then offset=i-1;break end end end
+  render()
 end
 local function refresh()
   if not panel then return end
@@ -94,13 +98,13 @@ local function refresh()
   local scanAge=book and book.observed and math.max(0,math.floor((now-book.observed)/60))
   local sourceAge=info and type(info.updated)=="number" and math.max(0,math.floor((now-info.updated)/60))
   status:SetText("Scan "..(scanAge and (scanAge.."m"..(scanAge>=60 and " OLD" or "")) or "unavailable").." | AHledger "..(sourceAge and (sourceAge.."m"..(sourceAge>=1440 and " STALE" or "")) or (err or "unavailable")).." | "..(market or "market unavailable"))
-  filter()
+  filter(true)
 end
 local function build()
   if panel or not AuctionHouseFrame or not NokiUnifiedTabs then return end
   panel=CreateFrame("Frame",nil,AuctionHouseFrame,"BackdropTemplate");panel:Hide();panel:SetPoint("TOPLEFT",AuctionHouseFrame,"TOPLEFT",12,-75);panel:SetPoint("BOTTOMRIGHT",AuctionHouseFrame,"BOTTOMRIGHT",-12,35);panel:SetFrameStrata("DIALOG");panel:SetFrameLevel(AuctionHouseFrame:GetFrameLevel()+50);panel:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1});panel:SetBackdropColor(.055,.065,.07,1);panel:SetBackdropBorderColor(.24,.30,.28,1)
   local title=panel:CreateFontString(nil,"OVERLAY","GameFontNormalLarge");title:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-14);title:SetText("DEMAND RESEARCH")
-  search=CreateFrame("EditBox",nil,panel,"InputBoxTemplate");search:SetSize(180,24);search:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-43);search:SetAutoFocus(false);search:SetMaxLetters(60);search:SetScript("OnTextChanged",filter);search:SetScript("OnEscapePressed",function(self) self:ClearFocus() end)
+  search=CreateFrame("EditBox",nil,panel,"InputBoxTemplate");search:SetSize(180,24);search:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-43);search:SetAutoFocus(false);search:SetMaxLetters(60);search:SetScript("OnTextChanged",function() filter() end);search:SetScript("OnEscapePressed",function(self) self:ClearFocus() end)
   local reload=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");reload:SetSize(105,22);reload:SetPoint("LEFT",search,"RIGHT",12,0);reload:SetText("Refresh table");reload:SetScript("OnClick",refresh)
   status=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");status:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-74);status:SetJustifyH("LEFT")
   local header=CreateFrame("Frame",nil,panel,"BackdropTemplate");header:SetPoint("TOPLEFT",panel,"TOPLEFT",12,-96);header:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-25,-96);header:SetHeight(24);header:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});header:SetBackdropColor(.13,.18,.17,1)
