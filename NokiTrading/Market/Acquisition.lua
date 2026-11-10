@@ -72,9 +72,9 @@ end
 local widgets={}
 local function widget(parent)
   if widgets[parent] then return widgets[parent] end
-  local box=CreateFrame("Frame",nil,parent,"BackdropTemplate");box:SetSize(260,42);box:SetPoint("TOPRIGHT",parent,"TOPRIGHT",-30,-12);box:SetFrameLevel(parent:GetFrameLevel()+10);box:EnableMouse(true)
-  local craft=box:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");craft:SetPoint("TOPLEFT",box,"TOPLEFT",0,-2);craft:SetWidth(126);craft:SetJustifyH("LEFT")
-  local vendor=box:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");vendor:SetPoint("TOPLEFT",box,"TOPLEFT",133,-2);vendor:SetWidth(126);vendor:SetJustifyH("LEFT")
+  local box=CreateFrame("Frame",nil,parent,"BackdropTemplate");box:SetSize(228,32);box:SetPoint("TOPRIGHT",parent,"TOPRIGHT",-40,-52);box:SetFrameLevel(parent:GetFrameLevel()+10);box:EnableMouse(true)
+  local craft=box:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");craft:SetPoint("TOPLEFT",box,"TOPLEFT",0,0);craft:SetWidth(108);craft:SetJustifyH("LEFT");craft:SetWordWrap(false)
+  local vendor=box:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");vendor:SetPoint("TOPLEFT",box,"TOPLEFT",118,0);vendor:SetWidth(110);vendor:SetJustifyH("LEFT");vendor:SetWordWrap(false)
   box.craft=craft;box.vendor=vendor
   box:SetScript("OnEnter",function(self)
     if not GameTooltip or not self.estimate then return end
