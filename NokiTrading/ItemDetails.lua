@@ -76,6 +76,18 @@ core.ItemDetailsOverlay=overlay
 if overlay.SetPropagateMouseClicks then overlay:SetPropagateMouseClicks(false) end
 local target,targetID,targetQuantity,targetCost
 local function clear() overlay:Hide();target=nil;targetID=nil;targetQuantity=nil;targetCost=nil end
+-- MouseIsOver can report false for the original button once the overlay is on
+-- top of it. Check its screen rectangle so the overlay does not flicker.
+local function cursorWithin(frame)
+  if not frame or (frame.IsVisible and not frame:IsVisible()) then return false end
+  if GetCursorPosition and frame.GetRect and frame.GetEffectiveScale then
+    local left,bottom,width,height=frame:GetRect();local scale=frame:GetEffectiveScale()
+    if type(left)=="number" and type(bottom)=="number" and type(width)=="number" and type(height)=="number" and type(scale)=="number" and scale>0 then
+      local x,y=GetCursorPosition();if type(x)=="number" and type(y)=="number" then x=x/scale;y=y/scale;return x>=left and x<=left+width and y>=bottom and y<=bottom+height end
+    end
+  end
+  return MouseIsOver and (MouseIsOver(frame) or MouseIsOver(overlay)) or false
+end
 local function supported(owner)
   local node=owner
   for _=1,8 do
@@ -91,7 +103,7 @@ end
 overlay:SetScript("OnClick",function(_,button) if button=="LeftButton" and IsAltKeyDown and IsAltKeyDown() then local id,q,c=targetID,targetQuantity,targetCost;clear();core.ShowItemDetails(id,q,c) end end)
 local ticker=CreateFrame("Frame");ticker:SetScript("OnUpdate",function()
   if not IsAltKeyDown or not IsAltKeyDown() or (InCombatLockdown and InCombatLockdown()) then if target then clear() end;return end
-  if target then if MouseIsOver and (MouseIsOver(target) or MouseIsOver(overlay)) then return else clear() end end
+  if target then if cursorWithin(target) then return else clear() end end
   if not GameTooltip or not GameTooltip.IsShown or not GameTooltip:IsShown() or not GameTooltip.GetOwner or not GameTooltip.GetItem then return end
   local owner=GameTooltip:GetOwner();if not owner or not supported(owner) then return end
   local _,link=GameTooltip:GetItem();local id=link and tonumber(link:match("item:(%d+)"));if not id then return end
