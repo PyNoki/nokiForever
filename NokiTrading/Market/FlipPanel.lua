@@ -9,8 +9,10 @@ local scrollbar, updatingScrollbar
 local viewMode, modeButton, headerTexts, flipControls, title, subtitle = "flips", nil, {}, {}, nil, nil
 local marketViewMode="flips"
 local selectedItem,resaleCheckButton,resaleViewButton
-local openResale,checkResaleItem
+local openResale,checkResaleItem,tryOpenResale
 local returningFromResaleView,skipNextMarketRefresh,resaleReturnItem=false,false,nil
+local resaleQueue,resaleIndex,resaleEpoch,resaleChecked,resaleUnavailable,resaleUnknown={},1,0,0,0,0
+local resaleInflight,resaleOpenRequest,resaleScanTime=false,nil,nil
 local knownButton, captureButton, minProfitLabel, searchHint
 local sortLabels = {gain="Gain per unit", roi="Return %", activity="Est. sales/day"}
 local ROWS_PER_PAGE = 7
@@ -81,12 +83,12 @@ local function setSelected(item)
   if resaleViewButton then resaleViewButton:SetEnabled(item~=nil) end
   if not item then
     detailTitle:SetText("SELECT AN ITEM")
-    detailBody:SetText(viewMode=="resale" and "Select an item, then check its live lowest-price tier." or "Choose a row to see vendor pack details and market history.")
+    detailBody:SetText(viewMode=="resale" and "Select an item to see all live listings priced below vendor value." or "Choose a row to see vendor pack details and market history.")
     return
   end
   if viewMode=="resale" then
     detailTitle:SetText(item.name.." | #"..item.id)
-    local details=item.checking and "Checking the live lowest-price tier..." or item.live and ("Live lowest tier: "..item.lowQuantity.." units | Buy "..copper(item.buyCost).." | Vendor value "..copper(item.vendorSell*item.lowQuantity).." | Profit "..copper(item.totalGain)) or (item.checkError and ("Live tier unavailable: "..item.checkError) or item.viewed and "Previously viewed; check the live tier again before buying." or "Select Check tier for the current lowest-price quantity and total.")
+    local details=item.checking and "Checking live price tiers..." or item.live and ("Buy "..item.lowQuantity.." units through "..copper(item.buyThrough).."/unit | Cost "..copper(item.buyCost).." | Vendor value "..copper(item.vendorSell*item.lowQuantity).." | Profit "..copper(item.totalGain)) or (item.checkError and ("Live prices unavailable: "..item.checkError) or item.viewed and "Previously viewed; live prices are being rechecked." or "Waiting for the live price check.")
     detailBody:SetText("AH low "..copper(item.ah).."/unit | Vendor sell "..copper(item.vendorSell).."/unit | "..(item.unitGain>0 and "Gain " or "Loss ")..copper(math.abs(item.unitGain)).."/unit\n"..details.."\nVendor sell value is a reference; verify current price, quantity, binding and vendor acceptance before buying.")
     return
   end
@@ -132,7 +134,7 @@ local function render()
       row.name:SetText(item.name .. "  |cff829494#" .. item.id .. "|r")
       row.gain:SetTextColor(.45,.9,.64)
       if viewMode == "resale" then
-        row.vendor:SetText(item.live and (item.unitGain>0 and "Live tier checked" or "Live price no longer profitable") or item.checkError and "Live tier unavailable" or item.viewed and "Viewed; check before buying" or "Market scan; check tier")
+        row.vendor:SetText(item.checking and "Checking live prices..." or item.live and "Live profitable tiers checked" or item.checkError and "Live prices unavailable" or item.viewed and "Viewed; awaiting recheck" or "Awaiting live price check")
         row.buy:SetText(copper(item.ah));row.ah:SetText(copper(item.vendorSell));row.gain:SetText(copper(item.unitGain));row.stackGain:SetText(item.lowQuantity and tostring(item.lowQuantity) or "--")
         row.gain:SetTextColor(item.unitGain>0 and .45 or 1,item.unitGain>0 and .9 or .35,item.unitGain>0 and .64 or .35)
       elseif viewMode == "craft" then
@@ -248,8 +250,14 @@ local function calculateLookup()
   status:SetText("ITEM LOOKUP | Vendor offers first | Scan " .. (age and (age .. "m ago") or "unavailable") .. " | AHledger " .. source)
   filterAndSort()
 end
+local function updateResaleStatus()
+  if not status or viewMode~="resale" then return end
+  local age=resaleScanTime and math.max(0,math.floor((((GetServerTime and GetServerTime()) or time())-resaleScanTime)/60))
+  local prefix=resaleOpenRequest and ("PREPARING "..resaleOpenRequest.item.name.." | ") or "VENDOR RESALE | "
+  status:SetText(prefix..resaleChecked.."/"..#resaleQueue.." live checks | "..resaleUnavailable.." unavailable | "..resaleUnknown.." vendor values unknown | Scan "..(age and (age.."m ago") or "age unknown"))
+end
 local function calculateResale()
-  results={};selectedID=nil
+  results={};selectedID=nil;resaleEpoch=resaleEpoch+1;resaleQueue={};resaleIndex=1;resaleChecked=0;resaleUnavailable=0;resaleUnknown=0;resaleScanTime=nil;resaleOpenRequest=nil
   local marketID=NokiUnifiedCore and NokiUnifiedCore.Market()
   local book=marketID and NokiUnifiedCoreDB and NokiUnifiedCoreDB.prices and NokiUnifiedCoreDB.prices[marketID]
   if not book or not book.items then status:SetText("NO SCAN | Open the auction house and run a scan.");filterAndSort();return end
@@ -268,8 +276,10 @@ local function calculateResale()
       end
     end
   end
-  local age=book.observed and math.max(0,math.floor((((GetServerTime and GetServerTime()) or time())-book.observed)/60))
-  status:SetText("VENDOR RESALE | "..#results.." candidates | Scan "..(age and (age.."m ago") or "age unknown").." | "..unknown.." vendor prices unavailable")
+  resaleScanTime=book.observed;resaleUnknown=unknown
+  for _,item in ipairs(results) do resaleQueue[#resaleQueue+1]=item end
+  table.sort(resaleQueue,function(a,b) if a.unitGain==b.unitGain then return a.id<b.id end;return a.unitGain>b.unitGain end)
+  updateResaleStatus()
   filterAndSort()
 end
 local function calculate()
@@ -361,29 +371,86 @@ local function calculate()
   status:SetText("SCAN " .. (age and (math.floor(age/60) .. "m ago") or "unknown") .. "  |  " .. sourceAge .. "  | " .. (matchPrice and "MATCH" or "UNDERCUT 1c") .. " | excluded: " .. count(unknown) .. " unknown, " .. count(zero) .. " zero, " .. count(below) .. " below minimum")
   filterAndSort()
 end
-checkResaleItem=function(item)
-  if not item or item.checking then return end
+function NokiUnifiedCore.VendorResaleTotals(vendorSell,tiers)
+  if type(vendorSell)~="number" or vendorSell<=0 or type(tiers)~="table" then return nil end
+  local last
+  for _,tier in ipairs(tiers) do
+    if type(tier.price)~="number" or type(tier.totalQuantity)~="number" or type(tier.totalCost)~="number" then return nil end
+    if tier.price>=vendorSell then break end
+    last=tier
+  end
+  if not last then return nil end
+  return {quantity=last.totalQuantity,cost=last.totalCost,profit=vendorSell*last.totalQuantity-last.totalCost,through=last.price}
+end
+checkResaleItem=function(item,onComplete)
+  if not item or item.checking then return false,"Already checking" end
   item.checking=true;item.checkError=nil
   if selectedItem==item and viewMode=="resale" then setSelected(item) end
   local ok,err=NokiUnifiedCore.CheckBuyout(item.auctionKey,function(result,message)
     item.checking=false
     if result and result.tiers and result.tiers[1] then
-      local tier=result.tiers[1];item.ah=tier.price;item.unitGain=item.vendorSell-tier.price;item.lowQuantity=tier.quantity;item.buyCost=tier.totalCost;item.totalGain=item.vendorSell*tier.quantity-tier.totalCost;item.live=true;item.viewed=false;item.soldOut=false;item.checkError=nil
+      local first=result.tiers[1];local totals=NokiUnifiedCore.VendorResaleTotals(item.vendorSell,result.tiers)
+      item.ah=first.price;item.unitGain=item.vendorSell-first.price;item.live=true;item.viewed=false;item.soldOut=false;item.checkError=nil
+      item.lowQuantity=totals and totals.quantity;item.buyCost=totals and totals.cost;item.totalGain=totals and totals.profit;item.buyThrough=totals and totals.through
+      if item.unitGain>0 and not totals then item.live=false;item.checkError="Incomplete tier totals" end
     else item.live=false;item.lowQuantity=nil;item.buyCost=nil;item.totalGain=nil;item.checkError=message or "No usable listings";item.soldOut=message=="No buyout listings found." end
-    if panel and panel:IsShown() and viewMode=="resale" then
+    local belongs=false;for _,candidate in ipairs(results) do if candidate==item then belongs=true;break end end
+    if belongs and panel and panel:IsShown() and viewMode=="resale" then
       if item.soldOut or (item.live and item.unitGain<=0) then filterAndSort(false) else render() end
     end
-  end)
+    if onComplete then onComplete(result,message) end
+  end,{vendorCeiling=item.vendorSell})
   if not ok then item.checking=false;item.checkError=err or "Price check unavailable";if selectedItem==item and viewMode=="resale" then setSelected(item) end end
+  return ok,err
 end
 openResale=function(item)
   if viewMode~="resale" or not item then return end
-  if NokiUnifiedCore.phase~="idle" or NokiUnifiedCore.working.buyout or NokiUnifiedCore.working.competition or NokiUnifiedCore.working.pending then print("Noki Market: wait for the active scan or price check to finish.");return end
   if not AuctionHouseFrame.SelectBrowseResult then print("Noki Market: auction buy view unavailable.");return end
-  setSelected(item);returningFromResaleView=true;resaleReturnItem=item
+  setSelected(item);resaleOpenRequest={item=item};NokiUnifiedCore.SetWorking("resaleView",true);updateResaleStatus()
+  if resaleInflight and NokiUnifiedCore.CancelQueuedBuyout then NokiUnifiedCore.CancelQueuedBuyout("Deferred for View") end
+  tryOpenResale()
+end
+tryOpenResale=function()
+  local request=resaleOpenRequest;if not request then return end
+  local item=request.item
+  if item.soldOut or (item.live and item.unitGain<=0) then resaleOpenRequest=nil;NokiUnifiedCore.SetWorking("resaleView",false);updateResaleStatus();print("Noki Market: this item is sold out or no longer profitable to vendor.");return end
+  if NokiUnifiedCore.phase~="idle" or NokiUnifiedCore.working.buyout or (NokiUnifiedCore.IsCompetitionSearchActive and NokiUnifiedCore.IsCompetitionSearchActive()) then return end
+  local api=C_AuctionHouse
+  if not api or not api.GetItemKeyInfo then resaleOpenRequest=nil;NokiUnifiedCore.SetWorking("resaleView",false);updateResaleStatus();print("Noki Market: auction item details are unavailable.");return end
+  local ok,info=pcall(api.GetItemKeyInfo,item.auctionKey)
+  if not ok or type(info)~="table" or type(info.isCommodity)~="boolean" then
+    local now=(GetServerTime and GetServerTime()) or time();request.loadStarted=request.loadStarted or now
+    if not request.requested and C_Item and C_Item.RequestLoadItemDataByID then request.requested=true;pcall(C_Item.RequestLoadItemDataByID,item.id) end
+    if now-request.loadStarted>15 then resaleOpenRequest=nil;NokiUnifiedCore.SetWorking("resaleView",false);updateResaleStatus();print("Noki Market: item details did not load; try View again.") end
+    return
+  end
+  resaleOpenRequest=nil;returningFromResaleView=true;resaleReturnItem=item
   NokiUnifiedTabs:HideAll()
-  local ok,err=pcall(AuctionHouseFrame.SelectBrowseResult,AuctionHouseFrame,{itemKey=item.auctionKey,minPrice=item.ah})
-  if not ok then returningFromResaleView=false;resaleReturnItem=nil;print("Noki Market: could not open item: "..tostring(err));if tabLib then tabLib:SetSelected(TAB_ID) end end
+  local opened,err=pcall(AuctionHouseFrame.SelectBrowseResult,AuctionHouseFrame,{itemKey=item.auctionKey,minPrice=item.ah})
+  if not opened then returningFromResaleView=false;resaleReturnItem=nil;NokiUnifiedCore.SetWorking("resaleView",false);print("Noki Market: could not open item: "..tostring(err));if tabLib then tabLib:SetSelected(TAB_ID) end end
+end
+local function resaleVisible()
+  if not panel or viewMode~="resale" then return false end
+  if panel.IsVisible then return panel:IsVisible() end
+  return panel:IsShown()
+end
+local function pumpResale()
+  if not resaleVisible() then if resaleOpenRequest then resaleOpenRequest=nil;NokiUnifiedCore.SetWorking("resaleView",false) end;return end
+  if resaleOpenRequest then tryOpenResale();return end
+  if resaleInflight or NokiUnifiedCore.working.buyout or resaleIndex>#resaleQueue then return end
+  local item=resaleQueue[resaleIndex]
+  if item.live or item.soldOut then resaleIndex=resaleIndex+1;resaleChecked=resaleChecked+1;updateResaleStatus();return end
+  local epoch=resaleEpoch;resaleIndex=resaleIndex+1;resaleInflight=true
+  local ok=checkResaleItem(item,function(result,message)
+    resaleInflight=false
+    if epoch==resaleEpoch then
+      if message=="Deferred for View" then resaleIndex=resaleIndex-1;item.checkError=nil
+      else resaleChecked=resaleChecked+1;if not result or item.checkError then resaleUnavailable=resaleUnavailable+1 end end
+      updateResaleStatus()
+    end
+    if resaleOpenRequest and resaleVisible() then tryOpenResale() end
+  end)
+  if not ok then resaleInflight=false;resaleIndex=resaleIndex-1 end
 end
 local function createPanel()
   if panel or not AuctionHouseFrame then return panel end
@@ -460,7 +527,7 @@ local function createPanel()
   pageText=makeText(panel,nil,18,-391,450,"GameFontHighlightSmall")
   detailTitle=makeText(panel,nil,18,-416,850,"GameFontNormalSmall")
   detailBody=makeText(panel,nil,18,-432,850,"GameFontHighlightSmall");detailBody:SetWordWrap(true)
-  resaleCheckButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");resaleCheckButton:SetSize(105,22);resaleCheckButton:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-115,-411);resaleCheckButton:SetText("Check tier")
+  resaleCheckButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");resaleCheckButton:SetSize(105,22);resaleCheckButton:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-115,-411);resaleCheckButton:SetText("Recheck")
   resaleCheckButton:SetScript("OnClick",function()
     if viewMode=="resale" then checkResaleItem(selectedItem) end
   end)
@@ -494,8 +561,8 @@ local function createPanel()
     modeButton:SetShown(not craft)
     modeButton:SetText(lookup and "Vendor flips" or resale and "Item lookup" or "Vendor resale")
     title:SetText(lookup and "ITEM LOOKUP" or resale and "SELL TO VENDOR" or craft and "CRAFTING PROFIT" or "VENDOR FLIP FINDER")
-    subtitle:SetText(lookup and "Search loaded items by name, vendor or ID." or resale and "Auction lows below vendor sell value. Select an item to check the live tier." or craft and "Buy materials at AH lows; profit is per craft. Capture recipes with a profession open." or "One-pack vendor cost vs sell price per unit. Select a row for details.")
-    local labels=resale and {"ITEM","AH / UNIT","VENDOR / UNIT","GAIN / UNIT","LOW QTY","BUY TOTAL","PROFIT TOTAL","VIEW"} or lookup and {"ITEM / VARIANT","VENDOR / UNIT","AH LOW / UNIT","LISTED","VENDOR PACK","EST. / DAY","","GAP / 1D"} or craft and {"RECIPE / PROFESSION","COST / CRAFT","SELL / UNIT","GAIN / CRAFT","YIELD","EST. / DAY","",""} or {"ITEM / VENDOR","BUY / UNIT","SELL / UNIT","GAIN / UNIT","GAIN / PACK","EST. / DAY","LISTED","GAP / 1D"}
+    subtitle:SetText(lookup and "Search loaded items by name, vendor or ID." or resale and "Automatically checks all listings priced below each item's vendor value." or craft and "Buy materials at AH lows; profit is per craft. Capture recipes with a profession open." or "One-pack vendor cost vs sell price per unit. Select a row for details.")
+    local labels=resale and {"ITEM","AH / UNIT","VENDOR / UNIT","GAIN / UNIT","BUY QTY","BUY TOTAL","PROFIT TOTAL","VIEW"} or lookup and {"ITEM / VARIANT","VENDOR / UNIT","AH LOW / UNIT","LISTED","VENDOR PACK","EST. / DAY","","GAP / 1D"} or craft and {"RECIPE / PROFESSION","COST / CRAFT","SELL / UNIT","GAIN / CRAFT","YIELD","EST. / DAY","",""} or {"ITEM / VENDOR","BUY / UNIT","SELL / UNIT","GAIN / UNIT","GAIN / PACK","EST. / DAY","LISTED","GAP / 1D"}
     for i,label in ipairs(labels) do headerTexts[i]:SetText(label) end
     if preserveResale then render() else calculate() end
   end
@@ -557,7 +624,9 @@ local function registerTab()
       viewMode=mode=="flips" and marketViewMode or mode;if not preserve then scrollOffset=0 end
       applyMode(preserve);skipNextMarketRefresh=preserve;frame:Show()
       if preserve and resaleReturnItem then
-        local item=resaleReturnItem;resaleReturnItem=nil;item.live=false;item.viewed=true;item.lowQuantity=nil;item.buyCost=nil;item.totalGain=nil;item.checkError=nil;render()
+        local item=resaleReturnItem;resaleReturnItem=nil;item.live=false;item.viewed=true;item.lowQuantity=nil;item.buyCost=nil;item.totalGain=nil;item.checkError=nil
+        for i=#resaleQueue,resaleIndex,-1 do if resaleQueue[i]==item then table.remove(resaleQueue,i) end end
+        table.insert(resaleQueue,resaleIndex,item);updateResaleStatus();render()
       end
     end)
     host:SetScript("OnHide",function()
@@ -575,7 +644,13 @@ end
 local events=CreateFrame("Frame")
 events:RegisterEvent("AUCTION_HOUSE_SHOW")
 events:RegisterEvent("AUCTION_HOUSE_CLOSED")
-events:SetScript("OnEvent",function(_,event) if event=="AUCTION_HOUSE_CLOSED" then returningFromResaleView=false;resaleReturnItem=nil;skipNextMarketRefresh=false elseif C_Timer and C_Timer.After then C_Timer.After(0.5,registerTab) else registerTab() end end)
+events:RegisterEvent("ITEM_KEY_ITEM_INFO_RECEIVED")
+events:SetScript("OnEvent",function(_,event,id)
+  if event=="AUCTION_HOUSE_CLOSED" then returningFromResaleView=false;resaleReturnItem=nil;skipNextMarketRefresh=false;resaleOpenRequest=nil;resaleEpoch=resaleEpoch+1;NokiUnifiedCore.SetWorking("resaleView",false)
+  elseif event=="ITEM_KEY_ITEM_INFO_RECEIVED" then if resaleOpenRequest and resaleOpenRequest.item.id==id and resaleVisible() then tryOpenResale() end
+  elseif C_Timer and C_Timer.After then C_Timer.After(0.5,registerTab) else registerTab() end
+end)
+local resaleElapsed=0;events:SetScript("OnUpdate",function(_,delta) resaleElapsed=resaleElapsed+delta;if resaleElapsed<.75 then return end;resaleElapsed=0;pumpResale() end)
 function NokiUnifiedMarketRefreshFlips() if panel and panel:IsShown() then calculate() end end
 function NokiUnifiedMarketShowCrafting()
   if not AuctionHouseFrame or not AuctionHouseFrame:IsShown() then print("Noki Market: open the auction house first.");return end

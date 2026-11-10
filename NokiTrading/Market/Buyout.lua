@@ -50,11 +50,15 @@ local function collect()
   for i=1,count(arg) do
     local info=get(arg,i)
     if not info then finish(nil,"Price-tier data is incomplete.");return end
-    if info.containsOwnerItem or info.containsAccountItem then finish(nil,"Your/account listings are mixed into these results; buyout totals are unavailable.");return end
     local quantity=info.quantity
     local price=p.commodity and info.unitPrice or core.ItemSearchUnitPrice(p.key.itemID,info.buyoutAmount,quantity)
-    if type(quantity)~="number" or quantity<=0 or type(price)~="number" or price<=0 then finish(nil,"Some listings lack a reliable unit price or buyout.");return end
-    offers[#offers+1]={price=price,quantity=quantity}
+    local owned=info.containsOwnerItem or info.containsAccountItem
+    local bidOnly=p.vendorCeiling and not p.commodity and (type(info.buyoutAmount)~="number" or info.buyoutAmount<=0)
+    if not bidOnly then
+      if type(quantity)~="number" or quantity<=0 or type(price)~="number" or price<=0 then finish(nil,"Some listings lack a reliable unit price or buyout.");return end
+      if owned and (not p.vendorCeiling or price<p.vendorCeiling) then finish(nil,"Your/account listings are mixed into these results; buyout totals are unavailable.");return end
+      if not owned then offers[#offers+1]={price=price,quantity=quantity} end
+    end
   end
   if #offers==0 then finish(nil,"No buyout listings found.");return end
   local result=core.CalculateBuyout(offers);result.checked=now();finish(result)
@@ -64,20 +68,31 @@ local function tryStart()
   if not p or p.started or core.phase~="idle" or (core.IsCompetitionSearchActive and core.IsCompetitionSearchActive()) then return end
   local api=C_AuctionHouse
   if api.IsThrottledMessageSystemReady and not api.IsThrottledMessageSystemReady() then return end
-  local info=api.GetItemKeyInfo(p.key)
-  if not info or type(info.isCommodity)~="boolean" then finish(nil,"Item details are not ready; try again.");return end
+  local okInfo,info=pcall(api.GetItemKeyInfo,p.key)
+  if not okInfo or type(info)~="table" or type(info.isCommodity)~="boolean" then
+    p.detailsStarted=p.detailsStarted or now()
+    if not p.requestedItem and C_Item and C_Item.RequestLoadItemDataByID then p.requestedItem=true;pcall(C_Item.RequestLoadItemDataByID,p.key.itemID) end
+    if now()-p.detailsStarted>15 then finish(nil,"Item details did not load; try again.") end
+    return
+  end
   p.commodity=info.isCommodity;p.started=now()
   local ok=pcall(api.SendSearchQuery,p.key,{},true)
   if not ok then finish(nil,"Could not request price tiers.") end
 end
-function core.CheckBuyout(key,callback)
+function core.CheckBuyout(key,callback,options)
   if not core.active or not AuctionHouseFrame or not AuctionHouseFrame:IsShown() then return false,"Open the auction house first." end
   if pending then return false,"Another price check is running; try again shortly." end
   local api=C_AuctionHouse
   if not api or not api.SendSearchQuery or not api.GetItemKeyInfo then return false,"Auction search is unavailable." end
-  pending={key=key,queued=now(),callback=callback};core.SetWorking("buyout",true)
+  local ceiling=type(options)=="table" and options.vendorCeiling
+  if type(ceiling)~="number" or ceiling<=0 then ceiling=nil end
+  pending={key=key,queued=now(),callback=callback,vendorCeiling=ceiling};core.SetWorking("buyout",true)
   tryStart()
   return true
+end
+function core.CancelQueuedBuyout(reason)
+  if not pending or pending.started then return false end
+  finish(nil,reason or "Price check cancelled.");return true
 end
 local events=CreateFrame("Frame")
 for _,event in ipairs({"COMMODITY_SEARCH_RESULTS_UPDATED","COMMODITY_SEARCH_RESULTS_ADDED","ITEM_SEARCH_RESULTS_UPDATED","ITEM_SEARCH_RESULTS_ADDED","AUCTION_HOUSE_CLOSED"}) do pcall(events.RegisterEvent,events,event) end

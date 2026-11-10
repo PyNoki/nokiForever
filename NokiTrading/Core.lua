@@ -130,7 +130,7 @@ local function updateIndicator()
     indicator:Hide()
   end
   if not indicator then return end
-  local label=core.working.browse and "Scanning AH..." or core.working.buyout and "Checking prices..." or core.working.competition and "Checking listings..." or core.working.pending and "Preparing scan..."
+  local label=not core.working.resaleView and (core.working.browse and "Scanning AH..." or core.working.buyout and "Checking prices..." or core.working.competition and "Checking listings..." or core.working.pending and "Preparing scan...")
   if core.active and label then indicator.label:SetText(label);indicator:Show() else indicator:Hide() end
 end
 function core.SetWorking(task,active)
@@ -151,6 +151,7 @@ end
 function core.Scan()
   if not core.active then return false,"Open the auction house first" end
   if core.phase~="idle" then return false,"Another Noki scan is running" end
+  if core.working.resaleView then return false,"Finish viewing the vendor shopping item first" end
   if core.working.buyout then return false,"A buyout price check is running" end
   if core.working.competition then return false,"Listing checks are running; retry shortly" end
   if not C_AuctionHouse or not C_AuctionHouse.SendBrowseQuery or not C_AuctionHouse.GetBrowseResults or not C_AuctionHouse.HasFullBrowseResults or not C_AuctionHouse.RequestMoreBrowseResults then return false,"Complete browse API unavailable" end
@@ -287,6 +288,7 @@ function NokiUnifiedTabs:CreateTab(id,host,label)
   button:SetScript("OnClick",function() self:SetSelected(id) end)
 end
 function NokiUnifiedTabs:SetSelected(id)
+  if core.working.resaleView then core.SetWorking("resaleView",false) end
   self:HideAll()
   local tab=self.tabs[id]
   if tab then
