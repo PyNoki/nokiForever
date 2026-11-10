@@ -543,9 +543,10 @@ local function createPanel()
   knownButton:SetScript("OnClick",function() NokiUnifiedMarketDB.craftKnownOnly=not NokiUnifiedMarketDB.craftKnownOnly;knownButton:SetText(NokiUnifiedMarketDB.craftKnownOnly and "Known only" or "All recipes");calculate() end)
   captureButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");captureButton:SetSize(110,22);captureButton:SetPoint("TOPLEFT",panel,"TOPLEFT",590,-77);captureButton:SetText("Capture recipes");captureButton:SetScript("OnClick",function() if NokiUnifiedMarketCaptureRecipes then NokiUnifiedMarketCaptureRecipes();calculate() end end)
   local importButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");importButton:SetSize(115,22);importButton:SetPoint("TOPLEFT",panel,"TOPLEFT",845,-77);importButton:SetText("Import data");importButton:SetScript("OnClick",function() NokiUnifiedCore.ShowImport() end)
-  local applyButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");applyButton:SetSize(110,22);applyButton:SetPoint("TOPLEFT",panel,"TOPLEFT",470,-77);applyButton:SetText("Apply / Search");applyButton:SetScript("OnClick",function() scrollOffset=0;if viewMode=="resale" then filterAndSort() else calculate() end end)
+  local applyButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");applyButton:SetSize(110,22);applyButton:SetPoint("TOPLEFT",panel,"TOPLEFT",470,-77);applyButton:SetText("Apply / Search");applyButton:SetScript("OnClick",function() scrollOffset=0;calculate() end)
   applyMode=function(preserveResale)
     local lookup=viewMode=="lookup";local resale=viewMode=="resale";local simple=lookup or resale;local craft=viewMode=="craft"
+    applyButton:SetText(resale and "Refresh list" or "Apply / Search")
     searchBox:ClearAllPoints();searchBox:SetPoint("TOPLEFT",panel,"TOPLEFT",simple and 90 or 330,-54)
     searchHint:ClearAllPoints();searchHint:SetPoint("TOPLEFT",panel,"TOPLEFT",simple and 18 or 365,simple and -59 or -80);searchHint:SetText(simple and "SEARCH" or "Search name, vendor or ID")
     modeButton:ClearAllPoints();modeButton:SetPoint("TOPLEFT",panel,"TOPLEFT",simple and 355 or 220,simple and -54 or -77)
@@ -576,7 +577,10 @@ local function createPanel()
     applyMode(preserve)
   end)
   applyMode()
-  panel:SetScript("OnShow",function() updateControls();if skipNextMarketRefresh then skipNextMarketRefresh=false;render() else calculate() end end);panel:Hide()
+  panel:SetScript("OnShow",function()
+    updateControls()
+    if skipNextMarketRefresh or (viewMode=="resale" and resaleCache) then skipNextMarketRefresh=false;render() else calculate() end
+  end);panel:Hide()
   return panel
 end
 function NokiUnifiedMarketExplainItem(id)
@@ -658,8 +662,7 @@ events:SetScript("OnEvent",function(_,event,id)
 end)
 local resaleElapsed=0;events:SetScript("OnUpdate",function(_,delta) resaleElapsed=resaleElapsed+delta;if resaleElapsed<.75 then return end;resaleElapsed=0;pumpResale() end)
 function NokiUnifiedMarketRefreshFlips()
-  resaleCache=nil
-  if panel and panel:IsShown() then calculate() end
+  if panel and panel:IsShown() and viewMode~="resale" then calculate() end
 end
 function NokiUnifiedMarketShowCrafting()
   if not AuctionHouseFrame or not AuctionHouseFrame:IsShown() then print("Noki Market: open the auction house first.");return end
