@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: Noki Trading
 ## Notes: Market, crafting, auction tracking and help.
-## Version: 1.0.31
+## Version: 1.0.32
 ## SavedVariables: NokiUnifiedCoreDB, NokiUnifiedMarketDB, NokiUnifiedCraftDB
 UpdaterData.lua
 Core.lua
@@ -14,6 +14,7 @@ Market\RemoteData.lua
 Market\MarketActivity.lua
 Market\Buyout.lua
 Market\Demand.lua
+Market\Mispriced.lua
 Market\NokiUnifiedMarket.lua
 Market\FlipPanel.lua
 Crafting\VendorData.lua

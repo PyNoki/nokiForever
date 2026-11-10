@@ -4,6 +4,7 @@ local panel,search,status,footer,rows,columns=nil,nil,nil,nil,{},{}
 local data,filtered={},{}
 local sortKey,ascending,offset="pressure",false,0
 local selectedID,analysis,analysisStatus,analysisSummary,analysisRows,analysisPage=nil,nil,nil,nil,{},0
+local lastClickedID
 local analysisMode="best"
 local refreshAnalysis,refreshRecipes
 local recipeRows,recipeOffset,recipeList={},0,{}
@@ -45,6 +46,7 @@ local function render()
   for i,row in ipairs(rows) do
     local item=filtered[offset+i];row.item=item
     if item then
+      if item.id==lastClickedID then row:SetBackdropColor(.18,.32,.25,1) else row:SetBackdropColor(i%2==0 and .12 or .08,.12,.12,.95) end
       row.name:SetText(item.name.."  |cff829494#"..item.id.."|r");row.price:SetText(money(item.price));row.listed:SetText(item.listed and tostring(item.listed) or "--")
       row.sales:SetText(number(item.sales));row.coverage:SetText(number(item.coverage,true));row.gap:SetText(item.gap and number(item.gap) or "--");row.pressure:SetText(number(item.pressure,true));row:Show()
       row.expand:SetText(selectedID==item.id and "-" or "+")
@@ -119,6 +121,7 @@ local function build()
     row.expand=CreateFrame("Button",nil,row,"UIPanelButtonTemplate");row.expand:SetSize(28,21);row.expand:SetPoint("LEFT",row,"LEFT",851,0)
     row.expand:SetScript("OnClick",function()
       local item=row.item;if not item then return end
+      lastClickedID=item.id
       if selectedID==item.id then selectedID=nil;analysis=nil;analysisPage=0;recipeList={};recipeOffset=0;refreshRecipes();refreshAnalysis();render();return end
       selectedID=item.id;analysis=nil;analysisPage=0;analysisMode="best";recipeList=core.DemandRecipes(item.id);recipeOffset=0;refreshRecipes();analysisStatus:SetText("Queued: "..item.name.." | checking when the current scan or listing query finishes...");refreshAnalysis(true);render()
       local ok,err=core.CheckBuyout(item.key,function(result,message)
@@ -130,13 +133,14 @@ local function build()
     row.view=CreateFrame("Button",nil,row,"UIPanelButtonTemplate");row.view:SetSize(48,21);row.view:SetPoint("LEFT",row,"LEFT",882,0);row.view:SetText("View")
     row.view:SetScript("OnClick",function()
       local item=row.item;if not item then return end
+      lastClickedID=item.id;render()
       if core.phase~="idle" or core.working.buyout or core.working.competition or core.working.pending then print("Noki Trading: wait for the active scan or price check to finish.");return end
       if not AuctionHouseFrame.SelectBrowseResult then print("Noki Trading: the auction buy view is unavailable.");return end
       NokiUnifiedTabs:HideAll()
       local ok,err=pcall(AuctionHouseFrame.SelectBrowseResult,AuctionHouseFrame,{itemKey=item.key,minPrice=item.price})
       if not ok then print("Noki Trading: could not open item: "..tostring(err)) end
     end)
-    row:EnableMouse(true);row:SetScript("OnEnter",function(self) if self.item and GameTooltip then GameTooltip:SetOwner(self,"ANCHOR_RIGHT");GameTooltip:SetItemByID(self.item.id);GameTooltip:Show() end end);row:SetScript("OnLeave",function() if GameTooltip then GameTooltip:Hide() end end)
+    row:EnableMouse(true);row:SetScript("OnMouseDown",function(self) if self.item then lastClickedID=self.item.id;render() end end);row:SetScript("OnEnter",function(self) if self.item and GameTooltip then GameTooltip:SetOwner(self,"ANCHOR_RIGHT");GameTooltip:SetItemByID(self.item.id);GameTooltip:Show() end end);row:SetScript("OnLeave",function() if GameTooltip then GameTooltip:Hide() end end)
   end
   footer=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");footer:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-388)
   local note=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");note:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-410);note:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-20,-410);note:SetJustifyH("LEFT");note:SetText("Listed/day = listed units / estimated sales per day. Pressure = sqrt(min(sales/day, 1,000)) / (0.25 + listed/day). Click + for live buyout tiers; View opens the game's buy screen.")
