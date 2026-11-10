@@ -253,6 +253,7 @@ function NokiUnifiedTabs:CreateTab(id,host,label)
   if not self.hooked then
     self.hooked=true
     if type(AuctionHouseFrame.Tabs)=="table" then
+      self.nativeAnchor=AuctionHouseFrame.Tabs[#AuctionHouseFrame.Tabs]
       for _,native in ipairs(AuctionHouseFrame.Tabs) do
         if native.HookScript then native:HookScript("OnClick",function() self:HideAll() end) end
       end
@@ -272,9 +273,11 @@ function NokiUnifiedTabs:CreateTab(id,host,label)
     if (tabOrder[id] or math.huge)<(tabOrder[existing.id] or math.huge) then index=i;break end
   end
   table.insert(self.ordered,index,entry)
-  local previous=type(AuctionHouseFrame.Tabs)=="table" and AuctionHouseFrame.Tabs[#AuctionHouseFrame.Tabs]
+  -- Detach every old anchor before rebuilding the chain, so a reordered tab
+  -- cannot temporarily be anchored to one of its own descendants.
+  for _,tab in ipairs(self.ordered) do tab.button:ClearAllPoints() end
+  local previous=self.nativeAnchor
   for _,tab in ipairs(self.ordered) do
-    tab.button:ClearAllPoints()
     if previous then tab.button:SetPoint("TOPLEFT",previous,"TOPRIGHT",0,0)
     else tab.button:SetPoint("TOPLEFT",AuctionHouseFrame,"BOTTOMLEFT",270,0) end
     previous=tab.button
