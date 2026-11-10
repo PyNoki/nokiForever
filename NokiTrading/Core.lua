@@ -210,6 +210,7 @@ local elapsed=0;events:SetScript("OnUpdate",function(_,delta)
 end)
 -- Independent auction-house tabs; native tabs hide the Noki overlay when selected.
 NokiUnifiedTabs={tabs={},ordered={}}
+local tabOrder={NokiUnifiedHelp=1,NokiUnifiedMarketFlips=2,NokiUnifiedCraftCrafting=3,NokiUnifiedOwned=4}
 function NokiUnifiedTabs:DoesIDExist(id) return self.tabs[id]~=nil end
 function NokiUnifiedTabs:HideAll()
   self.selected=nil
@@ -232,15 +233,22 @@ function NokiUnifiedTabs:CreateTab(id,host,label)
       end)
     end
   end
-  local previous=self.ordered[#self.ordered]
-  local native=type(AuctionHouseFrame.Tabs)=="table" and AuctionHouseFrame.Tabs[#AuctionHouseFrame.Tabs]
   local button=CreateFrame("Button",nil,AuctionHouseFrame,"AuctionHouseFrameDisplayModeTabTemplate")
   button:SetText(label);button:SetSize(110,26)
   if PanelTemplates_TabResize then pcall(PanelTemplates_TabResize,button,20,nil,95) end
-  if previous then button:SetPoint("TOPLEFT",previous.button,"TOPRIGHT",0,0)
-  elseif native then button:SetPoint("TOPLEFT",native,"TOPRIGHT",0,0)
-  else button:SetPoint("TOPLEFT",AuctionHouseFrame,"BOTTOMLEFT",270,0) end
-  local entry={host=host,button=button};self.tabs[id]=entry;self.ordered[#self.ordered+1]=entry
+  local entry={host=host,button=button,id=id};self.tabs[id]=entry
+  local index=#self.ordered+1
+  for i,existing in ipairs(self.ordered) do
+    if (tabOrder[id] or math.huge)<(tabOrder[existing.id] or math.huge) then index=i;break end
+  end
+  table.insert(self.ordered,index,entry)
+  local previous=type(AuctionHouseFrame.Tabs)=="table" and AuctionHouseFrame.Tabs[#AuctionHouseFrame.Tabs]
+  for _,tab in ipairs(self.ordered) do
+    tab.button:ClearAllPoints()
+    if previous then tab.button:SetPoint("TOPLEFT",previous,"TOPRIGHT",0,0)
+    else tab.button:SetPoint("TOPLEFT",AuctionHouseFrame,"BOTTOMLEFT",270,0) end
+    previous=tab.button
+  end
   if PanelTemplates_DeselectTab then PanelTemplates_DeselectTab(button) end
   button:SetScript("OnClick",function() self:SetSelected(id) end)
 end
