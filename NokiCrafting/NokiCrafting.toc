@@ -1,0 +1,13 @@
+## Interface: 16001
+## Title: Noki Crafting
+## Notes: Standalone crafting profit finder.
+## Version: 1.0.10
+## OptionalDeps: Auctionator, AHledger
+## SavedVariables: NokiCraftingDB
+VendorData.lua
+UpdaterData.lua
+MarketActivity.lua
+NokiCrafting.lua
+FlipPanel.lua
+CraftingCatalog.lua
+Crafting.lua
