@@ -674,6 +674,11 @@ end)
 function NokiUnifiedMarketRefreshFlips()
   if panel and panel:IsShown() then if viewMode=="resale" then updateResaleStatus() else calculate() end end
 end
+NokiUnifiedCore.Subscribe(function(event)
+  if event~="complete" then return end
+  resaleCache=nil
+  if resaleVisible() then calculateResale() end
+end)
 function NokiUnifiedMarketShowCrafting()
   if not AuctionHouseFrame or not AuctionHouseFrame:IsShown() then print("Noki Market: open the auction house first.");return end
   registerTab()

@@ -4,6 +4,7 @@ local panel,search,threshold,minSalesBox,maxQtyBox,maxCostBox,status,footer,scan
 local queue,results,filtered={},{},{}
 local index,checked,skipped,excluded,offset=1,0,0,0,0
 local running,inflight=false,false
+local refreshPending=false
 local pageSize=9
 local function readFilters()
   local limit=tonumber(threshold:GetText())
@@ -150,10 +151,18 @@ local function build()
   local function wheel(_,delta) offset=math.max(0,math.min(math.max(0,#filtered-pageSize),offset-delta));draw() end
   panel:EnableMouseWheel(true);panel:SetScript("OnMouseWheel",wheel);for _,row in ipairs(rows) do row:EnableMouseWheel(true);row:SetScript("OnMouseWheel",wheel) end
   local width,height
-  panel:SetScript("OnShow",function() if not width then width,height=AuctionHouseFrame:GetWidth(),AuctionHouseFrame:GetHeight();AuctionHouseFrame:SetSize(width+220,height+160) end;draw() end)
+  panel:SetScript("OnShow",function() if not width then width,height=AuctionHouseFrame:GetWidth(),AuctionHouseFrame:GetHeight();AuctionHouseFrame:SetSize(width+220,height+160) end;if refreshPending and #queue>0 then refreshPending=false;running=true end;draw() end)
   panel:SetScript("OnHide",function() running=false;if width then AuctionHouseFrame:SetSize(width,height);width=nil;height=nil end end)
   NokiUnifiedTabs:CreateTab("NokiMispriced",panel,"Mispriced");draw()
 end
 local events=CreateFrame("Frame");events:RegisterEvent("AUCTION_HOUSE_SHOW");events:RegisterEvent("AUCTION_HOUSE_CLOSED")
 events:SetScript("OnEvent",function(_,event) if event=="AUCTION_HOUSE_SHOW" then if C_Timer and C_Timer.After then C_Timer.After(.5,build) else build() end else running=false end end)
+core.Subscribe(function(event)
+  if event~="complete" or not panel or #queue==0 then return end
+  local newQueue,err,filteredOut=buildQueue()
+  queue=newQueue or {};results={};filtered={};index=1;checked=0;skipped=0;excluded=filteredOut or 0;offset=0
+  local visible=panel.IsVisible and panel:IsVisible() or false
+  running=visible and #queue>0;refreshPending=not visible and #queue>0
+  draw();if not newQueue then status:SetText(err or "No matching items in the new scan.") end
+end)
 local elapsed=0;events:SetScript("OnUpdate",function(_,delta) if not running then return end;elapsed=elapsed+delta;if elapsed<.75 then return end;elapsed=0;checkNext() end)

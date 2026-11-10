@@ -73,8 +73,11 @@ local widgets={}
 local function widget(parent)
   if widgets[parent] then return widgets[parent] end
   local box=CreateFrame("Frame",nil,parent,"BackdropTemplate");box:SetSize(228,32);box:SetPoint("TOPRIGHT",parent,"TOPRIGHT",-40,-52);box:SetFrameLevel(parent:GetFrameLevel()+10);box:EnableMouse(true)
-  local craft=box:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");craft:SetPoint("TOPLEFT",box,"TOPLEFT",0,0);craft:SetWidth(108);craft:SetJustifyH("LEFT");craft:SetWordWrap(false)
-  local vendor=box:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");vendor:SetPoint("TOPLEFT",box,"TOPLEFT",118,0);vendor:SetWidth(110);vendor:SetJustifyH("LEFT");vendor:SetWordWrap(false)
+  local function line(x,y,width,text)
+    local t=box:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");t:SetPoint("TOPLEFT",box,"TOPLEFT",x,y);t:SetWidth(width);t:SetHeight(14);t:SetJustifyH("LEFT");t:SetWordWrap(false);if text then t:SetText(text) end;return t
+  end
+  line(0,0,108,"Craft / unit");line(118,0,110,"Vendor / unit")
+  local craft=line(0,-15,108);local vendor=line(118,-15,110)
   box.craft=craft;box.vendor=vendor
   box:SetScript("OnEnter",function(self)
     if not GameTooltip or not self.estimate then return end
@@ -103,8 +106,8 @@ local function showCost(_,result)
       local parent=AuctionHouseFrame[name]
       if parent then
         local box=widget(parent);box.estimate=estimate
-        box.craft:SetText("Craft / unit\n"..(estimate.craft and ("~"..money(estimate.craft.unit)) or "--"))
-        box.vendor:SetText("Vendor buy / unit\n"..(estimate.vendor and ("~"..money(estimate.vendor[4]/estimate.vendor[5])) or "--"))
+        box.craft:SetText(estimate.craft and ("~"..money(estimate.craft.unit)) or "--")
+        box.vendor:SetText(estimate.vendor and ("~"..money(estimate.vendor[4]/estimate.vendor[5])) or "--")
         box:Show()
       end
     end
