@@ -6,8 +6,8 @@ end
 -- Bring forward books captured before crafting became a separate addon.
 -- PLAYER_LOGIN runs after enabled addons have loaded their saved variables.
 local function migrateBooks()
-  if not NokiCraftingDB or type(NokiMarketDB)~="table" or type(NokiMarketDB.crafting)~="table" then return end
-  NokiCraftingDB.crafting=NokiCraftingDB.crafting or {}
+  if not NokiUnifiedCraftDB or type(NokiMarketDB)~="table" or type(NokiMarketDB.crafting)~="table" then return end
+  NokiUnifiedCraftDB.crafting=NokiUnifiedCraftDB.crafting or {}
   local copied=0
   local function copy(value)
     if type(value)~="table" then return value end
@@ -15,10 +15,10 @@ local function migrateBooks()
   end
   for character,books in pairs(NokiMarketDB.crafting) do
     if type(books)=="table" then
-      NokiCraftingDB.crafting[character]=NokiCraftingDB.crafting[character] or {}
+      NokiUnifiedCraftDB.crafting[character]=NokiUnifiedCraftDB.crafting[character] or {}
       for profession,book in pairs(books) do
-        if type(book)=="table" and not NokiCraftingDB.crafting[character][profession] then
-          NokiCraftingDB.crafting[character][profession]=copy(book); copied=copied+1
+        if type(book)=="table" and not NokiUnifiedCraftDB.crafting[character][profession] then
+          NokiUnifiedCraftDB.crafting[character][profession]=copy(book); copied=copied+1
         end
       end
     end
@@ -33,14 +33,14 @@ local function idFromLink(link, kind)
 end
 local function captureModern()
   if not C_TradeSkillUI or not C_TradeSkillUI.GetAllRecipeIDs or not C_TradeSkillUI.GetRecipeInfo then return false end
-  if not NokiCraftingDB or not NokiCraftingCraftCatalog or not NokiCraftingCraftCatalog.recipes then return false end
+  if not NokiUnifiedCraftDB or not NokiUnifiedCraftCraftCatalog or not NokiUnifiedCraftCraftCatalog.recipes then return false end
   local ok, ids=pcall(C_TradeSkillUI.GetAllRecipeIDs)
   if not ok or type(ids)~="table" or #ids==0 then
     print("Noki crafting: open a profession window and wait for its recipes to load."); return true
   end
   local groups, unknown={},0
   for _,id in ipairs(ids) do
-    local recipe=NokiCraftingCraftCatalog.recipes[id]
+    local recipe=NokiUnifiedCraftCraftCatalog.recipes[id]
     local success,info=pcall(C_TradeSkillUI.GetRecipeInfo,id)
     if not success or type(info)~="table" then
       print("Noki crafting: profession data incomplete; no capture was saved. Try again.");return true
@@ -52,12 +52,12 @@ local function captureModern()
     else unknown=unknown+1 end
   end
   if not next(groups) then print("Noki crafting: none of this profession's recipes match the local catalog; no capture saved.");return true end
-  NokiCraftingDB.crafting=NokiCraftingDB.crafting or {}
-  local key=characterKey();NokiCraftingDB.crafting[key]=NokiCraftingDB.crafting[key] or {}
+  NokiUnifiedCraftDB.crafting=NokiUnifiedCraftDB.crafting or {}
+  local key=characterKey();NokiUnifiedCraftDB.crafting[key]=NokiUnifiedCraftDB.crafting[key] or {}
   local count=0
   for profession,book in pairs(groups) do
     book.observed=(GetServerTime and GetServerTime()) or time()
-    NokiCraftingDB.crafting[key][profession]=book
+    NokiUnifiedCraftDB.crafting[key][profession]=book
     for _ in pairs(book.recipes) do count=count+1 end
   end
   print("Noki crafting: captured "..count.." learned recipes; "..unknown.." recipes not in local catalog. Data reflects the current profession window; recipe restrictions still need checking.")
@@ -65,15 +65,15 @@ local function captureModern()
 end
 local function capture()
   if captureModern() then return end
-  if not NokiCraftingDB or not GetTradeSkillLine or not GetNumTradeSkills or not GetTradeSkillInfo or not GetTradeSkillItemLink or not GetTradeSkillNumMade or not GetTradeSkillNumReagents or not GetTradeSkillReagentInfo or not GetTradeSkillReagentItemLink then
+  if not NokiUnifiedCraftDB or not GetTradeSkillLine or not GetNumTradeSkills or not GetTradeSkillInfo or not GetTradeSkillItemLink or not GetTradeSkillNumMade or not GetTradeSkillNumReagents or not GetTradeSkillReagentInfo or not GetTradeSkillReagentItemLink then
     print("Noki crafting: profession API unavailable."); return
   end
   local profession, skill = GetTradeSkillLine()
   if not profession or profession == "UNKNOWN" then print("Noki crafting: open a profession window first."); return end
   local count=GetNumTradeSkills()
   if not count or count == 0 then print("Noki crafting: no visible recipes; expand the profession categories and try again."); return end
-  NokiCraftingDB.crafting=NokiCraftingDB.crafting or {}
-  local characters=NokiCraftingDB.crafting
+  NokiUnifiedCraftDB.crafting=NokiUnifiedCraftDB.crafting or {}
+  local characters=NokiUnifiedCraftDB.crafting
   characters[characterKey()]=characters[characterKey()] or {}
   local character=characters[characterKey()]
   character[profession]=character[profession] or {recipes={}}
@@ -109,18 +109,18 @@ local function money(n)
   if not n then return "?" end
   return string.format("%.2fc",n)
 end
-function NokiCraftingCraftCandidates(minProfitSilver,minSales,match,knownOnly,budget,professionFilter)
-  if not NokiCraftingDB then return {}, "Database not ready" end
-  local books=NokiCraftingDB.crafting and NokiCraftingDB.crafting[characterKey()]
+function NokiUnifiedCraftCraftCandidates(minProfitSilver,minSales,match,knownOnly,budget,professionFilter)
+  if not NokiUnifiedCraftDB then return {}, "Database not ready" end
+  local books=NokiUnifiedCraftDB.crafting and NokiUnifiedCraftDB.crafting[characterKey()]
   books=books or {}
-  local catalog=NokiCraftingCraftCatalog and NokiCraftingCraftCatalog.recipes
+  local catalog=NokiUnifiedCraftCraftCatalog and NokiUnifiedCraftCraftCatalog.recipes
   if not catalog or not next(catalog) then return {}, "Recipe catalog is empty" end
   local key=(GetRealmName() or "Unknown realm").." - "..(UnitFactionGroup("player") or "Unknown faction")
-  local market=NokiCraftingDB.markets and NokiCraftingDB.markets[key]
+  local market=NokiUnifiedCraftDB.markets and NokiUnifiedCraftDB.markets[key]
   local scans=market and market.scans or {}
   local scan=market and (market.latestScan or scans[#scans])
-  if not scan or not scan.rows then return {}, "No completed auction scan" end
-  local activityMarket,activityError=NokiCraftingActivityMarket()
+  if not scan or not scan.rows or scan.source=="noki_beta_browse" then return {}, "No completed auction scan" end
+  local activityMarket,activityError=NokiUnifiedCraftActivityMarket()
   if not activityMarket then return {},activityError end
   local prices, variants, quantities, quantityUnknown={},{},{},{}
   for _,row in ipairs(scan.rows) do
@@ -145,7 +145,7 @@ function NokiCraftingCraftCandidates(minProfitSilver,minSales,match,knownOnly,bu
       eligible=eligible+1
       local low=prices[recipe.output];local cost=0
       for _,mat in ipairs(recipe.materials) do if not prices[mat.id] then cost=nil;break else cost=cost+prices[mat.id]*mat.quantity end end
-      local remote=NokiCraftingActivity(recipe.output,activityMarket)
+      local remote=NokiUnifiedCraftActivity(recipe.output,activityMarket)
       if remote and (not activityInfo or (remote.observed and (not activityInfo.observed or remote.observed<activityInfo.observed))) then activityInfo=remote end
       local sales=remote and remote.sales
       if recipe.review then review=review+1
@@ -169,9 +169,9 @@ function NokiCraftingCraftCandidates(minProfitSilver,minSales,match,knownOnly,bu
   table.sort(results,function(a,b) if a.conditional~=b.conditional then return not a.conditional end; if a.gainMin~=b.gainMin then return a.gainMin>b.gainMin end; return a.recipe.id<b.recipe.id end)
   return results, nil, {scan=scan.completed, activity=activityInfo and activityInfo.observed, activityInfo=activityInfo, market=activityMarket, eligible=eligible, missing=missing, review=review, unknownYield=unknownYield, activityExcluded=activity, missingSales=missingSales, zeroSales=zeroSales, belowSales=belowSales, failed=failed, overBudget=overBudget}
 end
-function NokiCraftingCaptureRecipes() capture() end
+function NokiUnifiedCraftCaptureRecipes() capture() end
 local function find(minProfitSilver,minSales,match,knownOnly)
-  local results,err,stats=NokiCraftingCraftCandidates(minProfitSilver,minSales,match,knownOnly)
+  local results,err,stats=NokiUnifiedCraftCraftCandidates(minProfitSilver,minSales,match,knownOnly)
   if err then print("Noki crafting: "..err);return end
   print("Noki crafting: "..#results.." candidates | "..(knownOnly and "CAPTURED KNOWN" or "ALL RECIPES"))
   for i=1,math.min(10,#results) do
@@ -180,8 +180,8 @@ local function find(minProfitSilver,minSales,match,knownOnly)
   end
   print("Noki crafting: AH material lows, 5% cut, no deposits. Verify sellability, cooldowns and demand. Prices from AHledger (ahledger.com).")
 end
-SLASH_NOKICRAFTINGCRAFT1="/nmcraft"
-SlashCmdList.NOKICRAFTINGCRAFT=function(msg)
+SLASH_NOKIUNIFIEDCRAFTCRAFT1="/nokiunimcraft"
+SlashCmdList.NOKIUNIFIEDCRAFTCRAFT=function(msg)
   local args={};for s in (msg or ""):gmatch("%S+") do args[#args+1]=s:lower() end
   if args[1]=="capture" then capture();return end
   if args[1]=="find" then

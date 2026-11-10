@@ -1,6 +1,6 @@
 -- Noki Crafting auction-house tab. Vendor observations are reference data.
-local TAB_ID = "NokiCraftingFlips"
-local CRAFT_TAB_ID = "NokiCraftingCrafting"
+local TAB_ID = "NokiUnifiedCraftFlips"
+local CRAFT_TAB_ID = "NokiUnifiedCraftCrafting"
 local applyMode
 local panel, tabLib, budgetBox, minSalesBox, minStackProfitBox, searchBox, sortButton, status, pageText, detailTitle, detailBody
 local rows, results, filtered = {}, {}, {}
@@ -23,17 +23,19 @@ local function copper(value)
   return remainder .. "c"
 end
 local function market()
-  if not NokiCraftingDB or not NokiCraftingDB.markets then return nil end
-  return NokiCraftingDB.markets[(GetRealmName() or "Unknown realm") .. " - " .. (UnitFactionGroup("player") or "Unknown faction")]
+  if not NokiUnifiedCraftDB or not NokiUnifiedCraftDB.markets then return nil end
+  return NokiUnifiedCraftDB.markets[(GetRealmName() or "Unknown realm") .. " - " .. (UnitFactionGroup("player") or "Unknown faction")]
 end
 local function latestSnapshot()
   local data = market()
   if not data then return nil end
   local scans = data.scans or {}
-  return data.latestScan or scans[#scans]
+  local scan=data.latestScan or scans[#scans]
+  if scan and scan.source=="noki_beta_browse" then return nil end
+  return scan
 end
 local function usableHistory()
-  return NokiCraftingActivityMarket()
+  return NokiUnifiedCraftActivityMarket()
 end
 local function number(value)
   if value == nil then return "--" end
@@ -65,13 +67,13 @@ local function setSelected(item)
   end
   local remote = item.remote
   if viewMode == "lookup" then
-    local history = remote and ("AHledger est. sales/day: " .. (remote.sales == nil and "unknown" or tostring(remote.sales)) .. " | " .. NokiCraftingActivityLabel(remote)) or "AHledger activity unavailable for this item or market."
+    local history = remote and ("AHledger est. sales/day: " .. (remote.sales == nil and "unknown" or tostring(remote.sales)) .. " | " .. NokiUnifiedCraftActivityLabel(remote)) or "AHledger activity unavailable for this item or market."
     local offer = item.cost and ("Vendor reference: " .. item.vendor .. " | " .. copper(item.cost) .. " for " .. item.stack .. (item.limited and " | LIMITED STOCK" or "")) or "No vendor offer in reference data."
     detailTitle:SetText(item.name .. " | #" .. item.id .. (item.variant and (" | " .. item.variant) or ""))
     detailBody:SetText("Last scan: low " .. copper(item.ah) .. "/unit | listed " .. tostring(item.quantity or "unknown") .. "\n" .. offer .. "\n" .. history .. "\nActivity is a market-wide estimate; vendor data can vary. Prices from AHledger (ahledger.com).")
     return
   end
-  local history = remote and ("AHledger estimated sales/day: " .. (remote.sales == nil and "unknown" or tostring(remote.sales)) .. "  |  " .. NokiCraftingActivityLabel(remote)) or "AHledger activity unavailable for this item or market."
+  local history = remote and ("AHledger estimated sales/day: " .. (remote.sales == nil and "unknown" or tostring(remote.sales)) .. "  |  " .. NokiUnifiedCraftActivityLabel(remote)) or "AHledger activity unavailable for this item or market."
   detailTitle:SetText(item.name .. "  |  #" .. item.id)
   detailBody:SetText("Vendor: " .. item.vendor .. "  |  " .. (item.stack > 1 and "PACK: " or "") .. copper(item.cost) .. " for " .. item.stack .. "  |  standing " .. tostring(item.standing) .. (item.limited and "  |  LIMITED STOCK" or "") .. "\nSell " .. copper(item.sellUnit) .. "/unit (scanned low " .. copper(item.ah) .. ")  |  est. gain " .. copper(item.gainPack) .. "/pack after 5%\n" .. history .. "\nDeposits excluded; tax rounding, availability, binding and sales can vary.")
 end
@@ -162,7 +164,7 @@ end
 local function calculateLookup()
   results = {}
   local byKey, seenID, offers = {}, {}, {}
-  for _, offer in ipairs(NokiCraftingVendorData or {}) do
+  for _, offer in ipairs(NokiUnifiedCraftVendorData or {}) do
     local id, name, vendor, cost, stack = unpack(offer)
     if id and type(cost) == "number" and type(stack) == "number" and stack > 0 then
       local old = offers[id]
@@ -170,7 +172,7 @@ local function calculateLookup()
     end
   end
   local historyMarket = usableHistory()
-  local catalog = NokiCraftingDB.itemCatalog or {}
+  local catalog = NokiUnifiedCraftDB.itemCatalog or {}
   local function add(id, row)
     if not id then return end
     local suffix = row and (row.itemSuffix or 0) or 0
@@ -183,7 +185,7 @@ local function calculateLookup()
       local saved = catalog[tostring(id)] or catalog[id]
       local gameName = GetItemInfo and GetItemInfo(id)
       local name = (saved and saved.name) or (offer and offer[2]) or gameName or ("Item #" .. id)
-      item = {key=key,id=id,name=name,vendor=offer and offer[3] or "",cost=offer and offer[4],stack=offer and offer[5],standing=offer and offer[6],limited=offer and offer[8],remote=historyMarket and NokiCraftingActivity(id,historyMarket)}
+      item = {key=key,id=id,name=name,vendor=offer and offer[3] or "",cost=offer and offer[4],stack=offer and offer[5],standing=offer and offer[6],limited=offer and offer[8],remote=historyMarket and NokiUnifiedCraftActivity(id,historyMarket)}
       if suffix ~= 0 or pet ~= 0 or level ~= 0 then item.variant = "Level " .. level .. " / suffix " .. suffix .. (pet ~= 0 and (" / pet " .. pet) or "") end
       byKey[key]=item; seenID[id]=true; results[#results+1]=item
     end
@@ -201,7 +203,7 @@ local function calculateLookup()
   filterAndSort()
 end
 local function calculate()
-  if not panel or not NokiCraftingDB then return end
+  if not panel or not NokiUnifiedCraftDB then return end
   if viewMode == "lookup" then calculateLookup(); return end
   if viewMode == "craft" then
     results={};selectedID=nil
@@ -209,8 +211,8 @@ local function calculate()
     if not sales or sales<0 or not gain or gain<0 or (budgetBox:GetText():match("%S") and (not budget or budget<0)) then
       status:SetText("Enter non-negative filters; max spend may be blank.");filterAndSort();return
     end
-    NokiCraftingDB.craftBudgetSilver=budgetBox:GetText();NokiCraftingDB.craftMinSales=sales;NokiCraftingDB.craftMinProfit=gain
-    local found,err,stats=NokiCraftingCraftCandidates(gain,sales,NokiCraftingDB.flipMatchPrice==true,NokiCraftingDB.craftKnownOnly==true,budget and budget*100 or nil,NokiCraftingDB.craftProfession)
+    NokiUnifiedCraftDB.craftBudgetSilver=budgetBox:GetText();NokiUnifiedCraftDB.craftMinSales=sales;NokiUnifiedCraftDB.craftMinProfit=gain
+    local found,err,stats=NokiUnifiedCraftCraftCandidates(gain,sales,NokiUnifiedCraftDB.flipMatchPrice==true,NokiUnifiedCraftDB.craftKnownOnly==true,budget and budget*100 or nil,NokiUnifiedCraftDB.craftProfession)
     if err then
       status:SetText(err);filterAndSort()
       detailTitle:SetText("ACTION NEEDED")
@@ -226,23 +228,23 @@ local function calculate()
       results[#results+1]=item
     end
     local age=stats.scan and math.max(0,math.floor((((GetServerTime and GetServerTime()) or time())-stats.scan)/60))
-    local source=stats.activityInfo and NokiCraftingActivityLabel(stats.activityInfo) or ("AHledger "..stats.market.." no activity")
+    local source=stats.activityInfo and NokiUnifiedCraftActivityLabel(stats.activityInfo) or ("AHledger "..stats.market.." no activity")
     status:SetText("SCAN "..(age and age.."m" or "?").." | "..source.." | Missing prices "..stats.missing.." | Sales filter "..stats.activityExcluded)
     filterAndSort()
     if #filtered==0 and not (searchBox:GetText() or ""):match("%S") then
       detailTitle:SetText("NO RESULTS: WHAT TO DO")
       local info
-      if type(AHledgerAPI)=="table" and type(AHledgerAPI.GetTableInfo)=="function" then
-        local ok,value=pcall(AHledgerAPI.GetTableInfo); if ok and type(value)=="table" then info=value end
+      if type(NokiUnifiedAPI)=="table" and type(NokiUnifiedAPI.GetTableInfo)=="function" then
+        local ok,value=pcall(NokiUnifiedAPI.GetTableInfo); if ok and type(value)=="table" then info=value end
       end
       local tableMarket=info and type(info.market)=="string" and info.market:lower():gsub("/", ".")
       if not info or tableMarket~=stats.market or not info.count or info.count<=0 then
         status:SetText("AHledger data missing for "..stats.market.." | See steps below")
-        detailBody:SetText("1. Visit devvy.xyz/noki-crafting/ and select your region, ruleset and faction.\n2. Open the AHledger market page and copy its import string.\n3. In game, type /ahl import, paste the string, and press Import.\n4. Return here and click Apply / Search. Optional: use AHledger Sync for updates.")
-      elseif stats.eligible==0 and NokiCraftingDB.craftKnownOnly then
+        detailBody:SetText("1. Run Noki Market Updater.exe.\n2. Select your region, ruleset and faction and click Update now.\n3. Type /reload in game, then return here and click Apply / Search.")
+      elseif stats.eligible==0 and NokiUnifiedCraftDB.craftKnownOnly then
         detailBody:SetText("No known recipes are recorded for this character.\nOpen a profession window and click Capture recipes, or click Known only to show all recipes.")
       else
-        detailBody:SetText("Checked "..stats.eligible.." recipes: "..stats.missing.." missing auction prices, "..stats.missingSales.." missing sales estimates, "..stats.zeroSales.." with zero estimated sales, "..stats.belowSales.." below your daily minimum.\n"..stats.overBudget.." above budget; "..stats.failed.." failed profit filters. Check your scan, raise MAX SILVER, lower minimums, or switch Known only to All recipes.\nFor missing AHledger estimates, refresh the market table via /ahl import or AHledger Sync.")
+        detailBody:SetText("Checked "..stats.eligible.." recipes: "..stats.missing.." missing auction prices, "..stats.missingSales.." missing sales estimates, "..stats.zeroSales.." with zero estimated sales, "..stats.belowSales.." below your daily minimum.\n"..stats.overBudget.." above budget; "..stats.failed.." failed profit filters. Check your scan, raise MAX SILVER, lower minimums, or switch Known only to All recipes.\nFor missing estimates, run the Noki Market Updater and reload.")
       end
     end
     return
@@ -260,11 +262,11 @@ local function calculate()
   if (minSalesBox:GetText():match("%S") and not minSales) or (minSales and (minSales < 0 or minSales > 1000000)) then status:SetText("Enter a minimum activity between 0 and 1,000,000 per day, or leave blank.");filterAndSort();return end
   local minPackSilver=readField(minStackProfitBox)
   if (minStackProfitBox:GetText():match("%S") and not minPackSilver) or (minPackSilver and (minPackSilver < 0 or minPackSilver > 1000000)) then status:SetText("Enter a non-negative minimum pack profit, or leave blank.");filterAndSort();return end
-  NokiCraftingDB.flipMinPackProfitSilver=minPackSilver or ""
-  NokiCraftingDB.flipBudgetSilver=silver or ""
-  NokiCraftingDB.flipMinSalesPerDay=minSales or ""
+  NokiUnifiedCraftDB.flipMinPackProfitSilver=minPackSilver or ""
+  NokiUnifiedCraftDB.flipBudgetSilver=silver or ""
+  NokiUnifiedCraftDB.flipMinSalesPerDay=minSales or ""
   local budget=silver and math.floor(silver*100) or nil
-  local matchPrice=NokiCraftingDB.flipMatchPrice == true
+  local matchPrice=NokiUnifiedCraftDB.flipMatchPrice == true
   local priceByItem={}
   for _,row in ipairs(scan.rows) do
     if row.itemID and (row.itemSuffix or 0)==0 and (row.battlePetSpeciesID or 0)==0 and type(row.price)=="number" and row.price>0 then
@@ -273,9 +275,9 @@ local function calculate()
     end
   end
   local best, unknown, zero, below = {}, {}, {}, {}
-  local activityMarket,activityError=NokiCraftingActivityMarket()
+  local activityMarket,activityError=NokiUnifiedCraftActivityMarket()
   local activityInfo=nil
-  for _,offer in ipairs(NokiCraftingVendorData or {}) do
+  for _,offer in ipairs(NokiUnifiedCraftVendorData or {}) do
     local id,name,vendor,cost,stack,standing,observed,limited=unpack(offer)
     local ah=priceByItem[id]
     if ah and cost and cost>0 and stack and stack>0 and (not budget or cost<=budget) then
@@ -284,7 +286,7 @@ local function calculate()
       local sellUnit=math.floor(ah.price)-(matchPrice and 0 or 1)
       local gainUnit=sellUnit*0.95-buyUnit
       if sellUnit>=1 and gainUnit>0 then
-        local remote=activityMarket and NokiCraftingActivity(id,activityMarket) or nil
+        local remote=activityMarket and NokiUnifiedCraftActivity(id,activityMarket) or nil
         if remote and (not activityInfo or (remote.observed and (not activityInfo.observed or remote.observed<activityInfo.observed))) then activityInfo=remote end
         local sales=remote and remote.sales
         if type(sales) ~= "number" then unknown[id]=true
@@ -304,31 +306,33 @@ local function calculate()
   end
   for _,item in pairs(best) do results[#results+1]=item end
   local age=scan.completed and math.max(0,math.floor(((GetServerTime and GetServerTime()) or time())-scan.completed)) or nil
-  local sourceAge=activityInfo and NokiCraftingActivityLabel(activityInfo) or (activityError or ("AHledger "..tostring(activityMarket).." no activity"))
+  local sourceAge=activityInfo and NokiUnifiedCraftActivityLabel(activityInfo) or (activityError or ("AHledger "..tostring(activityMarket).." no activity"))
   local function count(t) local n=0;for _ in pairs(t) do n=n+1 end;return n end
   status:SetText("SCAN " .. (age and (math.floor(age/60) .. "m ago") or "unknown") .. "  |  " .. sourceAge .. "  | " .. (matchPrice and "MATCH" or "UNDERCUT 1c") .. " | excluded: " .. count(unknown) .. " unknown, " .. count(zero) .. " zero, " .. count(below) .. " below minimum")
   filterAndSort()
 end
 local function createPanel()
   if panel or not AuctionHouseFrame then return panel end
-  panel=CreateFrame("Frame","NokiCraftingFlipPanel",AuctionHouseFrame,"BackdropTemplate")
+  panel=CreateFrame("Frame","NokiUnifiedCraftFlipPanel",AuctionHouseFrame,"BackdropTemplate")
+  panel:Hide()
+  panel:SetFrameStrata("DIALOG");panel:SetFrameLevel(AuctionHouseFrame:GetFrameLevel()+50)
   panel:SetPoint("TOPLEFT",AuctionHouseFrame,"TOPLEFT",12,-75);panel:SetPoint("BOTTOMRIGHT",AuctionHouseFrame,"BOTTOMRIGHT",-12,35)
   panel:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1})
   panel:SetBackdropColor(0.055,0.065,0.07,0.97);panel:SetBackdropBorderColor(0.22,0.29,0.28,1)
   title=makeText(panel,nil,16,-12,350,"GameFontNormalLarge");title:SetText("VENDOR FLIP FINDER")
-  local scan=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");scan:SetSize(90,23);scan:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-215,-8);scan:SetText("Scan now");scan:SetScript("OnClick",function() if NokiCraftingRequestScan then NokiCraftingRequestScan() end end)
+  local scan=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");scan:SetSize(90,23);scan:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-215,-8);scan:SetText("Scan now");scan:SetScript("OnClick",function() if NokiUnifiedCraftRequestScan then NokiUnifiedCraftRequestScan() end end)
   local auto=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");auto:SetSize(88,23);auto:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-120,-8)
   local interval=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");interval:SetSize(88,23);interval:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-25,-8)
-  local function updateControls() if NokiCraftingDB then auto:SetText("Auto: " .. (NokiCraftingDB.autoScan and "ON" or "OFF"));interval:SetText("Every " .. (NokiCraftingDB.scanIntervalMinutes or 5) .. "m") end end
-  auto:SetScript("OnClick",function() if NokiCraftingToggleAuto then NokiCraftingToggleAuto() end;updateControls() end)
-  interval:SetScript("OnClick",function() if NokiCraftingCycleInterval then NokiCraftingCycleInterval() end;updateControls() end)
+  local function updateControls() if NokiUnifiedCore then auto:SetText("Auto: " .. (NokiUnifiedCore.AutoScanEnabled() and "ON" or "OFF"));interval:SetText("Every " .. NokiUnifiedCore.AutoScanInterval() .. "m") end end
+  auto:SetScript("OnClick",function() if NokiUnifiedCraftToggleAuto then NokiUnifiedCraftToggleAuto() end;updateControls() end)
+  interval:SetScript("OnClick",function() if NokiUnifiedCraftCycleInterval then NokiUnifiedCraftCycleInterval() end;updateControls() end)
   updateControls()
   subtitle=makeText(panel,nil,16,-33,680,"GameFontHighlightSmall");subtitle:SetText("One-pack vendor cost vs sell price per unit. Enter filters; select a row for details.")
   local budgetLabel=makeText(panel,nil,18,-59,85,"GameFontNormalSmall");budgetLabel:SetText("MAX (SILVER)")
-  budgetBox=CreateFrame("EditBox",nil,panel,"InputBoxTemplate");budgetBox:SetSize(50,24);budgetBox:SetPoint("TOPLEFT",panel,"TOPLEFT",105,-54);budgetBox:SetAutoFocus(false);budgetBox:SetNumeric(true);budgetBox:SetFontObject("GameFontHighlight");budgetBox:SetText(tostring((NokiCraftingDB and NokiCraftingDB.flipBudgetSilver) or 15))
+  budgetBox=CreateFrame("EditBox",nil,panel,"InputBoxTemplate");budgetBox:SetSize(50,24);budgetBox:SetPoint("TOPLEFT",panel,"TOPLEFT",105,-54);budgetBox:SetAutoFocus(false);budgetBox:SetNumeric(true);budgetBox:SetFontObject("GameFontHighlight");budgetBox:SetText(tostring((NokiUnifiedCraftDB and NokiUnifiedCraftDB.flipBudgetSilver) or 15))
   budgetBox:SetScript("OnEnterPressed",function(self) self:ClearFocus();calculate() end);budgetBox:SetScript("OnEscapePressed",function(self) self:ClearFocus() end)
   local minLabel=makeText(panel,nil,170,-59,90,"GameFontNormalSmall");minLabel:SetText("MIN EST./DAY")
-  minSalesBox=CreateFrame("EditBox",nil,panel,"InputBoxTemplate");minSalesBox:SetSize(48,24);minSalesBox:SetPoint("TOPLEFT",panel,"TOPLEFT",260,-54);minSalesBox:SetAutoFocus(false);minSalesBox:SetFontObject("GameFontHighlight");minSalesBox:SetText(tostring((NokiCraftingDB and NokiCraftingDB.flipMinSalesPerDay) or 1));minSalesBox:SetScript("OnEnterPressed",function(self) self:ClearFocus();calculate() end);minSalesBox:SetScript("OnEscapePressed",function(self) self:ClearFocus() end)
+  minSalesBox=CreateFrame("EditBox",nil,panel,"InputBoxTemplate");minSalesBox:SetSize(48,24);minSalesBox:SetPoint("TOPLEFT",panel,"TOPLEFT",260,-54);minSalesBox:SetAutoFocus(false);minSalesBox:SetFontObject("GameFontHighlight");minSalesBox:SetText(tostring((NokiUnifiedCraftDB and NokiUnifiedCraftDB.flipMinSalesPerDay) or 1));minSalesBox:SetScript("OnEnterPressed",function(self) self:ClearFocus();calculate() end);minSalesBox:SetScript("OnEscapePressed",function(self) self:ClearFocus() end)
   searchBox=CreateFrame("EditBox",nil,panel,"InputBoxTemplate");searchBox:SetSize(125,24);searchBox:SetPoint("TOPLEFT",panel,"TOPLEFT",330,-54);searchBox:SetAutoFocus(false);searchBox:SetMaxLetters(60);searchBox:SetScript("OnTextChanged",function() if panel and status then filterAndSort(true) end end);searchBox:SetScript("OnEscapePressed",function(self) self:ClearFocus() end)
   searchBox:SetScript("OnEnterPressed",function(self) self:ClearFocus();scrollOffset=0;calculate() end)
   searchHint=makeText(panel,nil,365,-80,130,"GameFontDisableSmall");searchHint:SetText("Search name, vendor or ID")
@@ -336,10 +340,10 @@ local function createPanel()
   local pricing=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");pricing:SetSize(95,24);pricing:SetPoint("TOPLEFT",panel,"TOPLEFT",620,-54)
   local undercut=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");undercut:SetSize(110,24);undercut:SetPoint("TOPLEFT",panel,"TOPLEFT",720,-54)
   local function updatePricing()
-    pricing:SetText(NokiCraftingDB.flipMatchPrice and "Match: ON" or "Match: OFF")
-    undercut:SetText(NokiCraftingDB.flipMatchPrice and "Under 1c: OFF" or "Under 1c: ON")
+    pricing:SetText(NokiUnifiedCraftDB.flipMatchPrice and "Match: ON" or "Match: OFF")
+    undercut:SetText(NokiUnifiedCraftDB.flipMatchPrice and "Under 1c: OFF" or "Under 1c: ON")
   end
-  local function setPricing(match) NokiCraftingDB.flipMatchPrice=match;updatePricing();calculate() end
+  local function setPricing(match) NokiUnifiedCraftDB.flipMatchPrice=match;updatePricing();calculate() end
   pricing:SetScript("OnClick",function() setPricing(true) end)
   undercut:SetScript("OnClick",function() setPricing(false) end)
   local function pricingTip(self)
@@ -349,7 +353,7 @@ local function createPanel()
   pricing:SetScript("OnLeave",function() if GameTooltip then GameTooltip:Hide() end end);undercut:SetScript("OnLeave",function() if GameTooltip then GameTooltip:Hide() end end)
   updatePricing()
   minProfitLabel=makeText(panel,nil,18,-80,125,"GameFontNormalSmall");minProfitLabel:SetText("MIN PACK GAIN (S)")
-  minStackProfitBox=CreateFrame("EditBox",nil,panel,"InputBoxTemplate");minStackProfitBox:SetSize(48,20);minStackProfitBox:SetPoint("TOPLEFT",panel,"TOPLEFT",155,-74);minStackProfitBox:SetAutoFocus(false);minStackProfitBox:SetFontObject("GameFontHighlight");minStackProfitBox:SetText(tostring((NokiCraftingDB and NokiCraftingDB.flipMinPackProfitSilver) or 0));minStackProfitBox:SetScript("OnEnterPressed",function(self) self:ClearFocus();calculate() end);minStackProfitBox:SetScript("OnEscapePressed",function(self) self:ClearFocus() end)
+  minStackProfitBox=CreateFrame("EditBox",nil,panel,"InputBoxTemplate");minStackProfitBox:SetSize(48,20);minStackProfitBox:SetPoint("TOPLEFT",panel,"TOPLEFT",155,-74);minStackProfitBox:SetAutoFocus(false);minStackProfitBox:SetFontObject("GameFontHighlight");minStackProfitBox:SetText(tostring((NokiUnifiedCraftDB and NokiUnifiedCraftDB.flipMinPackProfitSilver) or 0));minStackProfitBox:SetScript("OnEnterPressed",function(self) self:ClearFocus();calculate() end);minStackProfitBox:SetScript("OnEscapePressed",function(self) self:ClearFocus() end)
   status=makeText(panel,nil,18,-101,690,"GameFontHighlightSmall");status:SetText("Waiting for auction data.")
   local header=CreateFrame("Frame",nil,panel,"BackdropTemplate");header:SetPoint("TOPLEFT",panel,"TOPLEFT",10,-122);header:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-10,-122);header:SetHeight(22);header:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});header:SetBackdropColor(0.13,0.18,0.17,1)
   local cols={{"ITEM / VENDOR",8,245},{"BUY / UNIT",265,95},{"SELL / UNIT",370,95},{"GAIN / UNIT",475,95},{"GAIN / PACK",580,100},{"ACTIVITY",690,90},{"LISTED",790,75},{"GAP / 1D",875,90}}
@@ -361,7 +365,7 @@ local function createPanel()
     row.buy=makeText(row,nil,265,-11,95);row.ah=makeText(row,nil,370,-11,95);row.gain=makeText(row,nil,475,-11,95);row.gain:SetTextColor(0.45,0.9,0.64);row.stackGain=makeText(row,nil,580,-11,100);row.stackGain:SetTextColor(0.45,0.9,0.64);row.activity=makeText(row,nil,690,-11,90);row.listed=makeText(row,nil,790,-11,75);row.gap=makeText(row,nil,875,-11,90)
     row:SetScript("OnClick",function(self) if self.item then setSelected(self.item) end end);rows[i]=row
   end
-  scrollbar=CreateFrame("Slider","NokiCraftingResultsScrollBar",panel,"UIPanelScrollBarTemplate")
+  scrollbar=CreateFrame("Slider","NokiUnifiedCraftResultsScrollBar",panel,"UIPanelScrollBarTemplate")
   scrollbar:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-14,-161);scrollbar:SetSize(16,195)
   scrollbar:SetMinMaxValues(0,0);scrollbar:SetValueStep(1)
   if scrollbar.SetObeyStepOnDrag then scrollbar:SetObeyStepOnDrag(true) end
@@ -384,30 +388,30 @@ local function createPanel()
   flipControls={budgetLabel,budgetBox,minLabel,minSalesBox,minProfitLabel,minStackProfitBox,sortButton,pricing,undercut}
   modeButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");modeButton:SetSize(125,22);modeButton:SetPoint("TOPLEFT",panel,"TOPLEFT",220,-77)
   knownButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");knownButton:SetSize(125,22);knownButton:SetPoint("TOPLEFT",panel,"TOPLEFT",335,-77)
-  knownButton:SetScript("OnClick",function() NokiCraftingDB.craftKnownOnly=not NokiCraftingDB.craftKnownOnly;knownButton:SetText(NokiCraftingDB.craftKnownOnly and "Known only" or "All recipes");calculate() end)
-  captureButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");captureButton:SetSize(110,22);captureButton:SetPoint("TOPLEFT",panel,"TOPLEFT",590,-77);captureButton:SetText("Capture recipes");captureButton:SetScript("OnClick",function() if NokiCraftingCaptureRecipes then NokiCraftingCaptureRecipes();calculate() end end)
+  knownButton:SetScript("OnClick",function() NokiUnifiedCraftDB.craftKnownOnly=not NokiUnifiedCraftDB.craftKnownOnly;knownButton:SetText(NokiUnifiedCraftDB.craftKnownOnly and "Known only" or "All recipes");calculate() end)
+  captureButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");captureButton:SetSize(110,22);captureButton:SetPoint("TOPLEFT",panel,"TOPLEFT",590,-77);captureButton:SetText("Capture recipes");captureButton:SetScript("OnClick",function() if NokiUnifiedCraftCaptureRecipes then NokiUnifiedCraftCaptureRecipes();calculate() end end)
   professionButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");professionButton:SetSize(165,22);professionButton:SetPoint("TOPLEFT",panel,"TOPLEFT",715,-77)
   local function professions()
     local seen,list={},{}
-    for _,recipe in pairs((NokiCraftingCraftCatalog and NokiCraftingCraftCatalog.recipes) or {}) do
+    for _,recipe in pairs((NokiUnifiedCraftCraftCatalog and NokiUnifiedCraftCraftCatalog.recipes) or {}) do
       local name=recipe.profession
       if type(name)=="string" and name~="" and not seen[name] then seen[name]=true;list[#list+1]=name end
     end
     table.sort(list);return list
   end
   local function chooseProfession(name)
-    NokiCraftingDB.craftProfession=name
+    NokiUnifiedCraftDB.craftProfession=name
     professionButton:SetText(name or "All professions")
     scrollOffset=0;calculate()
   end
   local professionMenu
   if UIDropDownMenu_Initialize and UIDropDownMenu_CreateInfo and UIDropDownMenu_AddButton and ToggleDropDownMenu then
-    professionMenu=CreateFrame("Frame","NokiCraftingProfessionMenu",panel,"UIDropDownMenuTemplate")
+    professionMenu=CreateFrame("Frame","NokiUnifiedCraftProfessionMenu",panel,"UIDropDownMenuTemplate")
     UIDropDownMenu_Initialize(professionMenu,function()
-      local info=UIDropDownMenu_CreateInfo();info.text="All professions";info.checked=not NokiCraftingDB.craftProfession;info.func=function() chooseProfession(nil) end;UIDropDownMenu_AddButton(info)
+      local info=UIDropDownMenu_CreateInfo();info.text="All professions";info.checked=not NokiUnifiedCraftDB.craftProfession;info.func=function() chooseProfession(nil) end;UIDropDownMenu_AddButton(info)
       for _,name in ipairs(professions()) do
         local value=name
-        local option=UIDropDownMenu_CreateInfo();option.text=value;option.checked=NokiCraftingDB.craftProfession==value;option.func=function() chooseProfession(value) end;UIDropDownMenu_AddButton(option)
+        local option=UIDropDownMenu_CreateInfo();option.text=value;option.checked=NokiUnifiedCraftDB.craftProfession==value;option.func=function() chooseProfession(value) end;UIDropDownMenu_AddButton(option)
       end
     end,"MENU")
   end
@@ -415,7 +419,7 @@ local function createPanel()
     if professionMenu then ToggleDropDownMenu(1,nil,professionMenu,professionButton,0,0)
     else
       local list=professions();local current=0
-      for i,name in ipairs(list) do if name==NokiCraftingDB.craftProfession then current=i;break end end
+      for i,name in ipairs(list) do if name==NokiUnifiedCraftDB.craftProfession then current=i;break end end
       chooseProfession(list[current+1])
     end
   end)
@@ -426,13 +430,13 @@ local function createPanel()
     local lookup=viewMode=="lookup";local craft=viewMode=="craft"
     for _,control in ipairs(flipControls) do control:SetShown(not lookup) end
     knownButton:SetShown(craft);captureButton:SetShown(craft);professionButton:SetShown(craft);searchHint:SetShown(not craft)
-    professionButton:SetText(NokiCraftingDB.craftProfession or "All professions")
-    knownButton:SetText(NokiCraftingDB.craftKnownOnly and "Known only" or "All recipes")
+    professionButton:SetText(NokiUnifiedCraftDB.craftProfession or "All professions")
+    knownButton:SetText(NokiUnifiedCraftDB.craftKnownOnly and "Known only" or "All recipes")
     minProfitLabel:SetText(craft and "MIN CRAFT GAIN (S)" or "MIN PACK GAIN (S)")
     sortButton:SetText("Sort: "..(craft and sortMode=="gain" and "Gain per craft" or sortLabels[sortMode]))
-    budgetBox:SetText(tostring(craft and (NokiCraftingDB.craftBudgetSilver or "") or (NokiCraftingDB.flipBudgetSilver or 15)))
-    minSalesBox:SetText(tostring(craft and (NokiCraftingDB.craftMinSales or 1) or (NokiCraftingDB.flipMinSalesPerDay or 1)))
-    minStackProfitBox:SetText(tostring(craft and (NokiCraftingDB.craftMinProfit or 0) or (NokiCraftingDB.flipMinPackProfitSilver or 0)))
+    budgetBox:SetText(tostring(craft and (NokiUnifiedCraftDB.craftBudgetSilver or "") or (NokiUnifiedCraftDB.flipBudgetSilver or 15)))
+    minSalesBox:SetText(tostring(craft and (NokiUnifiedCraftDB.craftMinSales or 1) or (NokiUnifiedCraftDB.flipMinSalesPerDay or 1)))
+    minStackProfitBox:SetText(tostring(craft and (NokiUnifiedCraftDB.craftMinProfit or 0) or (NokiUnifiedCraftDB.flipMinPackProfitSilver or 0)))
     modeButton:SetShown(not craft)
     modeButton:SetText(lookup and "Vendor flips" or "Item lookup")
     title:SetText(lookup and "ITEM LOOKUP" or craft and "CRAFTING PROFIT" or "VENDOR FLIP FINDER")
@@ -443,10 +447,10 @@ local function createPanel()
   end
   modeButton:SetScript("OnClick",function() viewMode=viewMode=="lookup" and "flips" or "lookup";scrollOffset=0;applyMode() end)
   applyMode()
-  panel:SetScript("OnShow",calculate);panel:Hide()
+  panel:SetScript("OnShow",function() updateControls();calculate() end);panel:Hide()
   return panel
 end
-function NokiCraftingExplainItem(id)
+function NokiUnifiedCraftExplainItem(id)
   local scan=latestSnapshot()
   if not scan then print("Noki Crafting: no completed market scan available."); return end
   local lowest, quantity
@@ -454,15 +458,15 @@ function NokiCraftingExplainItem(id)
     if row.itemID==id and (row.itemSuffix or 0)==0 and (row.battlePetSpeciesID or 0)==0 and type(row.price)=="number" and row.price>0 and (not lowest or row.price<lowest) then lowest=row.price;quantity=row.quantity end
   end
   if not lowest then print("Noki Crafting: item " .. id .. " has no matching price in the last completed scan.");return end
-  local sell=math.floor(lowest)-((NokiCraftingDB and NokiCraftingDB.flipMatchPrice) and 0 or 1)
-  local remote=NokiCraftingActivity(id)
+  local sell=math.floor(lowest)-((NokiUnifiedCraftDB and NokiUnifiedCraftDB.flipMatchPrice) and 0 or 1)
+  local remote=NokiUnifiedCraftActivity(id)
   print("Noki Crafting: item " .. id .. "; last scan low " .. copper(lowest) .. "; proposed sale " .. copper(sell) .. "; listed " .. tostring(quantity or "unknown") .. "; est/day " .. tostring(remote and remote.sales or "unknown") .. ".")
   if sell<1 then print("Noki Crafting: excluded because a 1c auction cannot be undercut by 1c. Use MATCH if desired.");return end
-  local budget=tonumber(NokiCraftingDB.flipBudgetSilver)
+  local budget=tonumber(NokiUnifiedCraftDB.flipBudgetSilver)
   if budget then budget=budget*100 end
-  local minimum=tonumber(NokiCraftingDB.flipMinSalesPerDay) or 0
+  local minimum=tonumber(NokiUnifiedCraftDB.flipMinSalesPerDay) or 0
   local offers=0
-  for _,offer in ipairs(NokiCraftingVendorData or {}) do
+  for _,offer in ipairs(NokiUnifiedCraftVendorData or {}) do
     if offer[1]==id then
       offers=offers+1
       local cost, stack=offer[4],offer[5]
@@ -479,12 +483,12 @@ function NokiCraftingExplainItem(id)
   print("Noki Crafting: also check the minimum pack gain and any active search text. Estimates exclude deposits.")
 end
 local function registerTab()
-  if tabLib or not AuctionHouseFrame or not LibStub then return end
-  local ok,lib=pcall(LibStub,"LibAHTab-1-0",true)
-  if not ok or not lib then return end
+  if tabLib or not AuctionHouseFrame or not NokiUnifiedTabs then return end
+  local lib=NokiUnifiedTabs
   local frame=createPanel()
   local function makeHost(mode)
     local host=CreateFrame("Frame",nil,AuctionHouseFrame)
+    host:Hide()
     local previousWidth,previousHeight,craftWidth,craftHeight
     host:SetPoint("TOPLEFT",AuctionHouseFrame,"TOPLEFT",12,-75)
     host:SetPoint("BOTTOMRIGHT",AuctionHouseFrame,"BOTTOMRIGHT",-12,35)
@@ -512,18 +516,18 @@ end
 local events=CreateFrame("Frame")
 events:RegisterEvent("AUCTION_HOUSE_SHOW")
 events:SetScript("OnEvent",function() if C_Timer and C_Timer.After then C_Timer.After(0.5,registerTab) else registerTab() end end)
-function NokiCraftingRefreshFlips() if panel and panel:IsShown() then calculate() end end
-function NokiCraftingShowCrafting()
+function NokiUnifiedCraftRefreshFlips() if panel and panel:IsShown() then calculate() end end
+function NokiUnifiedCraftShowCrafting()
   if not AuctionHouseFrame or not AuctionHouseFrame:IsShown() then print("Noki Crafting: open the auction house first.");return end
   registerTab()
   if tabLib then tabLib:SetSelected(CRAFT_TAB_ID) else print("Noki Crafting: auction tab not ready.") end
 end
-function NokiCraftingShowFlips()
+function NokiUnifiedCraftShowFlips()
   if not AuctionHouseFrame or not AuctionHouseFrame:IsShown() then print("Noki Crafting: open the auction house first.");return end
   registerTab()
-  if tabLib then tabLib:SetSelected(TAB_ID) else print("Noki Crafting: auction tab not ready. Enable Auctionator and reopen the auction house.") end
+  if tabLib then tabLib:SetSelected(TAB_ID) else print("Noki Crafting: auction tab not ready. Reopen the auction house.") end
 end
-SLASH_NOKICRAFTINGFLIPS1="/ncflips"
-SlashCmdList.NOKICRAFTINGFLIPS=NokiCraftingShowFlips
-SLASH_NOKICRAFTINGCRAFTTAB1="/nccrafttab"
-SlashCmdList.NOKICRAFTINGCRAFTTAB=NokiCraftingShowCrafting
+SLASH_NOKIUNIFIEDCRAFTFLIPS1="/nokiunicflips"
+SlashCmdList.NOKIUNIFIEDCRAFTFLIPS=NokiUnifiedCraftShowFlips
+SLASH_NOKIUNIFIEDCRAFTCRAFTTAB1="/nokiunictab"
+SlashCmdList.NOKIUNIFIEDCRAFTCRAFTTAB=NokiUnifiedCraftShowCrafting

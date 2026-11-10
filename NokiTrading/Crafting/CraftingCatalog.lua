@@ -2,7 +2,7 @@
 -- Additional recipes and yield overlay: WoW Forever Talents and AHledger; see data/fabrikao/ahledger-yield-overlay.json.
 -- Skill observations from Efficient Games (efficient.games), CC BY 4.0, transformed.
 -- Snapshot generated 2026-10-10; game data can change.
-NokiCraftingCraftCatalog = { source="Fabrikao", build="Forever 1.60.1.70338 (reference)", recipes={
+NokiUnifiedCraftCraftCatalog = { source="Fabrikao", build="Forever 1.60.1.70338 (reference)", recipes={
 [2149]={id=2149,name="Handstitched Leather Boots",profession="Leatherworking",required=1,output=2302,yieldMin=1,yieldMax=1,review=false,trainerSkill=nil,materials={{id=2318,quantity=2,name="Item #2318"},{id=2320,quantity=1,name="Item #2320"}}},
 [2152]={id=2152,name="Light Armor Kit",profession="Leatherworking",required=1,output=2304,yieldMin=1,yieldMax=1,review=false,trainerSkill=nil,materials={{id=2318,quantity=1,name="Item #2318"}}},
 [2153]={id=2153,name="Handstitched Leather Pants",profession="Leatherworking",required=15,output=2303,yieldMin=1,yieldMax=1,review=false,trainerSkill=nil,materials={{id=2318,quantity=4,name="Item #2318"},{id=2320,quantity=1,name="Item #2320"}}},

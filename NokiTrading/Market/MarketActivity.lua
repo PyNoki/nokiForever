@@ -6,19 +6,19 @@ local function normalized(value)
   if not s:match("^forever%.[%w_%-]+%.[%w_%-]+%.[%w_%-]+$") then return nil end
   return s
 end
-function NokiMarketActivityMarket()
-  if type(AHledgerAPI)~="table" or type(AHledgerAPI.GetMarket)~="function" or type(AHledgerAPI.GetPrice)~="function" then
-    return nil,"Install or enable AHledger for estimated sales/day"
+function NokiUnifiedMarketActivityMarket()
+  if type(NokiUnifiedAPI)~="table" or type(NokiUnifiedAPI.GetMarket)~="function" or type(NokiUnifiedAPI.GetPrice)~="function" then
+    return nil,"Update Noki Trading market data for estimated sales/day"
   end
-  local ok,market=pcall(AHledgerAPI.GetMarket)
+  local ok,market=pcall(NokiUnifiedAPI.GetMarket)
   market=ok and normalized(market) or nil
-  if not market then return nil,"AHledger market unavailable; check /ahl status" end
+  if not market then return nil,"Noki Trading market unavailable" end
   local _,ruleset,faction,region=market:match("^(forever)%.([%w_%-]+)%.([%w_%-]+)%.([%w_%-]+)$")
   local playerFaction=UnitFactionGroup and UnitFactionGroup("player")
   local playerRegion=GetCurrentRegion and GetCurrentRegion()
   local regions={[1]="us",[2]="kr",[3]="eu",[4]="tw",[5]="cn"}
   if type(playerFaction)~="string" or faction~=playerFaction:lower() or not regions[playerRegion] or region~=regions[playerRegion] then
-    return nil,"AHledger market does not match player faction/region"
+    return nil,"Noki Trading market does not match player faction/region"
   end
   -- AHledger can be pinned to a different market. Only use it when the
   -- realm name explicitly identifies the same ruleset; do not guess Normal.
@@ -36,23 +36,23 @@ function NokiMarketActivityMarket()
   elseif hasRp then realmType="rp"
   elseif words.normal or words.pve or words.jce or words.jve then realmType="normal" end
   if not realmType then return nil,"Cannot verify realm type; check AHledger market" end
-  if realmType~=ruleset then return nil,"AHledger market does not match realm type" end
+  if realmType~=ruleset then return nil,"Noki Trading market does not match realm type" end
   return market
 end
-function NokiMarketActivity(itemID, expectedMarket)
-  local market,err=NokiMarketActivityMarket()
+function NokiUnifiedMarketActivity(itemID, expectedMarket)
+  local market,err=NokiUnifiedMarketActivityMarket()
   if not market or (expectedMarket and expectedMarket~=market) then return nil,err or "AHledger market changed" end
-  local ok,price=pcall(AHledgerAPI.GetPrice,itemID)
+  local ok,price=pcall(NokiUnifiedAPI.GetPrice,itemID)
   if not ok or type(price)~="table" then return nil,"No AHledger activity for item" end
   local recordMarket=normalized(price.market)
-  if not recordMarket or recordMarket~=market then return nil,"AHledger item market mismatch" end
+  if not recordMarket or recordMarket~=market then return nil,"Noki beta item market mismatch" end
   local sales=price.soldPerDay
   if type(sales)~="number" or sales~=sales or sales<0 or sales==math.huge then return nil,"AHledger sales/day unknown" end
   -- GetPrice.updated can refer to the player's newer scan while sales/day
   -- still comes from the older price table. Use table metadata for activity.
   local tableInfo
-  if type(AHledgerAPI.GetTableInfo)=="function" then
-    local infoOK,info=pcall(AHledgerAPI.GetTableInfo)
+  if type(NokiUnifiedAPI.GetTableInfo)=="function" then
+    local infoOK,info=pcall(NokiUnifiedAPI.GetTableInfo)
     if infoOK and type(info)=="table" and normalized(info.market)==market then tableInfo=info end
   end
   local updated=tableInfo and tableInfo.updated
@@ -62,7 +62,7 @@ function NokiMarketActivity(itemID, expectedMarket)
   if tableInfo and type(tableInfo.snapshot)=="boolean" then snapshot=tableInfo.snapshot end
   return {sales=sales,market=market,observed=updated,snapshot=snapshot}
 end
-function NokiMarketActivityLabel(row)
+function NokiUnifiedMarketActivityLabel(row)
   if not row then return "AHledger unavailable" end
   local age="age ?"
   if row.observed then

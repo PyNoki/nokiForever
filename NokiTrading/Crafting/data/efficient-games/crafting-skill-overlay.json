@@ -1,0 +1,7406 @@
+{
+  "attribution": "Trainer data from Efficient Games (https://efficient.games), CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/); transformed.",
+  "builds": [
+    "1.60.1.70790",
+    "1.60.1.70840",
+    "1.60.1.70862"
+  ],
+  "skills": {
+    "2153": {
+      "skill": 15,
+      "profession": "Leatherworking",
+      "name": "Handstitched Leather Pants",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 15,
+          "trainer": "Dan Golthas",
+          "npc_id": 223,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 15,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 15,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 15,
+          "trainer": "Shelene Rhobart",
+          "npc_id": 3549,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 15,
+          "trainer": "Waldor",
+          "npc_id": 5784,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 15,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 15,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 15,
+          "trainer": "Indari Sunseam",
+          "npc_id": 251993,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 15,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 15,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 15,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 15,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 15,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 15,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "2159": {
+      "skill": 50,
+      "profession": "Leatherworking",
+      "name": "Fine Leather Cloak",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 50,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 50,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 50,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "2160": {
+      "skill": 35,
+      "profession": "Leatherworking",
+      "name": "Embossed Leather Vest",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 35,
+          "trainer": "Dan Golthas",
+          "npc_id": 223,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Shelene Rhobart",
+          "npc_id": 3549,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Waldor",
+          "npc_id": 5784,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Indari Sunseam",
+          "npc_id": 251993,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 35,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 35,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 35,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 35,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 35,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "2161": {
+      "skill": 50,
+      "profession": "Leatherworking",
+      "name": "Embossed Leather Boots",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 50,
+          "trainer": "Dan Golthas",
+          "npc_id": 223,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Shelene Rhobart",
+          "npc_id": 3549,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Waldor",
+          "npc_id": 5784,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Indari Sunseam",
+          "npc_id": 251993,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 50,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 50,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 50,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 50,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 50,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "2162": {
+      "skill": 40,
+      "profession": "Leatherworking",
+      "name": "Embossed Leather Cloak",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 40,
+          "trainer": "Dan Golthas",
+          "npc_id": 223,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 40,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 40,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 40,
+          "trainer": "Shelene Rhobart",
+          "npc_id": 3549,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 40,
+          "trainer": "Waldor",
+          "npc_id": 5784,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 40,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 40,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 40,
+          "trainer": "Indari Sunseam",
+          "npc_id": 251993,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 40,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 40,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 40,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 40,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 40,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 40,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "2165": {
+      "skill": 75,
+      "profession": "Leatherworking",
+      "name": "Medium Armor Kit",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 75,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 75,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 75,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 75,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 75,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "2166": {
+      "skill": 95,
+      "profession": "Leatherworking",
+      "name": "Toughened Leather Armor",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 95,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 95,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 95,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 95,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 95,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "2167": {
+      "skill": 75,
+      "profession": "Leatherworking",
+      "name": "Dark Leather Boots",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 75,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 75,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 75,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 75,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 75,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "2168": {
+      "skill": 85,
+      "profession": "Leatherworking",
+      "name": "Dark Leather Cloak",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 85,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 85,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 85,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 85,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 85,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "2385": {
+      "skill": 10,
+      "profession": "Tailoring",
+      "name": "Brown Linen Vest",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 10,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 10,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 10,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 10,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 10,
+          "trainer": "Bowen Brisboise",
+          "npc_id": 3523,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "2386": {
+      "skill": 40,
+      "profession": "Tailoring",
+      "name": "Linen Boots",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 40,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 40,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 40,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 40,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 40,
+          "trainer": "Bowen Brisboise",
+          "npc_id": 3523,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "2392": {
+      "skill": 25,
+      "profession": "Tailoring",
+      "name": "Red Linen Shirt",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 25,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 25,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 25,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 25,
+          "trainer": "Bowen Brisboise",
+          "npc_id": 3523,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "2393": {
+      "skill": 1,
+      "profession": "Tailoring",
+      "name": "White Linen Shirt",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 1,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 1,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 1,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 1,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 1,
+          "trainer": "Bowen Brisboise",
+          "npc_id": 3523,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "2394": {
+      "skill": 25,
+      "profession": "Tailoring",
+      "name": "Blue Linen Shirt",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 25,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 25,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 25,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 25,
+          "trainer": "Bowen Brisboise",
+          "npc_id": 3523,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "2397": {
+      "skill": 35,
+      "profession": "Tailoring",
+      "name": "Reinforced Linen Cape",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 35,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 35,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 35,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 35,
+          "trainer": "Bowen Brisboise",
+          "npc_id": 3523,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "2399": {
+      "skill": 60,
+      "profession": "Tailoring",
+      "name": "Green Woolen Vest",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 60,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "2401": {
+      "skill": 70,
+      "profession": "Tailoring",
+      "name": "Woolen Boots",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 70,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "2402": {
+      "skill": 55,
+      "profession": "Tailoring",
+      "name": "Woolen Cape",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 55,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 55,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 55,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 55,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 55,
+          "trainer": "Bowen Brisboise",
+          "npc_id": 3523,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "2406": {
+      "skill": 80,
+      "profession": "Tailoring",
+      "name": "Gray Woolen Shirt",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 80,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "2539": {
+      "skill": 10,
+      "profession": "Cooking",
+      "name": "Spiced Wolf Meat",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 10,
+          "trainer": "Aska Mistrunner",
+          "npc_id": 3026,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 10,
+          "trainer": "Cook Torka",
+          "npc_id": 3191,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 10,
+          "trainer": "Zamja",
+          "npc_id": 3399,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 10,
+          "trainer": "Eunice Burch",
+          "npc_id": 4552,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 10,
+          "trainer": "Zerril Softbreeze",
+          "npc_id": 251905,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 10,
+          "trainer": "William Pickman",
+          "npc_id": 265944,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 10,
+          "trainer": "Cook Torka",
+          "npc_id": 3191,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 10,
+          "trainer": "Zamja",
+          "npc_id": 3399,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 10,
+          "trainer": "Duhng",
+          "npc_id": 8306,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "2541": {
+      "skill": 50,
+      "profession": "Cooking",
+      "name": "Coyote Steak",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 50,
+          "trainer": "Aska Mistrunner",
+          "npc_id": 3026,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Cook Torka",
+          "npc_id": 3191,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Zamja",
+          "npc_id": 3399,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Eunice Burch",
+          "npc_id": 4552,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Zerril Softbreeze",
+          "npc_id": 251905,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "William Pickman",
+          "npc_id": 265944,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Cook Torka",
+          "npc_id": 3191,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 50,
+          "trainer": "Zamja",
+          "npc_id": 3399,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 50,
+          "trainer": "Duhng",
+          "npc_id": 8306,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "2544": {
+      "skill": 75,
+      "profession": "Cooking",
+      "name": "Crab Cake",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 75,
+          "trainer": "Aska Mistrunner",
+          "npc_id": 3026,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 75,
+          "trainer": "Cook Torka",
+          "npc_id": 3191,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 75,
+          "trainer": "Zamja",
+          "npc_id": 3399,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 75,
+          "trainer": "Eunice Burch",
+          "npc_id": 4552,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 75,
+          "trainer": "Zerril Softbreeze",
+          "npc_id": 251905,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 75,
+          "trainer": "William Pickman",
+          "npc_id": 265944,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 75,
+          "trainer": "Cook Torka",
+          "npc_id": 3191,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 75,
+          "trainer": "Zamja",
+          "npc_id": 3399,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 75,
+          "trainer": "Duhng",
+          "npc_id": 8306,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "2546": {
+      "skill": 80,
+      "profession": "Cooking",
+      "name": "Dry Pork Ribs",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 80,
+          "trainer": "Aska Mistrunner",
+          "npc_id": 3026,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 80,
+          "trainer": "Cook Torka",
+          "npc_id": 3191,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 80,
+          "trainer": "Zamja",
+          "npc_id": 3399,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 80,
+          "trainer": "Eunice Burch",
+          "npc_id": 4552,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 80,
+          "trainer": "Zerril Softbreeze",
+          "npc_id": 251905,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 80,
+          "trainer": "William Pickman",
+          "npc_id": 265944,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 80,
+          "trainer": "Cook Torka",
+          "npc_id": 3191,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 80,
+          "trainer": "Zamja",
+          "npc_id": 3399,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 80,
+          "trainer": "Duhng",
+          "npc_id": 8306,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "2658": {
+      "skill": 75,
+      "profession": "Mining",
+      "name": "Smelt Silver",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 75,
+          "trainer": "Brek Stonehoof",
+          "npc_id": 3001,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 75,
+          "trainer": "Krunn",
+          "npc_id": 3175,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 75,
+          "trainer": "Brek Stonehoof",
+          "npc_id": 3001,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "2659": {
+      "skill": 65,
+      "profession": "Mining",
+      "name": "Smelt Bronze",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 65,
+          "trainer": "Brek Stonehoof",
+          "npc_id": 3001,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 65,
+          "trainer": "Krunn",
+          "npc_id": 3175,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 65,
+          "trainer": "Brek Stonehoof",
+          "npc_id": 3001,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "2661": {
+      "skill": 30,
+      "profession": "Blacksmithing",
+      "name": "Copper Chain Belt",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 30,
+          "trainer": "Dwukk",
+          "npc_id": 3174,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 30,
+          "trainer": "Basil Frye",
+          "npc_id": 4605,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        }
+      ]
+    },
+    "2737": {
+      "skill": 15,
+      "profession": "Blacksmithing",
+      "name": "Copper Mace",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 15,
+          "trainer": "Dwukk",
+          "npc_id": 3174,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 15,
+          "trainer": "Basil Frye",
+          "npc_id": 4605,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        }
+      ]
+    },
+    "2738": {
+      "skill": 20,
+      "profession": "Blacksmithing",
+      "name": "Copper Axe",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 20,
+          "trainer": "Dwukk",
+          "npc_id": 3174,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Basil Frye",
+          "npc_id": 4605,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        }
+      ]
+    },
+    "2964": {
+      "skill": 55,
+      "profession": "Tailoring",
+      "name": "Bolt of Woolen Cloth",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 55,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 55,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 55,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 55,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 55,
+          "trainer": "Bowen Brisboise",
+          "npc_id": 3523,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3276": {
+      "skill": 40,
+      "profession": "First Aid",
+      "name": "Heavy Linen Bandage",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 40,
+          "trainer": "Arnok",
+          "npc_id": 3373,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 40,
+          "trainer": "Mary Edras",
+          "npc_id": 4591,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 40,
+          "trainer": "Vira Younghoof",
+          "npc_id": 5939,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 40,
+          "trainer": "Pand Stonebinder",
+          "npc_id": 2798,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 40,
+          "trainer": "Arnok",
+          "npc_id": 3373,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3277": {
+      "skill": 80,
+      "profession": "First Aid",
+      "name": "Wool Bandage",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 80,
+          "trainer": "Arnok",
+          "npc_id": 3373,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 80,
+          "trainer": "Mary Edras",
+          "npc_id": 4591,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 80,
+          "trainer": "Vira Younghoof",
+          "npc_id": 5939,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 80,
+          "trainer": "Pand Stonebinder",
+          "npc_id": 2798,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 80,
+          "trainer": "Arnok",
+          "npc_id": 3373,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3278": {
+      "skill": 115,
+      "profession": "First Aid",
+      "name": "Heavy Wool Bandage",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 115,
+          "trainer": "Arnok",
+          "npc_id": 3373,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 115,
+          "trainer": "Mary Edras",
+          "npc_id": 4591,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 115,
+          "trainer": "Vira Younghoof",
+          "npc_id": 5939,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 115,
+          "trainer": "Pand Stonebinder",
+          "npc_id": 2798,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 115,
+          "trainer": "Arnok",
+          "npc_id": 3373,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3293": {
+      "skill": 30,
+      "profession": "Blacksmithing",
+      "name": "Copper Battle Axe",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 30,
+          "trainer": "Dwukk",
+          "npc_id": 3174,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 30,
+          "trainer": "Basil Frye",
+          "npc_id": 4605,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        }
+      ]
+    },
+    "3294": {
+      "skill": 45,
+      "profession": "Blacksmithing",
+      "name": "Thick War Axe",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 45,
+          "trainer": "Dwukk",
+          "npc_id": 3174,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 45,
+          "trainer": "Basil Frye",
+          "npc_id": 4605,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        }
+      ]
+    },
+    "3304": {
+      "skill": 65,
+      "profession": "Mining",
+      "name": "Smelt Tin",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 65,
+          "trainer": "Brek Stonehoof",
+          "npc_id": 3001,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 65,
+          "trainer": "Krunn",
+          "npc_id": 3175,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 65,
+          "trainer": "Brek Stonehoof",
+          "npc_id": 3001,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3307": {
+      "skill": 125,
+      "profession": "Mining",
+      "name": "Smelt Iron",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 125,
+          "trainer": "Brek Stonehoof",
+          "npc_id": 3001,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 125,
+          "trainer": "Krunn",
+          "npc_id": 3175,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 125,
+          "trainer": "Brek Stonehoof",
+          "npc_id": 3001,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3319": {
+      "skill": 20,
+      "profession": "Blacksmithing",
+      "name": "Copper Chain Boots",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 20,
+          "trainer": "Dwukk",
+          "npc_id": 3174,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Basil Frye",
+          "npc_id": 4605,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        }
+      ]
+    },
+    "3320": {
+      "skill": 25,
+      "profession": "Blacksmithing",
+      "name": "Rough Grinding Stone",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 25,
+          "trainer": "Dwukk",
+          "npc_id": 3174,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Basil Frye",
+          "npc_id": 4605,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        }
+      ]
+    },
+    "3323": {
+      "skill": 35,
+      "profession": "Blacksmithing",
+      "name": "Runed Copper Gauntlets",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 35,
+          "trainer": "Dwukk",
+          "npc_id": 3174,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Basil Frye",
+          "npc_id": 4605,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        }
+      ]
+    },
+    "3324": {
+      "skill": 35,
+      "profession": "Blacksmithing",
+      "name": "Runed Copper Pants",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 35,
+          "trainer": "Dwukk",
+          "npc_id": 3174,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Basil Frye",
+          "npc_id": 4605,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        }
+      ]
+    },
+    "3569": {
+      "skill": 165,
+      "profession": "Mining",
+      "name": "Smelt Steel",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 165,
+          "trainer": "Brek Stonehoof",
+          "npc_id": 3001,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 165,
+          "trainer": "Krunn",
+          "npc_id": 3175,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 165,
+          "trainer": "Brek Stonehoof",
+          "npc_id": 3001,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3753": {
+      "skill": 25,
+      "profession": "Leatherworking",
+      "name": "Handstitched Leather Belt",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 25,
+          "trainer": "Dan Golthas",
+          "npc_id": 223,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Shelene Rhobart",
+          "npc_id": 3549,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Waldor",
+          "npc_id": 5784,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Indari Sunseam",
+          "npc_id": 251993,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 25,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 25,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 25,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 25,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 25,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3756": {
+      "skill": 40,
+      "profession": "Leatherworking",
+      "name": "Embossed Leather Gloves",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 40,
+          "trainer": "Dan Golthas",
+          "npc_id": 223,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 40,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 40,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 40,
+          "trainer": "Shelene Rhobart",
+          "npc_id": 3549,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 40,
+          "trainer": "Waldor",
+          "npc_id": 5784,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 40,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 40,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 40,
+          "trainer": "Indari Sunseam",
+          "npc_id": 251993,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 40,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 40,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 40,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 40,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 40,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 40,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3757": {
+      "skill": 50,
+      "profession": "Tailoring",
+      "name": "Woolen Bag",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 50,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3759": {
+      "skill": 50,
+      "profession": "Leatherworking",
+      "name": "Embossed Leather Pants",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 50,
+          "trainer": "Dan Golthas",
+          "npc_id": 223,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Shelene Rhobart",
+          "npc_id": 3549,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Waldor",
+          "npc_id": 5784,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Indari Sunseam",
+          "npc_id": 251993,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 50,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 50,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 50,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 50,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 50,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3760": {
+      "skill": 125,
+      "profession": "Leatherworking",
+      "name": "Hillman's Cloak",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 125,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 125,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 125,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 125,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 125,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3761": {
+      "skill": 60,
+      "profession": "Leatherworking",
+      "name": "Fine Leather Tunic",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 60,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 60,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 60,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 60,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 60,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3763": {
+      "skill": 55,
+      "profession": "Leatherworking",
+      "name": "Fine Leather Belt",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 55,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 55,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 55,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 55,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 55,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3764": {
+      "skill": 120,
+      "profession": "Leatherworking",
+      "name": "Hillman's Leather Gloves",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 120,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 120,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 120,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 120,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 120,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3766": {
+      "skill": 100,
+      "profession": "Leatherworking",
+      "name": "Dark Leather Belt",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 100,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 100,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 100,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 100,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 100,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3768": {
+      "skill": 105,
+      "profession": "Leatherworking",
+      "name": "Hillman's Shoulders",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 105,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 105,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 105,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 105,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 105,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3770": {
+      "skill": 110,
+      "profession": "Leatherworking",
+      "name": "Toughened Leather Gloves",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 110,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 110,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 110,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 110,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 110,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3780": {
+      "skill": 125,
+      "profession": "Leatherworking",
+      "name": "Heavy Armor Kit",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 125,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 125,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 125,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 125,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 125,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3813": {
+      "skill": 125,
+      "profession": "Tailoring",
+      "name": "Small Silk Pack",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 125,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3816": {
+      "skill": 30,
+      "profession": "Leatherworking",
+      "name": "Cured Light Hide",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 30,
+          "trainer": "Dan Golthas",
+          "npc_id": 223,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 30,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 30,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 30,
+          "trainer": "Shelene Rhobart",
+          "npc_id": 3549,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 30,
+          "trainer": "Waldor",
+          "npc_id": 5784,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 30,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 30,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 30,
+          "trainer": "Indari Sunseam",
+          "npc_id": 251993,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 30,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 30,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 30,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 30,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 30,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 30,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3817": {
+      "skill": 75,
+      "profession": "Leatherworking",
+      "name": "Cured Medium Hide",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 75,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 75,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 75,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 75,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 75,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3818": {
+      "skill": 125,
+      "profession": "Leatherworking",
+      "name": "Cured Heavy Hide",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 125,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 125,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 125,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 125,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 125,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3839": {
+      "skill": 100,
+      "profession": "Tailoring",
+      "name": "Bolt of Silk Cloth",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 100,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3840": {
+      "skill": 25,
+      "profession": "Tailoring",
+      "name": "Heavy Linen Gloves",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 25,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 25,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 25,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 25,
+          "trainer": "Bowen Brisboise",
+          "npc_id": 3523,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3841": {
+      "skill": 35,
+      "profession": "Tailoring",
+      "name": "Green Linen Bracers",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 35,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 35,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 35,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 35,
+          "trainer": "Bowen Brisboise",
+          "npc_id": 3523,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3842": {
+      "skill": 45,
+      "profession": "Tailoring",
+      "name": "Handstitched Linen Britches",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 45,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 45,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 45,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 45,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 45,
+          "trainer": "Bowen Brisboise",
+          "npc_id": 3523,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3843": {
+      "skill": 60,
+      "profession": "Tailoring",
+      "name": "Heavy Woolen Gloves",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 60,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3845": {
+      "skill": 55,
+      "profession": "Tailoring",
+      "name": "Soft-soled Linen Boots",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 55,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3848": {
+      "skill": 85,
+      "profession": "Tailoring",
+      "name": "Double-stitched Woolen Shoulders",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 85,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3850": {
+      "skill": 85,
+      "profession": "Tailoring",
+      "name": "Heavy Woolen Pants",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 85,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3852": {
+      "skill": 105,
+      "profession": "Tailoring",
+      "name": "Gloves of Meditation",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 105,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3855": {
+      "skill": 100,
+      "profession": "Tailoring",
+      "name": "Spidersilk Boots",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 100,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3859": {
+      "skill": 125,
+      "profession": "Tailoring",
+      "name": "Azure Silk Vest",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 125,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3866": {
+      "skill": 85,
+      "profession": "Tailoring",
+      "name": "Stylish Red Shirt",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 85,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3914": {
+      "skill": 25,
+      "profession": "Tailoring",
+      "name": "Brown Linen Pants",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 25,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 25,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 25,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 25,
+          "trainer": "Bowen Brisboise",
+          "npc_id": 3523,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3922": {
+      "skill": 30,
+      "profession": "Engineering",
+      "name": "Handful of Copper Bolts",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 30,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 30,
+          "trainer": "Mukdrak",
+          "npc_id": 11025,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 30,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3923": {
+      "skill": 30,
+      "profession": "Engineering",
+      "name": "Rough Copper Bomb",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 30,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 30,
+          "trainer": "Mukdrak",
+          "npc_id": 11025,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 30,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3924": {
+      "skill": 50,
+      "profession": "Engineering",
+      "name": "Copper Tube",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 50,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Mukdrak",
+          "npc_id": 11025,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3925": {
+      "skill": 50,
+      "profession": "Engineering",
+      "name": "Rough Boomstick",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 50,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Mukdrak",
+          "npc_id": 11025,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3926": {
+      "skill": 65,
+      "profession": "Engineering",
+      "name": "Copper Modulator",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 65,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 65,
+          "trainer": "Mukdrak",
+          "npc_id": 11025,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 65,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3929": {
+      "skill": 75,
+      "profession": "Engineering",
+      "name": "Coarse Blasting Powder",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 75,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 75,
+          "trainer": "Mukdrak",
+          "npc_id": 11025,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 75,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3930": {
+      "skill": 75,
+      "profession": "Engineering",
+      "name": "Crafted Heavy Shot",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 75,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 75,
+          "trainer": "Mukdrak",
+          "npc_id": 11025,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 75,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3931": {
+      "skill": 75,
+      "profession": "Engineering",
+      "name": "Coarse Dynamite",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 75,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 75,
+          "trainer": "Mukdrak",
+          "npc_id": 11025,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 75,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3932": {
+      "skill": 85,
+      "profession": "Engineering",
+      "name": "Target Dummy",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 85,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 85,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3934": {
+      "skill": 100,
+      "profession": "Engineering",
+      "name": "Flying Tiger Goggles",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 100,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 100,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3936": {
+      "skill": 105,
+      "profession": "Engineering",
+      "name": "Deadly Blunderbuss",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 105,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 105,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3937": {
+      "skill": 105,
+      "profession": "Engineering",
+      "name": "Large Copper Bomb",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 105,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 105,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3938": {
+      "skill": 105,
+      "profession": "Engineering",
+      "name": "Bronze Tube",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 105,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 105,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3941": {
+      "skill": 120,
+      "profession": "Engineering",
+      "name": "Small Bronze Bomb",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 120,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 120,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3942": {
+      "skill": 125,
+      "profession": "Engineering",
+      "name": "Whirring Bronze Gizmo",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 125,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 125,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3945": {
+      "skill": 125,
+      "profession": "Engineering",
+      "name": "Heavy Blasting Powder",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 125,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 125,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3946": {
+      "skill": 125,
+      "profession": "Engineering",
+      "name": "Heavy Dynamite",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 125,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 125,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3947": {
+      "skill": 125,
+      "profession": "Engineering",
+      "name": "Crafted Solid Shot",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 125,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 125,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3949": {
+      "skill": 130,
+      "profession": "Engineering",
+      "name": "Silver-plated Shotgun",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 130,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 130,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3950": {
+      "skill": 140,
+      "profession": "Engineering",
+      "name": "Big Bronze Bomb",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 140,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 140,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3953": {
+      "skill": 145,
+      "profession": "Engineering",
+      "name": "Bronze Framework",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 145,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 145,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3955": {
+      "skill": 150,
+      "profession": "Engineering",
+      "name": "Explosive Sheep",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 150,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 150,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3956": {
+      "skill": 150,
+      "profession": "Engineering",
+      "name": "Green Tinted Goggles",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 150,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 150,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3973": {
+      "skill": 90,
+      "profession": "Engineering",
+      "name": "Silver Contact",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 90,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 90,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3977": {
+      "skill": 60,
+      "profession": "Engineering",
+      "name": "Crude Scope",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 60,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 60,
+          "trainer": "Mukdrak",
+          "npc_id": 11025,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 60,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "3978": {
+      "skill": 110,
+      "profession": "Engineering",
+      "name": "Standard Scope",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 110,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 110,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "6458": {
+      "skill": 135,
+      "profession": "Engineering",
+      "name": "Ornate Spyglass",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 135,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 135,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "6499": {
+      "skill": 50,
+      "profession": "Cooking",
+      "name": "Boiled Clams",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 50,
+          "trainer": "Aska Mistrunner",
+          "npc_id": 3026,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Cook Torka",
+          "npc_id": 3191,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Zamja",
+          "npc_id": 3399,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Eunice Burch",
+          "npc_id": 4552,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Zerril Softbreeze",
+          "npc_id": 251905,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "William Pickman",
+          "npc_id": 265944,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Cook Torka",
+          "npc_id": 3191,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 50,
+          "trainer": "Zamja",
+          "npc_id": 3399,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 50,
+          "trainer": "Duhng",
+          "npc_id": 8306,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "6500": {
+      "skill": 125,
+      "profession": "Cooking",
+      "name": "Goblin Deviled Clams",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 125,
+          "trainer": "Aska Mistrunner",
+          "npc_id": 3026,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 125,
+          "trainer": "Cook Torka",
+          "npc_id": 3191,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 125,
+          "trainer": "Zamja",
+          "npc_id": 3399,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 125,
+          "trainer": "Eunice Burch",
+          "npc_id": 4552,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 125,
+          "trainer": "Zerril Softbreeze",
+          "npc_id": 251905,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 125,
+          "trainer": "William Pickman",
+          "npc_id": 265944,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 125,
+          "trainer": "Cook Torka",
+          "npc_id": 3191,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 125,
+          "trainer": "Zamja",
+          "npc_id": 3399,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 125,
+          "trainer": "Duhng",
+          "npc_id": 8306,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "6521": {
+      "skill": 70,
+      "profession": "Tailoring",
+      "name": "Pearl-clasped Cloak",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 70,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "6690": {
+      "skill": 110,
+      "profession": "Tailoring",
+      "name": "Lesser Wizard's Robe",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 110,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "7135": {
+      "skill": 90,
+      "profession": "Leatherworking",
+      "name": "Dark Leather Pants",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 90,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 90,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 90,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 90,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 90,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "7408": {
+      "skill": 40,
+      "profession": "Blacksmithing",
+      "name": "Heavy Copper Maul",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 40,
+          "trainer": "Dwukk",
+          "npc_id": 3174,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 40,
+          "trainer": "Basil Frye",
+          "npc_id": 4605,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        }
+      ]
+    },
+    "7430": {
+      "skill": 50,
+      "profession": "Engineering",
+      "name": "Arclight Spanner",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 50,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Mukdrak",
+          "npc_id": 11025,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "7623": {
+      "skill": 25,
+      "profession": "Tailoring",
+      "name": "Brown Linen Robe",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 25,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 25,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 25,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 25,
+          "trainer": "Bowen Brisboise",
+          "npc_id": 3523,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "7624": {
+      "skill": 25,
+      "profession": "Tailoring",
+      "name": "White Linen Robe",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 25,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 25,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 25,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 25,
+          "trainer": "Bowen Brisboise",
+          "npc_id": 3523,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "7795": {
+      "skill": 100,
+      "profession": "Enchanting",
+      "name": "Runed Silver Rod",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 100,
+          "trainer": "Godan",
+          "npc_id": 3345,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        }
+      ]
+    },
+    "7928": {
+      "skill": 150,
+      "profession": "First Aid",
+      "name": "Silk Bandage",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 150,
+          "trainer": "Arnok",
+          "npc_id": 3373,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 150,
+          "trainer": "Mary Edras",
+          "npc_id": 4591,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 150,
+          "trainer": "Vira Younghoof",
+          "npc_id": 5939,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 150,
+          "trainer": "Pand Stonebinder",
+          "npc_id": 2798,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 150,
+          "trainer": "Arnok",
+          "npc_id": 3373,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "7934": {
+      "skill": 80,
+      "profession": "First Aid",
+      "name": "Anti-Venom",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 80,
+          "trainer": "Arnok",
+          "npc_id": 3373,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 80,
+          "trainer": "Mary Edras",
+          "npc_id": 4591,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 80,
+          "trainer": "Vira Younghoof",
+          "npc_id": 5939,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 80,
+          "trainer": "Pand Stonebinder",
+          "npc_id": 2798,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 80,
+          "trainer": "Arnok",
+          "npc_id": 3373,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "8334": {
+      "skill": 100,
+      "profession": "Engineering",
+      "name": "Practice Lock",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 100,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 100,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "8465": {
+      "skill": 25,
+      "profession": "Tailoring",
+      "name": "Simple Dress",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 25,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 25,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 25,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 25,
+          "trainer": "Bowen Brisboise",
+          "npc_id": 3523,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "8467": {
+      "skill": 85,
+      "profession": "Tailoring",
+      "name": "White Woolen Dress",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 85,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "8758": {
+      "skill": 115,
+      "profession": "Tailoring",
+      "name": "Azure Silk Pants",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 115,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "8760": {
+      "skill": 120,
+      "profession": "Tailoring",
+      "name": "Azure Silk Hood",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 120,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "8776": {
+      "skill": 15,
+      "profession": "Tailoring",
+      "name": "Linen Belt",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 15,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 15,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 15,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 15,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 15,
+          "trainer": "Bowen Brisboise",
+          "npc_id": 3523,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "8880": {
+      "skill": 25,
+      "profession": "Blacksmithing",
+      "name": "Copper Dagger",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 25,
+          "trainer": "Dwukk",
+          "npc_id": 3174,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Basil Frye",
+          "npc_id": 4605,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        }
+      ]
+    },
+    "9060": {
+      "skill": 25,
+      "profession": "Leatherworking",
+      "name": "Light Leather Quiver",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 25,
+          "trainer": "Dan Golthas",
+          "npc_id": 223,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Shelene Rhobart",
+          "npc_id": 3549,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Waldor",
+          "npc_id": 5784,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Indari Sunseam",
+          "npc_id": 251993,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 25,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 25,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 25,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 25,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 25,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "9062": {
+      "skill": 25,
+      "profession": "Leatherworking",
+      "name": "Small Leather Ammo Pouch",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 25,
+          "trainer": "Dan Golthas",
+          "npc_id": 223,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Shelene Rhobart",
+          "npc_id": 3549,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Waldor",
+          "npc_id": 5784,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Indari Sunseam",
+          "npc_id": 251993,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 25,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 25,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 25,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 25,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 25,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "9065": {
+      "skill": 45,
+      "profession": "Leatherworking",
+      "name": "Light Leather Bracers",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 45,
+          "trainer": "Dan Golthas",
+          "npc_id": 223,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 45,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 45,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 45,
+          "trainer": "Shelene Rhobart",
+          "npc_id": 3549,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 45,
+          "trainer": "Waldor",
+          "npc_id": 5784,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 45,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 45,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 45,
+          "trainer": "Indari Sunseam",
+          "npc_id": 251993,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 45,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 45,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 45,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 45,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 45,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 45,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "9068": {
+      "skill": 70,
+      "profession": "Leatherworking",
+      "name": "Light Leather Pants",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 70,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 70,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 70,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 70,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 70,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "9074": {
+      "skill": 95,
+      "profession": "Leatherworking",
+      "name": "Nimble Leather Gloves",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 95,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 95,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 95,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 95,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 95,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "9145": {
+      "skill": 100,
+      "profession": "Leatherworking",
+      "name": "Fletcher's Gloves",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 100,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 100,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 100,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 100,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 100,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "9271": {
+      "skill": 150,
+      "profession": "Engineering",
+      "name": "Aquadynamic Fish Attractor",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 150,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 150,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "9983": {
+      "skill": 25,
+      "profession": "Blacksmithing",
+      "name": "Copper Claymore",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 25,
+          "trainer": "Dwukk",
+          "npc_id": 3174,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Basil Frye",
+          "npc_id": 4605,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        }
+      ]
+    },
+    "10097": {
+      "skill": 175,
+      "profession": "Mining",
+      "name": "Smelt Mithril",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 175,
+          "trainer": "Brek Stonehoof",
+          "npc_id": 3001,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 175,
+          "trainer": "Krunn",
+          "npc_id": 3175,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 175,
+          "trainer": "Brek Stonehoof",
+          "npc_id": 3001,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "10098": {
+      "skill": 230,
+      "profession": "Mining",
+      "name": "Smelt Truesilver",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 230,
+          "trainer": "Brek Stonehoof",
+          "npc_id": 3001,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 230,
+          "trainer": "Krunn",
+          "npc_id": 3175,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 230,
+          "trainer": "Brek Stonehoof",
+          "npc_id": 3001,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "12045": {
+      "skill": 20,
+      "profession": "Tailoring",
+      "name": "Simple Linen Boots",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 20,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 20,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 20,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 20,
+          "trainer": "Bowen Brisboise",
+          "npc_id": 3523,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "12046": {
+      "skill": 50,
+      "profession": "Tailoring",
+      "name": "Simple Kilt",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 50,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 50,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 50,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 50,
+          "trainer": "Bowen Brisboise",
+          "npc_id": 3523,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "12584": {
+      "skill": 150,
+      "profession": "Engineering",
+      "name": "Gold Power Core",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 150,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 150,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "13628": {
+      "skill": 150,
+      "profession": "Enchanting",
+      "name": "Runed Golden Rod",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 150,
+          "trainer": "Godan",
+          "npc_id": 3345,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        }
+      ]
+    },
+    "14293": {
+      "skill": 10,
+      "profession": "Enchanting",
+      "name": "Lesser Magic Wand",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 10,
+          "trainer": "Jhag",
+          "npc_id": 11066,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 10,
+          "trainer": "Malcomb Wynn",
+          "npc_id": 11067,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 10,
+          "trainer": "Pa'zula",
+          "npc_id": 266881,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 10,
+          "trainer": "Godan",
+          "npc_id": 3345,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 10,
+          "trainer": "Jhag",
+          "npc_id": 11066,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 10,
+          "trainer": "Pa'zula",
+          "npc_id": 266881,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 10,
+          "trainer": "Vance Undergloom",
+          "npc_id": 5695,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "14807": {
+      "skill": 70,
+      "profession": "Enchanting",
+      "name": "Greater Magic Wand",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 70,
+          "trainer": "Jhag",
+          "npc_id": 11066,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 70,
+          "trainer": "Malcomb Wynn",
+          "npc_id": 11067,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 70,
+          "trainer": "Pa'zula",
+          "npc_id": 266881,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 70,
+          "trainer": "Godan",
+          "npc_id": 3345,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 70,
+          "trainer": "Jhag",
+          "npc_id": 11066,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 70,
+          "trainer": "Pa'zula",
+          "npc_id": 266881,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 70,
+          "trainer": "Vance Undergloom",
+          "npc_id": 5695,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "16153": {
+      "skill": 250,
+      "profession": "Mining",
+      "name": "Smelt Thorium",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 250,
+          "trainer": "Brek Stonehoof",
+          "npc_id": 3001,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 250,
+          "trainer": "Krunn",
+          "npc_id": 3175,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 250,
+          "trainer": "Brek Stonehoof",
+          "npc_id": 3001,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "20648": {
+      "skill": 75,
+      "profession": "Leatherworking",
+      "name": "Medium Leather",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 75,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 75,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 75,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 75,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 75,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "20649": {
+      "skill": 125,
+      "profession": "Leatherworking",
+      "name": "Heavy Leather",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 125,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 125,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 125,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 125,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 125,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "21175": {
+      "skill": 200,
+      "profession": "Cooking",
+      "name": "Spider Sausage",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 200,
+          "trainer": "Aska Mistrunner",
+          "npc_id": 3026,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 200,
+          "trainer": "Cook Torka",
+          "npc_id": 3191,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 200,
+          "trainer": "Zamja",
+          "npc_id": 3399,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 200,
+          "trainer": "Eunice Burch",
+          "npc_id": 4552,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 200,
+          "trainer": "Zerril Softbreeze",
+          "npc_id": 251905,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 200,
+          "trainer": "William Pickman",
+          "npc_id": 265944,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 200,
+          "trainer": "Cook Torka",
+          "npc_id": 3191,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 200,
+          "trainer": "Zamja",
+          "npc_id": 3399,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 200,
+          "trainer": "Duhng",
+          "npc_id": 8306,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "1229432": {
+      "skill": 20,
+      "profession": "Leatherworking",
+      "name": "Camp Tent",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 20,
+          "trainer": "Dan Golthas",
+          "npc_id": 223,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Shelene Rhobart",
+          "npc_id": 3549,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Waldor",
+          "npc_id": 5784,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Indari Sunseam",
+          "npc_id": 251993,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 20,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 20,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 20,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 20,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 20,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "1229504": {
+      "skill": 20,
+      "profession": "Tailoring",
+      "name": "Faction Banner",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 20,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 20,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 20,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 20,
+          "trainer": "Bowen Brisboise",
+          "npc_id": 3523,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "1229517": {
+      "skill": 20,
+      "profession": "Skinning",
+      "name": "Camp Chair",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 20,
+          "trainer": "Rand Rhobart",
+          "npc_id": 6289,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Killian Hagey",
+          "npc_id": 7087,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Thuwd",
+          "npc_id": 7088,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Mooranta",
+          "npc_id": 7089,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Mendalass Tattermend",
+          "npc_id": 257024,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Thuwd",
+          "npc_id": 7088,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 20,
+          "trainer": "Dranh",
+          "npc_id": 6387,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 20,
+          "trainer": "Thuwd",
+          "npc_id": 7088,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 20,
+          "trainer": "Mooranta",
+          "npc_id": 7089,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "1229705": {
+      "skill": 20,
+      "profession": "Herbalism",
+      "name": "Incense Candle",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 20,
+          "trainer": "Mishiki",
+          "npc_id": 3185,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Martha Alliestar",
+          "npc_id": 4614,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Jandi",
+          "npc_id": 3404,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "1229745": {
+      "skill": 20,
+      "profession": "Fishing",
+      "name": "Fish Bowl",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 20,
+          "trainer": "Kah Mistrunner",
+          "npc_id": 3028,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Armand Cromwell",
+          "npc_id": 4573,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Lau'Tiki",
+          "npc_id": 5941,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Baelann Swiftcurrent",
+          "npc_id": 257008,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        }
+      ]
+    },
+    "1230117": {
+      "skill": 20,
+      "profession": "First Aid",
+      "name": "First Aid Kit",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 20,
+          "trainer": "Arnok",
+          "npc_id": 3373,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Mary Edras",
+          "npc_id": 4591,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Vira Younghoof",
+          "npc_id": 5939,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Pand Stonebinder",
+          "npc_id": 2798,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 20,
+          "trainer": "Arnok",
+          "npc_id": 3373,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "1230161": {
+      "skill": 20,
+      "profession": "Mining",
+      "name": "Lodestone",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 20,
+          "trainer": "Brek Stonehoof",
+          "npc_id": 3001,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Krunn",
+          "npc_id": 3175,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Brek Stonehoof",
+          "npc_id": 3001,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "1230171": {
+      "skill": 20,
+      "profession": "Blacksmithing",
+      "name": "Sharpening Wheel",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 20,
+          "trainer": "Dwukk",
+          "npc_id": 3174,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Basil Frye",
+          "npc_id": 4605,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        }
+      ]
+    },
+    "1230643": {
+      "skill": 20,
+      "profession": "Enchanting",
+      "name": "Enchanted Lute",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 20,
+          "trainer": "Jhag",
+          "npc_id": 11066,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Malcomb Wynn",
+          "npc_id": 11067,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Pa'zula",
+          "npc_id": 266881,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Godan",
+          "npc_id": 3345,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 20,
+          "trainer": "Jhag",
+          "npc_id": 11066,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 20,
+          "trainer": "Pa'zula",
+          "npc_id": 266881,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 20,
+          "trainer": "Vance Undergloom",
+          "npc_id": 5695,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "1230656": {
+      "skill": 20,
+      "profession": "Engineering",
+      "name": "Reagent Bot",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 20,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Mukdrak",
+          "npc_id": 11025,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Nogg",
+          "npc_id": 3412,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "1249637": {
+      "skill": 275,
+      "profession": "Mining",
+      "name": "Smelt Azerothium",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 275,
+          "trainer": "Brek Stonehoof",
+          "npc_id": 3001,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 275,
+          "trainer": "Krunn",
+          "npc_id": 3175,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 275,
+          "trainer": "Brek Stonehoof",
+          "npc_id": 3001,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "1252229": {
+      "skill": 35,
+      "profession": "Blacksmithing",
+      "name": "Gemmed Copper Boots",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 35,
+          "trainer": "Dwukk",
+          "npc_id": 3174,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Basil Frye",
+          "npc_id": 4605,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        }
+      ]
+    },
+    "1252230": {
+      "skill": 35,
+      "profession": "Blacksmithing",
+      "name": "Strange Copper Boots",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 35,
+          "trainer": "Dwukk",
+          "npc_id": 3174,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Basil Frye",
+          "npc_id": 4605,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        }
+      ]
+    },
+    "1252231": {
+      "skill": 35,
+      "profession": "Blacksmithing",
+      "name": "Glowing Copper Boots",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 35,
+          "trainer": "Dwukk",
+          "npc_id": 3174,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Basil Frye",
+          "npc_id": 4605,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        }
+      ]
+    },
+    "1255075": {
+      "skill": 150,
+      "profession": "Leatherworking",
+      "name": "Mender's Leather Belt",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 150,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 150,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 150,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 150,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 150,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "1255076": {
+      "skill": 150,
+      "profession": "Leatherworking",
+      "name": "Skycaller's Leather Belt",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 150,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 150,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 150,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 150,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 150,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "1255077": {
+      "skill": 150,
+      "profession": "Leatherworking",
+      "name": "Skirmisher's Leather Belt",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 150,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 150,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 150,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 150,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 150,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "1255078": {
+      "skill": 150,
+      "profession": "Leatherworking",
+      "name": "Warden's Leather Belt",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 150,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 150,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 150,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 150,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 150,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "1255079": {
+      "skill": 150,
+      "profession": "Leatherworking",
+      "name": "Stalker's Leather Belt",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 150,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 150,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 150,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 150,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 150,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "1255080": {
+      "skill": 150,
+      "profession": "Leatherworking",
+      "name": "Skulker's Leather Belt",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 150,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 150,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 150,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 150,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 150,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "1255081": {
+      "skill": 150,
+      "profession": "Leatherworking",
+      "name": "Prowler's Leather Belt",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 150,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 150,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 150,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 150,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 150,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "1255143": {
+      "skill": 35,
+      "profession": "Leatherworking",
+      "name": "Moonglow Boots",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 35,
+          "trainer": "Dan Golthas",
+          "npc_id": 223,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Shelene Rhobart",
+          "npc_id": 3549,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Waldor",
+          "npc_id": 5784,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Indari Sunseam",
+          "npc_id": 251993,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 35,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 35,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 35,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 35,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 35,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "1255144": {
+      "skill": 35,
+      "profession": "Leatherworking",
+      "name": "Murloc Scale Shoes",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 35,
+          "trainer": "Dan Golthas",
+          "npc_id": 223,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Shelene Rhobart",
+          "npc_id": 3549,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Waldor",
+          "npc_id": 5784,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Indari Sunseam",
+          "npc_id": 251993,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 35,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 35,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 35,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 35,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 35,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "1255145": {
+      "skill": 35,
+      "profession": "Leatherworking",
+      "name": "Dark Leather Boots",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 35,
+          "trainer": "Dan Golthas",
+          "npc_id": 223,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Shelene Rhobart",
+          "npc_id": 3549,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Waldor",
+          "npc_id": 5784,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Indari Sunseam",
+          "npc_id": 251993,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 35,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 35,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 35,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 35,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 35,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "1255146": {
+      "skill": 35,
+      "profession": "Leatherworking",
+      "name": "Black Whelp Slippers",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 35,
+          "trainer": "Dan Golthas",
+          "npc_id": 223,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Shelene Rhobart",
+          "npc_id": 3549,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Waldor",
+          "npc_id": 5784,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Indari Sunseam",
+          "npc_id": 251993,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 35,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 35,
+          "trainer": "Mak",
+          "npc_id": 3008,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 35,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 35,
+          "trainer": "Kamari",
+          "npc_id": 5811,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 35,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "1259342": {
+      "skill": 90,
+      "profession": "First Aid",
+      "name": "Simple Poultice",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 90,
+          "trainer": "Arnok",
+          "npc_id": 3373,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 90,
+          "trainer": "Mary Edras",
+          "npc_id": 4591,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 90,
+          "trainer": "Vira Younghoof",
+          "npc_id": 5939,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 90,
+          "trainer": "Pand Stonebinder",
+          "npc_id": 2798,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 90,
+          "trainer": "Arnok",
+          "npc_id": 3373,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "1259347": {
+      "skill": 120,
+      "profession": "First Aid",
+      "name": "Woolen Tourniquet",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 120,
+          "trainer": "Arnok",
+          "npc_id": 3373,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 120,
+          "trainer": "Mary Edras",
+          "npc_id": 4591,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 120,
+          "trainer": "Vira Younghoof",
+          "npc_id": 5939,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 120,
+          "trainer": "Pand Stonebinder",
+          "npc_id": 2798,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 120,
+          "trainer": "Arnok",
+          "npc_id": 3373,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "1306126": {
+      "skill": 300,
+      "profession": "Mining",
+      "name": "Smelt Heavy Thorium",
+      "source": "Efficient Games trainer observations",
+      "observations": [
+        {
+          "rank": 300,
+          "trainer": "Brek Stonehoof",
+          "npc_id": 3001,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 300,
+          "trainer": "Krunn",
+          "npc_id": 3175,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 300,
+          "trainer": "Brek Stonehoof",
+          "npc_id": 3001,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    "12596": {
+      "skill": 210,
+      "profession": "Engineering",
+      "name": "Hi-Impact Mithril Slugs",
+      "source": "Forever engineering guides; trainer requirement, unverified in our client",
+      "urls": [
+        "https://wowforeverinfo.com/guides/engineering/",
+        "https://azerothprime.com/en/forever/professions/engineering"
+      ]
+    }
+  },
+  "conflicts": [
+    {
+      "spell_id": 2395,
+      "name": "Barbaric Linen Vest",
+      "profession": "Tailoring",
+      "required": 70,
+      "observations": [
+        {
+          "rank": 40,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 40,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 40,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 40,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 40,
+          "trainer": "Bowen Brisboise",
+          "npc_id": 3523,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    {
+      "spell_id": 2396,
+      "name": "Green Linen Shirt",
+      "profession": "Tailoring",
+      "required": 70,
+      "observations": [
+        {
+          "rank": 40,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 40,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 40,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 40,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 40,
+          "trainer": "Bowen Brisboise",
+          "npc_id": 3523,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    {
+      "spell_id": 2662,
+      "name": "Copper Chain Pants",
+      "profession": "Blacksmithing",
+      "required": 40,
+      "observations": [
+        {
+          "rank": 15,
+          "trainer": "Dwukk",
+          "npc_id": 3174,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 15,
+          "trainer": "Basil Frye",
+          "npc_id": 4605,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        }
+      ]
+    },
+    {
+      "spell_id": 2665,
+      "name": "Coarse Sharpening Stone",
+      "profession": "Blacksmithing",
+      "required": 75,
+      "observations": [
+        {
+          "rank": 40,
+          "trainer": "Dwukk",
+          "npc_id": 3174,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 40,
+          "trainer": "Basil Frye",
+          "npc_id": 4605,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        }
+      ]
+    },
+    {
+      "spell_id": 2666,
+      "name": "Runed Copper Belt",
+      "profession": "Blacksmithing",
+      "required": 80,
+      "observations": [
+        {
+          "rank": 45,
+          "trainer": "Dwukk",
+          "npc_id": 3174,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 45,
+          "trainer": "Basil Frye",
+          "npc_id": 4605,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        }
+      ]
+    },
+    {
+      "spell_id": 2739,
+      "name": "Copper Shortsword",
+      "profession": "Blacksmithing",
+      "required": 40,
+      "observations": [
+        {
+          "rank": 25,
+          "trainer": "Dwukk",
+          "npc_id": 3174,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 25,
+          "trainer": "Basil Frye",
+          "npc_id": 4605,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        }
+      ]
+    },
+    {
+      "spell_id": 3116,
+      "name": "Coarse Weightstone",
+      "profession": "Blacksmithing",
+      "required": 65,
+      "observations": [
+        {
+          "rank": 40,
+          "trainer": "Dwukk",
+          "npc_id": 3174,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 40,
+          "trainer": "Basil Frye",
+          "npc_id": 4605,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        }
+      ]
+    },
+    {
+      "spell_id": 3308,
+      "name": "Smelt Gold",
+      "profession": "Mining",
+      "required": 170,
+      "observations": [
+        {
+          "rank": 155,
+          "trainer": "Brek Stonehoof",
+          "npc_id": 3001,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 155,
+          "trainer": "Krunn",
+          "npc_id": 3175,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 155,
+          "trainer": "Brek Stonehoof",
+          "npc_id": 3001,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    {
+      "spell_id": 3326,
+      "name": "Coarse Grinding Stone",
+      "profession": "Blacksmithing",
+      "required": 75,
+      "observations": [
+        {
+          "rank": 50,
+          "trainer": "Dwukk",
+          "npc_id": 3174,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 50,
+          "trainer": "Basil Frye",
+          "npc_id": 4605,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        }
+      ]
+    },
+    {
+      "spell_id": 3755,
+      "name": "Linen Bag",
+      "profession": "Tailoring",
+      "required": 1,
+      "observations": [
+        {
+          "rank": 5,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 5,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 5,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 5,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 5,
+          "trainer": "Bowen Brisboise",
+          "npc_id": 3523,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    {
+      "spell_id": 9193,
+      "name": "Heavy Quiver",
+      "profession": "Leatherworking",
+      "required": 150,
+      "observations": [
+        {
+          "rank": 125,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 125,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 125,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 125,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 125,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    {
+      "spell_id": 9194,
+      "name": "Heavy Leather Ammo Pouch",
+      "profession": "Leatherworking",
+      "required": 150,
+      "observations": [
+        {
+          "rank": 125,
+          "trainer": "Brawn",
+          "npc_id": 1385,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 125,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 125,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 125,
+          "trainer": "Karolek",
+          "npc_id": 3365,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 125,
+          "trainer": "Tarn",
+          "npc_id": 11084,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    {
+      "spell_id": 1229737,
+      "name": "Basic Campfire",
+      "profession": "Cooking",
+      "required": 1,
+      "observations": [
+        {
+          "rank": 20,
+          "trainer": "Aska Mistrunner",
+          "npc_id": 3026,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Cook Torka",
+          "npc_id": 3191,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Zamja",
+          "npc_id": 3399,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Eunice Burch",
+          "npc_id": 4552,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Zerril Softbreeze",
+          "npc_id": 251905,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "William Pickman",
+          "npc_id": 265944,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 20,
+          "trainer": "Cook Torka",
+          "npc_id": 3191,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 20,
+          "trainer": "Zamja",
+          "npc_id": 3399,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 20,
+          "trainer": "Duhng",
+          "npc_id": 8306,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    {
+      "spell_id": 1244431,
+      "name": "Minor Healing Potion",
+      "profession": "First Aid",
+      "required": 55,
+      "observations": [
+        {
+          "rank": 1,
+          "trainer": "Arnok",
+          "npc_id": 3373,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 1,
+          "trainer": "Mary Edras",
+          "npc_id": 4591,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 1,
+          "trainer": "Vira Younghoof",
+          "npc_id": 5939,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 1,
+          "trainer": "Pand Stonebinder",
+          "npc_id": 2798,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 1,
+          "trainer": "Arnok",
+          "npc_id": 3373,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    {
+      "spell_id": 1244432,
+      "name": "Lesser Healing Potion",
+      "profession": "First Aid",
+      "required": 85,
+      "observations": [
+        {
+          "rank": 55,
+          "trainer": "Arnok",
+          "npc_id": 3373,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 55,
+          "trainer": "Mary Edras",
+          "npc_id": 4591,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 55,
+          "trainer": "Vira Younghoof",
+          "npc_id": 5939,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 55,
+          "trainer": "Pand Stonebinder",
+          "npc_id": 2798,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 55,
+          "trainer": "Arnok",
+          "npc_id": 3373,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    {
+      "spell_id": 1244433,
+      "name": "Healing Potion",
+      "profession": "First Aid",
+      "required": 135,
+      "observations": [
+        {
+          "rank": 110,
+          "trainer": "Arnok",
+          "npc_id": 3373,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 110,
+          "trainer": "Mary Edras",
+          "npc_id": 4591,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 110,
+          "trainer": "Vira Younghoof",
+          "npc_id": 5939,
+          "last_seen": "2026-11-06",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 110,
+          "trainer": "Pand Stonebinder",
+          "npc_id": 2798,
+          "last_seen": "2026-11-08",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 110,
+          "trainer": "Arnok",
+          "npc_id": 3373,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    {
+      "spell_id": 1257368,
+      "name": "Novice Arcanist's Sash",
+      "profession": "Tailoring",
+      "required": 50,
+      "observations": [
+        {
+          "rank": 35,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 35,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 35,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 35,
+          "trainer": "Bowen Brisboise",
+          "npc_id": 3523,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    {
+      "spell_id": 1257369,
+      "name": "Novice Ardent's Sash",
+      "profession": "Tailoring",
+      "required": 50,
+      "observations": [
+        {
+          "rank": 35,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-05",
+          "build": "1.60.1.70790"
+        },
+        {
+          "rank": 35,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70840"
+        },
+        {
+          "rank": 35,
+          "trainer": "Snang",
+          "npc_id": 2855,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 35,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        },
+        {
+          "rank": 35,
+          "trainer": "Bowen Brisboise",
+          "npc_id": 3523,
+          "last_seen": "2026-11-07",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    {
+      "spell_id": 1257426,
+      "name": "Gilded Slippers",
+      "profession": "Tailoring",
+      "required": 140,
+      "observations": [
+        {
+          "rank": 150,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    {
+      "spell_id": 1257427,
+      "name": "Frothing Slippers",
+      "profession": "Tailoring",
+      "required": 140,
+      "observations": [
+        {
+          "rank": 150,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    {
+      "spell_id": 1257428,
+      "name": "Fiery Slippers",
+      "profession": "Tailoring",
+      "required": 140,
+      "observations": [
+        {
+          "rank": 150,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    {
+      "spell_id": 1257429,
+      "name": "Black Slippers",
+      "profession": "Tailoring",
+      "required": 140,
+      "observations": [
+        {
+          "rank": 150,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    {
+      "spell_id": 1257430,
+      "name": "Golden Slippers",
+      "profession": "Tailoring",
+      "required": 140,
+      "observations": [
+        {
+          "rank": 150,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    },
+    {
+      "spell_id": 1257431,
+      "name": "Radiant Slippers",
+      "profession": "Tailoring",
+      "required": 140,
+      "observations": [
+        {
+          "rank": 150,
+          "trainer": "Magar",
+          "npc_id": 3363,
+          "last_seen": "2026-11-09",
+          "build": "1.60.1.70862"
+        }
+      ]
+    }
+  ]
+}

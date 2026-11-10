@@ -1,6 +1,6 @@
 -- Efficient Games vendor observations, CC BY 4.0: https://efficient.games
 -- Data transformed from https://github.com/JIVESCORP/eg-link-output-wowf; not guaranteed current.
-NokiMarketVendorData = {
+NokiUnifiedCraftVendorData = {
 {85,"Dirty Leather Vest","Archibald Kava",62,1,5,"2026-10-16",false},
 {117,"Tough Jerky","Innkeeper Shay",23,5,6,"2026-11-07",false},
 {117,"Tough Jerky","Borstan",25,5,5,"2026-11-05",false},
