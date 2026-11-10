@@ -253,9 +253,15 @@ local function calculateLookup()
 end
 local function updateResaleStatus()
   if not status or viewMode~="resale" then return end
-  local age=resaleScanTime and math.max(0,math.floor((((GetServerTime and GetServerTime()) or time())-resaleScanTime)/60))
+  local now=(GetServerTime and GetServerTime()) or time()
+  local function age(observed) return type(observed)=="number" and (math.max(0,math.floor((now-observed)/60)).."m ago") or "unavailable" end
+  local marketID=NokiUnifiedCore and NokiUnifiedCore.Market()
+  local book=marketID and NokiUnifiedCoreDB and NokiUnifiedCoreDB.prices and NokiUnifiedCoreDB.prices[marketID]
+  local latest=book and book.observed
+  local scanText="Latest scan "..age(latest).." | List "..age(resaleScanTime)
+  if type(latest)=="number" and type(resaleScanTime)=="number" and latest>resaleScanTime then scanText=scanText.." | Refresh list" end
   local prefix=resaleOpenRequest and ("PREPARING "..resaleOpenRequest.item.name.." | ") or "VENDOR RESALE | "
-  status:SetText(prefix..resaleChecked.."/"..#resaleQueue.." live checks | "..resaleUnavailable.." unavailable | "..resaleUnknown.." vendor values unknown | Scan "..(age and (age.."m ago") or "age unknown"))
+  status:SetText(prefix..resaleChecked.."/"..#resaleQueue.." checked | "..resaleUnavailable.." unavailable | "..resaleUnknown.." vendor unknown | "..scanText)
 end
 local function calculateResale()
   results={};selectedID=nil;resaleEpoch=resaleEpoch+1;resaleQueue={};resaleIndex=1;resaleChecked=0;resaleUnavailable=0;resaleUnknown=0;resaleScanTime=nil;resaleOpenRequest=nil
@@ -660,9 +666,13 @@ events:SetScript("OnEvent",function(_,event,id)
   elseif event=="ITEM_KEY_ITEM_INFO_RECEIVED" then if resaleOpenRequest and resaleOpenRequest.item.id==id and resaleVisible() then tryOpenResale() end
   elseif C_Timer and C_Timer.After then C_Timer.After(0.5,registerTab) else registerTab() end
 end)
-local resaleElapsed=0;events:SetScript("OnUpdate",function(_,delta) resaleElapsed=resaleElapsed+delta;if resaleElapsed<.75 then return end;resaleElapsed=0;pumpResale() end)
+local resaleElapsed,statusElapsed=0,0;events:SetScript("OnUpdate",function(_,delta)
+  resaleElapsed=resaleElapsed+delta;statusElapsed=statusElapsed+delta
+  if statusElapsed>=30 then statusElapsed=0;if resaleVisible() then updateResaleStatus() end end
+  if resaleElapsed<.75 then return end;resaleElapsed=0;pumpResale()
+end)
 function NokiUnifiedMarketRefreshFlips()
-  if panel and panel:IsShown() and viewMode~="resale" then calculate() end
+  if panel and panel:IsShown() then if viewMode=="resale" then updateResaleStatus() else calculate() end end
 end
 function NokiUnifiedMarketShowCrafting()
   if not AuctionHouseFrame or not AuctionHouseFrame:IsShown() then print("Noki Market: open the auction house first.");return end
