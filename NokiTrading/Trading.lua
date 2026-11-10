@@ -108,7 +108,7 @@ local function render()
       local unit,total=auctionValues(item)
       local condition,ahead=comparison(item)
       local marketLow=lowestPrice(item.itemKey and competitions[keyString(item.itemKey)])
-      row.name:SetText(name.." x"..tostring(item.quantity or "?"));row.unit:SetText(formatMoney(unit));row.total:SetText(formatMoney(total));row.low:SetText(formatMoney(marketLow));row.state:SetText(condition);row.ahead:SetText(ahead~=nil and tostring(ahead) or "--");row.deposit:SetText(formatMoney(auctionDeposit(item)));row.time:SetText(timeLeft(item))
+      row.name:SetText(name);row.quantity:SetText(tostring(item.quantity or "?"));row.unit:SetText(formatMoney(unit));row.total:SetText(formatMoney(total));row.low:SetText(formatMoney(marketLow));row.state:SetText(condition=="no lower price" and "|TInterface\\RaidFrame\\ReadyCheck-Ready:14:14|t" or condition);row.ahead:SetText(ahead~=nil and tostring(ahead) or "--");row.deposit:SetText(formatMoney(auctionDeposit(item)));row.time:SetText(timeLeft(item))
       row.state:SetTextColor(condition=="undercut" and 1 or .75,condition=="undercut" and .3 or .85,.4)
       row.cancel:SetEnabled(not state.cancelPending and item.auctionID~=nil);row:Show()
     else row:Hide() end
@@ -138,15 +138,26 @@ end
 local function createPanel()
   if panel or not AuctionHouseFrame or not NokiUnifiedTabs then return end
   panel=CreateFrame("Frame",nil,AuctionHouseFrame,"BackdropTemplate");panel:Hide();panel:SetPoint("TOPLEFT",AuctionHouseFrame,"TOPLEFT",12,-75);panel:SetPoint("BOTTOMRIGHT",AuctionHouseFrame,"BOTTOMRIGHT",-12,35);panel:SetFrameStrata("DIALOG");panel:SetFrameLevel(AuctionHouseFrame:GetFrameLevel()+50);panel:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1});panel:SetBackdropColor(.055,.065,.07,1);panel:SetBackdropBorderColor(.24,.30,.28,1)
+  local previousWidth,previousHeight
+  panel:SetScript("OnShow",function() if not previousWidth then previousWidth,previousHeight=AuctionHouseFrame:GetWidth(),AuctionHouseFrame:GetHeight();AuctionHouseFrame:SetSize(previousWidth+220,previousHeight+160) end end)
+  panel:SetScript("OnHide",function() if StaticPopup_Hide then StaticPopup_Hide("NOKI_CONFIRM_CANCEL_AUCTION") end;if previousWidth and previousHeight then AuctionHouseFrame:SetSize(previousWidth,previousHeight) end;previousWidth=nil;previousHeight=nil end)
+  StaticPopupDialogs["NOKI_CONFIRM_CANCEL_AUCTION"]={text="Cancel the auction for %s?",button1="Cancel auction",button2="Keep auction",timeout=0,whileDead=true,hideOnEscape=true,OnAccept=function(_,id)
+    if not core.active or state.cancelPending or not C_AuctionHouse or not C_AuctionHouse.CancelAuction then return end
+    local found=false;for _,auction in ipairs(owned) do if auction.auctionID==id then found=true;break end end
+    if not found then print("Noki Trading: that auction is no longer available.");return end
+    if C_AuctionHouse.CanCancelAuction and not C_AuctionHouse.CanCancelAuction(id) then print("Noki Trading: this auction cannot be cancelled.");return end
+    local ok,err=pcall(C_AuctionHouse.CancelAuction,id)
+    if ok then state.cancelPending=true;render() else print("Noki Trading: cancel failed: "..tostring(err)) end
+  end}
   local title=panel:CreateFontString(nil,"OVERLAY","GameFontNormalLarge");title:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-12);title:SetText("YOUR AUCTIONS")
   local scan=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");scan:SetSize(120,24);scan:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-20,-8);scan:SetText("Scan market");scan:SetScript("OnClick",function() local ok,err=core.Scan();if not ok then print("Noki Trading: "..tostring(err)) end end)
   summary=rowText(panel,16,-40,700);status=rowText(panel,16,-60,700)
   local header=CreateFrame("Frame",nil,panel,"BackdropTemplate");header:SetPoint("TOPLEFT",panel,"TOPLEFT",12,-82);header:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-12,-82);header:SetHeight(21);header:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});header:SetBackdropColor(.13,.18,.17,1)
-  for _,col in ipairs({{"ITEM / STACK",4,148},{"UNIT",155,55},{"TOTAL",210,68},{"MKT LOW",278,70},{"STATUS",348,80},{"LOWER",428,45},{"DEPOSIT",473,55},{"TIME",528,42}}) do local label=header:CreateFontString(nil,"OVERLAY","GameFontNormalSmall");label:SetPoint("TOPLEFT",header,"TOPLEFT",col[2],-4);label:SetWidth(col[3]);label:SetJustifyH("LEFT");label:SetText(col[1]) end
+  for _,col in ipairs({{"ITEM",4,200},{"QTY",205,65},{"UNIT",270,80},{"TOTAL",350,90},{"MKT LOW",440,85},{"STATUS",525,75},{"LOWER",600,65},{"DEPOSIT",665,80},{"TIME",745,60}}) do local label=header:CreateFontString(nil,"OVERLAY","GameFontNormalSmall");label:SetPoint("TOPLEFT",header,"TOPLEFT",col[2],-4);label:SetWidth(col[3]);label:SetJustifyH("LEFT");label:SetText(col[1]) end
   rows={}
   for i=1,8 do
     local row=CreateFrame("Frame",nil,panel,"BackdropTemplate");row:SetPoint("TOPLEFT",panel,"TOPLEFT",12,-104-(i-1)*32);row:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-12,-104-(i-1)*32);row:SetHeight(30);row:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});row:SetBackdropColor(i%2==0 and .12 or .08,.12,.12,.95)
-    row.name=rowText(row,4,-8,148);row.unit=rowText(row,155,-8,55);row.total=rowText(row,210,-8,68);row.low=rowText(row,278,-8,70);row.state=rowText(row,348,-8,80);row.ahead=rowText(row,428,-8,45);row.deposit=rowText(row,473,-8,55);row.time=rowText(row,528,-8,42)
+    row.name=rowText(row,4,-8,200);row.quantity=rowText(row,205,-8,65);row.unit=rowText(row,270,-8,80);row.total=rowText(row,350,-8,90);row.low=rowText(row,440,-8,85);row.state=rowText(row,525,-8,75);row.ahead=rowText(row,600,-8,65);row.deposit=rowText(row,665,-8,80);row.time=rowText(row,745,-8,60)
     row.view=CreateFrame("Button",nil,row,"UIPanelButtonTemplate");row.view:SetSize(50,22);row.view:SetPoint("RIGHT",row,"RIGHT",-60,0);row.view:SetText("View");row.view:SetScript("OnClick",function()
       local item=row.item
       if not item or not item.itemKey or not core.active then return end
@@ -162,9 +173,7 @@ local function createPanel()
     row.cancel=CreateFrame("Button",nil,row,"UIPanelButtonTemplate");row.cancel:SetSize(54,22);row.cancel:SetPoint("RIGHT",row,"RIGHT",-4,0);row.cancel:SetText("Cancel");row.cancel:SetScript("OnClick",function()
       local item=row.item
       if not item or state.cancelPending or not core.active or not C_AuctionHouse.CancelAuction then return end
-      if C_AuctionHouse.CanCancelAuction and not C_AuctionHouse.CanCancelAuction(item.auctionID) then print("Noki Trading: this auction cannot be cancelled.");return end
-      local ok,err=pcall(C_AuctionHouse.CancelAuction,item.auctionID)
-      if ok then state.cancelPending=true;render() else print("Noki Trading: cancel failed: "..tostring(err)) end
+      StaticPopup_Show("NOKI_CONFIRM_CANCEL_AUCTION",itemName(item),nil,item.auctionID)
     end)
     rows[i]=row
   end
