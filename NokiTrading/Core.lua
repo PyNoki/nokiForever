@@ -1,6 +1,19 @@
 -- Noki local beta: native price-table reader and auction browse scanner.
 NokiUnifiedCore = {listeners={}, phase="idle", active=false, working={}}
 local core=NokiUnifiedCore
+-- Some item-search results aggregate many unstackable items at one unit price.
+function core.ItemSearchUnitPrice(id,buyout,quantity)
+  if type(buyout)~="number" or buyout<=0 or type(quantity)~="number" or quantity<=0 then return nil end
+  if quantity==1 then return buyout end
+  local saved=NokiUnifiedMarketDB and NokiUnifiedMarketDB.itemCatalog
+  local item=saved and (saved[id] or saved[tostring(id)])
+  local maxStack=item and tonumber(item.maxStack)
+  if not maxStack and GetItemInfo then local ok,_,_,_,_,_,_,_,stack=pcall(GetItemInfo,id);if ok then maxStack=tonumber(stack) end end
+  if not maxStack and C_Item and C_Item.GetItemInfo then local ok,_,_,_,_,_,_,_,stack=pcall(C_Item.GetItemInfo,id);if ok then maxStack=tonumber(stack) end end
+  if maxStack==1 then return buyout end
+  if maxStack and maxStack>1 and quantity<=maxStack then return buyout/quantity end
+  return nil
+end
 local function now() return (GetServerTime and GetServerTime()) or time() end
 local regions={[1]="us",[2]="kr",[3]="eu",[4]="tw",[5]="cn"}
 function core.Market()

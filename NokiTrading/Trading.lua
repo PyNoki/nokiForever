@@ -73,7 +73,7 @@ end
 core.OwnedAuctionDeposit=auctionDeposit
 -- The market low includes the player's own listings when present in search results.
 local function lowestPrice(result)
-  if not result or not result.complete then return nil end
+  if not result or not result.complete or result.unresolved then return nil end
   local lowest
   for _,row in ipairs(result.rows or {}) do
     if type(row.price)=="number" and row.price>0 and (not lowest or row.price<lowest) then lowest=row.price end
@@ -116,6 +116,7 @@ core.OwnedRelistValues=relistValues
 local function comparison(auction)
   local key=auction.itemKey;local result=key and competitions[keyString(key)]
   if not result or not result.complete then return "checking",nil end
+  if result.unresolved then return "comparison uncertain",nil end
   local unit=auctionValues(auction)
   if not unit then return "price unknown",nil end
   local lower=0;local uncertain=false
@@ -263,15 +264,16 @@ local function checkDone()
     end
     return
   end
-  local arg=search.commodity and search.key.itemID or search.key;local rows={}
+  local arg=search.commodity and search.key.itemID or search.key;local rows={};local unresolved=false
   for i=1,count(arg) do
     local info=get(arg,i)
     if info and type(info.quantity)=="number" and info.quantity>0 then
-      local price=search.commodity and info.unitPrice or (info.buyoutAmount and info.buyoutAmount/info.quantity)
+      local price=search.commodity and info.unitPrice or core.ItemSearchUnitPrice(search.key.itemID,info.buyoutAmount,info.quantity)
       if type(price)=="number" and price>0 then rows[#rows+1]={price=price,quantity=info.quantity,ownMixed=info.containsOwnerItem==true} end
+      if not search.commodity and type(info.buyoutAmount)=="number" and info.buyoutAmount>0 and not price then unresolved=true end
     end
   end
-  competitions[search.keyString]={complete=true,rows=rows};state.search=nil;state.index=state.index+1;render()
+  competitions[search.keyString]={complete=true,rows=rows,unresolved=unresolved};state.search=nil;state.index=state.index+1;render()
 end
 local function pump()
   if not core.active or core.phase~="idle" or state.search or state.index>#state.queue then return end

@@ -136,15 +136,17 @@ local function collectItem(key)
   if type(key) ~= "table" or not key.itemID or not ah or not ah.GetNumItemSearchResults or not ah.GetItemSearchResultInfo then return end
   local ok, count = pcall(ah.GetNumItemSearchResults, key)
   if not ok or type(count) ~= "number" or count == 0 then return end
-  local quantity, lowest, detailRows = 0, nil, {}
+  local quantity, lowest, detailRows, unresolved = 0, nil, {}, false
   for i = 1, count do
     local success, row = pcall(ah.GetItemSearchResultInfo, key, i)
     if not success or type(row) ~= "table" or type(row.quantity) ~= "number" then return end
     quantity = quantity + row.quantity
     if type(row.buyoutAmount) == "number" and row.buyoutAmount > 0 and row.quantity > 0 then
-      local price = row.buyoutAmount / row.quantity
-      detailRows[#detailRows + 1] = {unitPrice = price, buyoutAmount = row.buyoutAmount, quantity = row.quantity, auctionID = row.auctionID, itemLink = row.itemLink, timeLeft = row.timeLeft}
-      if not lowest or price < lowest then lowest = price end
+      local price = NokiUnifiedCore.ItemSearchUnitPrice(key.itemID,row.buyoutAmount,row.quantity)
+      if price then
+        detailRows[#detailRows + 1] = {unitPrice = price, buyoutAmount = row.buyoutAmount, quantity = row.quantity, auctionID = row.auctionID, itemLink = row.itemLink, timeLeft = row.timeLeft}
+        if not lowest or price < lowest then lowest = price end
+      else unresolved=true end
     end
   end
   local complete = false
@@ -152,6 +154,7 @@ local function collectItem(key)
     local success, full = pcall(ah.HasFullItemSearchResults, key)
     complete = success and full == true
   end
+  if unresolved then complete=false;lowest=nil end
   saveDetail(key.itemID, "item_listings", {itemID = key.itemID, itemLevel = key.itemLevel, itemSuffix = key.itemSuffix, battlePetSpeciesID = key.battlePetSpeciesID}, detailRows, complete)
   -- Retain the search key: variants of one item must not be treated as a whole market.
   record(key.itemID, {time = now(), source = "item_search", price = lowest, quantity = quantity, complete = complete, itemKey = {itemID = key.itemID, itemLevel = key.itemLevel, itemSuffix = key.itemSuffix, battlePetSpeciesID = key.battlePetSpeciesID}})
