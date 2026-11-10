@@ -59,7 +59,7 @@ local function getTable()
   local src=type(NokiUnifiedTables)=="table" and NokiUnifiedTables[market]
   local imported=NokiUnifiedCoreDB and NokiUnifiedCoreDB.importedTables and NokiUnifiedCoreDB.importedTables[market]
   if type(imported)=="table" and type(imported.text)=="string" and (type(src)~="table" or (tonumber(imported.updated) or 0)>(tonumber(src.updated) or 0)) then src=imported end
-  if type(src)~="table" or type(src.text)~="string" then return nil,"No market table; use the Noki Market Updater" end
+  if type(src)~="table" or type(src.text)~="string" then return nil,"No market table; use the Noki Trading Updater" end
   local cache=tableCache[market]
   if cache and cache.src==src then return cache end
   local rows={};local n=0

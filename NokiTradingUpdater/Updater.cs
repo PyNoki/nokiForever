@@ -20,7 +20,7 @@ sealed class Updater : Form {
  string cacheDir=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"NokiTradingUpdater");
  string settings { get { return Path.Combine(cacheDir,"settings.txt"); } }
  public Updater(){
-  Text="Noki Market Updater";ClientSize=new Size(590,430);FormBorderStyle=FormBorderStyle.FixedDialog;MaximizeBox=false;StartPosition=FormStartPosition.CenterScreen;
+  Text="Noki Trading Updater";ClientSize=new Size(590,430);FormBorderStyle=FormBorderStyle.FixedDialog;MaximizeBox=false;StartPosition=FormStartPosition.CenterScreen;
   Controls.Add(new Label{Text="AHledger market data for Noki Market",Left=20,Top=15,Width=540,Height=24,Font=new Font(Font,FontStyle.Bold)});
   AddLabel("Region",20,53);AddLabel("Ruleset",175,53);AddLabel("Faction",365,53);
   Setup(region,20,75,140,new[]{"US","EU","CN"});Setup(ruleset,175,75,175,new[]{"Normal","PvP","RP","RP PvP"});Setup(faction,365,75,200,new[]{"Alliance","Horde"});
@@ -61,7 +61,7 @@ sealed class Updater : Form {
   string text;using(var client=new WebClient()){client.Headers.Add(HttpRequestHeader.UserAgent,"NokiTradingUpdater/1.0");text=client.DownloadString(url);}
   string market="forever/"+rule+"/"+fact+"/"+reg; Validate(text,market);
   Directory.CreateDirectory(cacheDir);string key=rule+"_"+fact+"_"+reg;File.WriteAllText(Path.Combine(cacheDir,key+".txt"),text,new UTF8Encoding(false));
-  var result=new StringBuilder("-- Data from AHledger (ahledger.com), fetched by Noki Market Updater.\nNokiUnifiedTables = NokiUnifiedTables or {}\n");int count=0;
+  var result=new StringBuilder("-- Data from AHledger (ahledger.com), fetched by Noki Trading Updater.\nNokiUnifiedTables = NokiUnifiedTables or {}\n");int count=0;
   foreach(string file in Directory.GetFiles(cacheDir,"*.txt")){
    string name=Path.GetFileNameWithoutExtension(file);if(!Regex.IsMatch(name,@"^(normal|pvp|rp|rppvp)_(alliance|horde)_(us|eu|cn)$"))continue;
    string[] parts=name.Split('_');string m="forever/"+parts[0]+"/"+parts[1]+"/"+parts[2];string item=File.ReadAllText(file);string[] parsed=Validate(item,m);if(m==market)count=int.Parse(parsed[2]);
@@ -113,7 +113,7 @@ sealed class Updater : Form {
  async Task CheckAddon(){
   installAddon.Enabled=false;availableVersion=null;versionStatus.Text="Checking for addon updates...";string dir=folder.Text.Trim();
   try{string localPath=Path.Combine(dir,"NokiTrading.toc");if(!File.Exists(localPath))throw new Exception("Select the NokiTrading addon folder");string local=TocVersion(File.ReadAllText(localPath));string remote=await Task.Run(()=>TocVersion(DownloadText(TocUrl)));if(remote==null)throw new Exception("No published addon version was found");
-   int cmp=CompareVersion(remote,local);if(cmp>0){availableVersion=remote;installAddon.Enabled=true;versionStatus.Text="New addon update detected: "+local+" to "+remote;if(lastNotifiedVersion!=remote){lastNotifiedVersion=remote;MessageBox.Show("A new addon update ("+remote+") is available. Click Install addon update to install it.","Noki Market update");}}else versionStatus.Text="Addon is up to date ("+local+").";
+   int cmp=CompareVersion(remote,local);if(cmp>0){availableVersion=remote;installAddon.Enabled=true;versionStatus.Text="New addon update detected: "+local+" to "+remote;if(lastNotifiedVersion!=remote){lastNotifiedVersion=remote;MessageBox.Show("A new addon update ("+remote+") is available. Click Install addon update to install it.","Noki Trading update");}}else versionStatus.Text="Addon is up to date ("+local+").";
   }catch(WebException e){var response=e.Response as HttpWebResponse;if(response!=null&&response.StatusCode==HttpStatusCode.NotFound)versionStatus.Text="No published addon update found (404). Market-data updates still work.";else versionStatus.Text="Could not check addon updates: "+e.Message+". Check the GitHub repository.";}
   catch(Exception e){versionStatus.Text="Could not check addon updates: "+e.Message+". Check the GitHub repository.";}
  }
@@ -143,3 +143,4 @@ sealed class Updater : Form {
  }
 
 }
+
