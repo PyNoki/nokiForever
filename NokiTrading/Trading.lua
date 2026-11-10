@@ -139,8 +139,8 @@ local function render()
     local item=owned[scrollOffset+i];row.item=item
     if item then
       local expanded=expandedAuction==item.auctionID
-      row:ClearAllPoints();row:SetPoint("TOPLEFT",panel,"TOPLEFT",12,rowY);row:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-12,rowY);row:SetHeight(expanded and 94 or 30)
-      rowY=rowY-(expanded and 96 or 32)
+      row:ClearAllPoints();row:SetPoint("TOPLEFT",panel,"TOPLEFT",12,rowY);row:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-12,rowY);row:SetHeight(expanded and 130 or 30)
+      rowY=rowY-(expanded and 132 or 32)
       local name=itemName(item)
       local unit,total=auctionValues(item)
       local condition,ahead=comparison(item)
@@ -150,16 +150,17 @@ local function render()
       row.expand:SetText(expanded and "-" or "+");row.detail:SetShown(expanded)
       if expanded then
         local match=relistValues(item.quantity,marketLow,false);local under=relistValues(item.quantity,marketLow,true)
+        local current=unit and total and {unit=unit,gross=total,net=math.floor(total*.95)} or nil
         local vendor=vendorCost(item.itemKey.itemID,item.quantity)
         local function scenario(label,value)
           if not value then return label..": --" end
           local pack=""
           if vendor then local packGross=value.unit*vendor.pack;local packNet=math.floor(packGross*.95);pack=" | Pack gross "..formatMoney(packGross)..", profit "..formatMoney(packNet-vendor.price) end
-          return label..": "..formatMoney(value.unit).."/unit"..pack.." | Listing gross "..formatMoney(value.gross)..(vendor and (", profit "..formatMoney(value.net-vendor.cost)) or (", after cut "..formatMoney(value.net)))
+          return label..": "..formatMoney(value.unit).."/unit"..pack.." | Listing gross "..formatMoney(value.gross)..", after cut "..formatMoney(value.net)..(vendor and (", profit "..formatMoney(value.net-vendor.cost)) or ", profit --")
         end
         local source=vendor and ((vendor.observed and "Last seen at " or "Vendor reference: ")..tostring(vendor.vendor).." | 1 pack: "..vendor.pack.." for "..formatMoney(vendor.price).." | "..vendor.packs.." packs: "..formatMoney(vendor.cost)..(vendor.limited and " | LIMITED STOCK" or "").." | Whole packs; verify price") or "No vendor purchase price in reference data; profit unavailable."
         local remainder=vendor and (vendor.packs*vendor.pack-item.quantity) or 0
-        row.detail:SetText(source.."\n"..scenario("Match",match).."\n"..scenario("Under 1c",under).."\nProfit after 5% AH cut; whole-pack cost"..(remainder>0 and (" includes "..remainder.." extra units") or "").."; deposits excluded.")
+        row.detail:SetText(source.."\n"..scenario("Current",current).."\n"..scenario("Match",match).."\n"..scenario("Under 1c",under).."\nProfit after 5% AH cut; whole-pack cost"..(remainder>0 and (" includes "..remainder.." extra units") or "").."; deposits excluded.")
       end
       row.cancel:SetEnabled(not state.cancelPending and item.auctionID~=nil);row:Show()
     else row:Hide() end
