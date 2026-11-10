@@ -26,8 +26,14 @@ local function render()
     if entry then
       local name,icon
       if GetItemInfo then local itemName,_,_,_,_,_,_,_,_,itemIcon=GetItemInfo(entry.itemID);name,icon=itemName,itemIcon end
+      if type(name)~="string" or name=="" then name=nil end
+      if not name and C_Item and C_Item.GetItemInfo then local ok,itemName=pcall(C_Item.GetItemInfo,entry.itemID);if ok then name=itemName end end
+      if type(name)~="string" or name=="" then name=nil end
+      local catalog=NokiUnifiedMarketDB and NokiUnifiedMarketDB.itemCatalog
+      local cached=catalog and (catalog[tostring(entry.itemID)] or catalog[entry.itemID])
+      if not name and cached and type(cached.name)=="string" and cached.name~="" then name=cached.name end
       if not icon and C_Item and C_Item.GetItemIconByID then local ok,result=pcall(C_Item.GetItemIconByID,entry.itemID);if ok then icon=result end end
-      if not name and not requestedItems[entry.itemID] and C_Item and C_Item.RequestLoadItemDataByID then requestedItems[entry.itemID]=true;pcall(C_Item.RequestLoadItemDataByID,entry.itemID) end
+      if (not name or not icon) and not requestedItems[entry.itemID] and C_Item and C_Item.RequestLoadItemDataByID then requestedItems[entry.itemID]=true;pcall(C_Item.RequestLoadItemDataByID,entry.itemID) end
       row.itemID=entry.itemID;row.icon:SetTexture(icon or "Interface\\Icons\\INV_Misc_QuestionMark")
       row.item:SetText(name or ("Item #"..entry.itemID));row.when:SetText(date("%Y-%m-%d %H:%M",entry.time));row.character:SetText(entry.character or "?");row.quantity:SetText(entry.quantity and tostring(entry.quantity) or "--")
       row.price:SetText(entry.paidTotal and ("Paid: "..money(entry.paidTotal)) or entry.quotedTotal and ("Quote: "..money(entry.quotedTotal)) or "--");row:Show()
