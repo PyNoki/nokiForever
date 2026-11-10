@@ -48,7 +48,8 @@ local function refresh()
   data={}
   local market=core.Market();local activityMarket,err=NokiUnifiedMarketActivityMarket()
   local book=market and NokiUnifiedCoreDB and NokiUnifiedCoreDB.prices and NokiUnifiedCoreDB.prices[market]
-  local info=activityMarket and activityMarket==market and NokiUnifiedAPI and NokiUnifiedAPI.GetTableInfo and NokiUnifiedAPI.GetTableInfo()
+  local normalizedMarket=type(market)=="string" and market:lower():gsub("/", ".") or nil
+  local info=activityMarket and activityMarket==normalizedMarket and NokiUnifiedAPI and NokiUnifiedAPI.GetTableInfo and NokiUnifiedAPI.GetTableInfo()
   local now=(GetServerTime and GetServerTime()) or time()
   local catalog=NokiUnifiedMarketDB and NokiUnifiedMarketDB.itemCatalog or {}
   if book and book.items then
