@@ -13,6 +13,7 @@ local openResale,checkResaleItem,tryOpenResale
 local returningFromResaleView,skipNextMarketRefresh,resaleReturnItem=false,false,nil
 local resaleQueue,resaleIndex,resaleEpoch,resaleChecked,resaleUnavailable,resaleUnknown={},1,0,0,0,0
 local resaleInflight,resaleOpenRequest,resaleScanTime=false,nil,nil
+local resaleCache
 local knownButton, captureButton, minProfitLabel, searchHint
 local sortLabels = {gain="Gain per unit", roi="Return %", activity="Est. sales/day"}
 local ROWS_PER_PAGE = 7
@@ -258,6 +259,7 @@ local function updateResaleStatus()
 end
 local function calculateResale()
   results={};selectedID=nil;resaleEpoch=resaleEpoch+1;resaleQueue={};resaleIndex=1;resaleChecked=0;resaleUnavailable=0;resaleUnknown=0;resaleScanTime=nil;resaleOpenRequest=nil
+  resaleCache={results=results}
   local marketID=NokiUnifiedCore and NokiUnifiedCore.Market()
   local book=marketID and NokiUnifiedCoreDB and NokiUnifiedCoreDB.prices and NokiUnifiedCoreDB.prices[marketID]
   if not book or not book.items then status:SetText("NO SCAN | Open the auction house and run a scan.");filterAndSort();return end
@@ -475,7 +477,7 @@ local function createPanel()
   local minLabel=makeText(panel,nil,170,-59,90,"GameFontNormalSmall");minLabel:SetText("MIN EST./DAY")
   minSalesBox=CreateFrame("EditBox",nil,panel,"InputBoxTemplate");minSalesBox:SetSize(48,24);minSalesBox:SetPoint("TOPLEFT",panel,"TOPLEFT",260,-54);minSalesBox:SetAutoFocus(false);minSalesBox:SetFontObject("GameFontHighlight");minSalesBox:SetText(tostring((NokiUnifiedMarketDB and NokiUnifiedMarketDB.flipMinSalesPerDay) or 1));minSalesBox:SetScript("OnEnterPressed",function(self) self:ClearFocus();calculate() end);minSalesBox:SetScript("OnEscapePressed",function(self) self:ClearFocus() end)
   searchBox=CreateFrame("EditBox",nil,panel,"InputBoxTemplate");searchBox:SetSize(125,24);searchBox:SetPoint("TOPLEFT",panel,"TOPLEFT",330,-54);searchBox:SetAutoFocus(false);searchBox:SetMaxLetters(60);searchBox:SetScript("OnTextChanged",function() if panel and status then filterAndSort(true) end end);searchBox:SetScript("OnEscapePressed",function(self) self:ClearFocus() end)
-  searchBox:SetScript("OnEnterPressed",function(self) self:ClearFocus();scrollOffset=0;calculate() end)
+  searchBox:SetScript("OnEnterPressed",function(self) self:ClearFocus();scrollOffset=0;if viewMode=="resale" then filterAndSort() else calculate() end end)
   searchHint=makeText(panel,nil,365,-80,130,"GameFontDisableSmall");searchHint:SetText("Search name, vendor or ID")
   sortButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");sortButton:SetSize(140,24);sortButton:SetPoint("TOPLEFT",panel,"TOPLEFT",470,-54);sortButton:SetText("Sort: " .. sortLabels[sortMode]);sortButton:SetScript("OnClick",function() sortMode=sortMode=="gain" and "roi" or sortMode=="roi" and "activity" or "gain";sortButton:SetText("Sort: " .. (viewMode=="craft" and sortMode=="gain" and "Gain per craft" or sortLabels[sortMode]));filterAndSort(true) end)
   local pricing=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");pricing:SetSize(95,24);pricing:SetPoint("TOPLEFT",panel,"TOPLEFT",620,-54)
@@ -541,7 +543,7 @@ local function createPanel()
   knownButton:SetScript("OnClick",function() NokiUnifiedMarketDB.craftKnownOnly=not NokiUnifiedMarketDB.craftKnownOnly;knownButton:SetText(NokiUnifiedMarketDB.craftKnownOnly and "Known only" or "All recipes");calculate() end)
   captureButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");captureButton:SetSize(110,22);captureButton:SetPoint("TOPLEFT",panel,"TOPLEFT",590,-77);captureButton:SetText("Capture recipes");captureButton:SetScript("OnClick",function() if NokiUnifiedMarketCaptureRecipes then NokiUnifiedMarketCaptureRecipes();calculate() end end)
   local importButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");importButton:SetSize(115,22);importButton:SetPoint("TOPLEFT",panel,"TOPLEFT",845,-77);importButton:SetText("Import data");importButton:SetScript("OnClick",function() NokiUnifiedCore.ShowImport() end)
-  local applyButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");applyButton:SetSize(110,22);applyButton:SetPoint("TOPLEFT",panel,"TOPLEFT",470,-77);applyButton:SetText("Apply / Search");applyButton:SetScript("OnClick",function() scrollOffset=0;calculate() end)
+  local applyButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");applyButton:SetSize(110,22);applyButton:SetPoint("TOPLEFT",panel,"TOPLEFT",470,-77);applyButton:SetText("Apply / Search");applyButton:SetScript("OnClick",function() scrollOffset=0;if viewMode=="resale" then filterAndSort() else calculate() end end)
   applyMode=function(preserveResale)
     local lookup=viewMode=="lookup";local resale=viewMode=="resale";local simple=lookup or resale;local craft=viewMode=="craft"
     searchBox:ClearAllPoints();searchBox:SetPoint("TOPLEFT",panel,"TOPLEFT",simple and 90 or 330,-54)
@@ -566,7 +568,13 @@ local function createPanel()
     for i,label in ipairs(labels) do headerTexts[i]:SetText(label) end
     if preserveResale then render() else calculate() end
   end
-  modeButton:SetScript("OnClick",function() viewMode=viewMode=="flips" and "resale" or viewMode=="resale" and "lookup" or "flips";marketViewMode=viewMode;scrollOffset=0;applyMode() end)
+  modeButton:SetScript("OnClick",function()
+    if viewMode=="resale" and resaleCache then resaleCache.scrollOffset=scrollOffset;resaleCache.selectedID=selectedID end
+    viewMode=viewMode=="flips" and "resale" or viewMode=="resale" and "lookup" or "flips";marketViewMode=viewMode;scrollOffset=0
+    local preserve=viewMode=="resale" and resaleCache~=nil
+    if preserve then results=resaleCache.results;filterAndSort(false);scrollOffset=resaleCache.scrollOffset or 0;selectedID=resaleCache.selectedID;updateResaleStatus() end
+    applyMode(preserve)
+  end)
   applyMode()
   panel:SetScript("OnShow",function() updateControls();if skipNextMarketRefresh then skipNextMarketRefresh=false;render() else calculate() end end);panel:Hide()
   return panel
@@ -619,17 +627,15 @@ local function registerTab()
         AuctionHouseFrame:SetSize(previousWidth+220,previousHeight+160)
       end
       frame:Hide();frame:SetParent(self);frame:ClearAllPoints();frame:SetAllPoints(self)
-      local preserve=mode=="flips" and marketViewMode=="resale" and returningFromResaleView
+      local preserve=mode=="flips" and marketViewMode=="resale" and resaleCache~=nil
       returningFromResaleView=false
       viewMode=mode=="flips" and marketViewMode or mode;if not preserve then scrollOffset=0 end
+      if preserve then results=resaleCache.results;filterAndSort(false);scrollOffset=resaleCache.scrollOffset or 0;selectedID=resaleCache.selectedID;updateResaleStatus() end
       applyMode(preserve);skipNextMarketRefresh=preserve;frame:Show()
-      if preserve and resaleReturnItem then
-        local item=resaleReturnItem;resaleReturnItem=nil;item.live=false;item.viewed=true;item.lowQuantity=nil;item.buyCost=nil;item.totalGain=nil;item.checkError=nil
-        for i=#resaleQueue,resaleIndex,-1 do if resaleQueue[i]==item then table.remove(resaleQueue,i) end end
-        table.insert(resaleQueue,resaleIndex,item);updateResaleStatus();render()
-      end
+      resaleReturnItem=nil
     end)
     host:SetScript("OnHide",function()
+      if viewMode=="resale" and resaleCache then resaleCache.scrollOffset=scrollOffset;resaleCache.selectedID=selectedID end
       if previousWidth and previousHeight then AuctionHouseFrame:SetSize(previousWidth,previousHeight) end
       previousWidth=nil;previousHeight=nil
     end)
@@ -646,12 +652,15 @@ events:RegisterEvent("AUCTION_HOUSE_SHOW")
 events:RegisterEvent("AUCTION_HOUSE_CLOSED")
 events:RegisterEvent("ITEM_KEY_ITEM_INFO_RECEIVED")
 events:SetScript("OnEvent",function(_,event,id)
-  if event=="AUCTION_HOUSE_CLOSED" then returningFromResaleView=false;resaleReturnItem=nil;skipNextMarketRefresh=false;resaleOpenRequest=nil;resaleEpoch=resaleEpoch+1;NokiUnifiedCore.SetWorking("resaleView",false)
+  if event=="AUCTION_HOUSE_CLOSED" then returningFromResaleView=false;resaleReturnItem=nil;skipNextMarketRefresh=false;resaleOpenRequest=nil;resaleCache=nil;resaleEpoch=resaleEpoch+1;NokiUnifiedCore.SetWorking("resaleView",false)
   elseif event=="ITEM_KEY_ITEM_INFO_RECEIVED" then if resaleOpenRequest and resaleOpenRequest.item.id==id and resaleVisible() then tryOpenResale() end
   elseif C_Timer and C_Timer.After then C_Timer.After(0.5,registerTab) else registerTab() end
 end)
 local resaleElapsed=0;events:SetScript("OnUpdate",function(_,delta) resaleElapsed=resaleElapsed+delta;if resaleElapsed<.75 then return end;resaleElapsed=0;pumpResale() end)
-function NokiUnifiedMarketRefreshFlips() if panel and panel:IsShown() then calculate() end end
+function NokiUnifiedMarketRefreshFlips()
+  resaleCache=nil
+  if panel and panel:IsShown() then calculate() end
+end
 function NokiUnifiedMarketShowCrafting()
   if not AuctionHouseFrame or not AuctionHouseFrame:IsShown() then print("Noki Market: open the auction house first.");return end
   registerTab()
