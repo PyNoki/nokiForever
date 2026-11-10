@@ -142,12 +142,24 @@ local function createPanel()
   local scan=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");scan:SetSize(120,24);scan:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-20,-8);scan:SetText("Scan market");scan:SetScript("OnClick",function() local ok,err=core.Scan();if not ok then print("Noki Trading: "..tostring(err)) end end)
   summary=rowText(panel,16,-40,700);status=rowText(panel,16,-60,700)
   local header=CreateFrame("Frame",nil,panel,"BackdropTemplate");header:SetPoint("TOPLEFT",panel,"TOPLEFT",12,-82);header:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-12,-82);header:SetHeight(21);header:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});header:SetBackdropColor(.13,.18,.17,1)
-  for _,col in ipairs({{"ITEM / STACK",4,175},{"UNIT",180,65},{"TOTAL",245,75},{"MARKET LOW",320,78},{"STATUS",398,92},{"LOWER",490,55},{"DEPOSIT",545,72},{"TIME",617,50}}) do local label=header:CreateFontString(nil,"OVERLAY","GameFontNormalSmall");label:SetPoint("TOPLEFT",header,"TOPLEFT",col[2],-4);label:SetWidth(col[3]);label:SetJustifyH("LEFT");label:SetText(col[1]) end
+  for _,col in ipairs({{"ITEM / STACK",4,148},{"UNIT",155,55},{"TOTAL",210,68},{"MKT LOW",278,70},{"STATUS",348,80},{"LOWER",428,45},{"DEPOSIT",473,55},{"TIME",528,42}}) do local label=header:CreateFontString(nil,"OVERLAY","GameFontNormalSmall");label:SetPoint("TOPLEFT",header,"TOPLEFT",col[2],-4);label:SetWidth(col[3]);label:SetJustifyH("LEFT");label:SetText(col[1]) end
   rows={}
   for i=1,8 do
     local row=CreateFrame("Frame",nil,panel,"BackdropTemplate");row:SetPoint("TOPLEFT",panel,"TOPLEFT",12,-104-(i-1)*32);row:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-12,-104-(i-1)*32);row:SetHeight(30);row:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});row:SetBackdropColor(i%2==0 and .12 or .08,.12,.12,.95)
-    row.name=rowText(row,4,-8,175);row.unit=rowText(row,180,-8,65);row.total=rowText(row,245,-8,75);row.low=rowText(row,320,-8,78);row.state=rowText(row,398,-8,92);row.ahead=rowText(row,490,-8,55);row.deposit=rowText(row,545,-8,72);row.time=rowText(row,617,-8,50)
-    row.cancel=CreateFrame("Button",nil,row,"UIPanelButtonTemplate");row.cancel:SetSize(72,22);row.cancel:SetPoint("RIGHT",row,"RIGHT",-4,0);row.cancel:SetText("Cancel");row.cancel:SetScript("OnClick",function()
+    row.name=rowText(row,4,-8,148);row.unit=rowText(row,155,-8,55);row.total=rowText(row,210,-8,68);row.low=rowText(row,278,-8,70);row.state=rowText(row,348,-8,80);row.ahead=rowText(row,428,-8,45);row.deposit=rowText(row,473,-8,55);row.time=rowText(row,528,-8,42)
+    row.view=CreateFrame("Button",nil,row,"UIPanelButtonTemplate");row.view:SetSize(50,22);row.view:SetPoint("RIGHT",row,"RIGHT",-60,0);row.view:SetText("View");row.view:SetScript("OnClick",function()
+      local item=row.item
+      if not item or not item.itemKey or not core.active then return end
+      if core.phase~="idle" then print("Noki Trading: wait for the market scan to finish, then select View.");return end
+      if not AuctionHouseFrame or type(AuctionHouseFrame.SelectBrowseResult)~="function" then print("Noki Trading: the auction house buy view is unavailable.");return end
+      local low=lowestPrice(competitions[keyString(item.itemKey)])
+      if not low then print("Noki Trading: wait for competition checks or select Scan market before viewing this item.");return end
+      state.queue={};state.index=1;state.search=nil;state.needChecks=false;core.SetWorking("competition",false)
+      local ok,err=pcall(AuctionHouseFrame.SelectBrowseResult,AuctionHouseFrame,{itemKey=item.itemKey,minPrice=low})
+      if not ok then print("Noki Trading: could not open the buy view: "..tostring(err));return end
+      NokiUnifiedTabs:HideAll()
+    end)
+    row.cancel=CreateFrame("Button",nil,row,"UIPanelButtonTemplate");row.cancel:SetSize(54,22);row.cancel:SetPoint("RIGHT",row,"RIGHT",-4,0);row.cancel:SetText("Cancel");row.cancel:SetScript("OnClick",function()
       local item=row.item
       if not item or state.cancelPending or not core.active or not C_AuctionHouse.CancelAuction then return end
       if C_AuctionHouse.CanCancelAuction and not C_AuctionHouse.CanCancelAuction(item.auctionID) then print("Noki Trading: this auction cannot be cancelled.");return end
