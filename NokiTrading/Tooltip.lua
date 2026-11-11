@@ -155,14 +155,21 @@ local function addValue(tooltip,data)
   end
   tooltip:Show()
 end
-if TooltipDataProcessor and Enum and Enum.TooltipDataType and Enum.TooltipDataType.Item then TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item,addValue)
-elseif GameTooltip and GameTooltip.HookScript then GameTooltip:HookScript("OnTooltipSetItem",addValue) end
+local function itemTooltipCallback(tooltip,data)
+  if securecallfunction then securecallfunction(addValue,tooltip,data) else addValue(tooltip,data) end
+end
+if TooltipDataProcessor and Enum and Enum.TooltipDataType and Enum.TooltipDataType.Item then TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item,itemTooltipCallback)
+elseif GameTooltip and GameTooltip.HookScript then GameTooltip:HookScript("OnTooltipSetItem",itemTooltipCallback) end
 local f=CreateFrame("Frame");f:RegisterEvent("MODIFIER_STATE_CHANGED");f:RegisterEvent("GET_ITEM_INFO_RECEIVED");f:SetScript("OnEvent",function(_,event,key,success)
+  if not GameTooltip or not GameTooltip.IsShown or not GameTooltip:IsShown() or not GameTooltip.RefreshData or not GameTooltip.GetItem then return end
+  if GameTooltip.IsForbidden and GameTooltip:IsForbidden() then return end
+  local ok,_,link=pcall(GameTooltip.GetItem,GameTooltip)
+  local itemID=ok and type(link)=="string" and tonumber(link:match("item:(%d+)"))
+  if not itemID then return end
   if event=="MODIFIER_STATE_CHANGED" then
     if key~="LSHIFT" and key~="RSHIFT" then return end
   else
-    if not success or not GameTooltip or not auctionTooltip(GameTooltip) or not GameTooltip.GetItem then return end
-    local _,link=GameTooltip:GetItem();if not link or tonumber(link:match("item:(%d+)"))~=key then return end
+    if not success or not auctionTooltip(GameTooltip) or itemID~=key then return end
   end
-  if GameTooltip and GameTooltip.IsShown and GameTooltip:IsShown() and GameTooltip.RefreshData then GameTooltip:RefreshData() end
+  if securecallfunction then securecallfunction(GameTooltip.RefreshData,GameTooltip) else GameTooltip:RefreshData() end
 end)
