@@ -16,7 +16,7 @@ The addon only reports range and does not cast spells. Its range estimates are a
 
 Noki Trading combines Market, Crafting, auction tracking, scanning, tooltips, and Help in one addon. It works without the AHledger or Auctionator addons. Daily sales estimates come from market data maintained by AHledger (ahledger.com).
 
-[Download Noki Trading 1.0.49](https://github.com/PyNoki/nokiForever/raw/refs/heads/main/NokiTrading-1.0.49.zip). Close WoW, extract the ZIP, and copy the `NokiTrading` folder to `World of Warcraft/_forever_/Interface/AddOns/`. Enable **Noki Trading** at the character screen and disable older Noki Market, Noki Crafting, Noki Trading Core, and unified beta addons.
+[Download Noki Trading 1.0.50](https://github.com/PyNoki/nokiForever/raw/refs/heads/main/NokiTrading-1.0.50.zip). Close WoW, extract the ZIP, and copy the `NokiTrading` folder to `World of Warcraft/_forever_/Interface/AddOns/`. Enable **Noki Trading** at the character screen and disable older Noki Market, Noki Crafting, Noki Trading Core, and unified beta addons.
 
 The combined bag footer shows an estimated auction value for carried items. It uses the last scanned price, falling back to the imported auction reference, and marks the total with an asterisk when item stacks lack prices. Hover for details. The estimate includes bound items and excludes auction fees; prices may be stale. This feature needs in-game testing.
 
@@ -28,7 +28,7 @@ The Mispriced tab checks individual items from the latest market scan for a gap 
 
 On a Demand row, View opens the normal auction buy screen. The + button requests live price tiers, waiting for a running scan or listing query if needed, highlights the best estimated stopping point, spend, resale price and profit, and shows cataloged recipe uses sorted by required skill. Scroll over the recipe list or use its arrows; the catalog can be incomplete and a star marks trainer requirements to check. The suggested breakpoint maximizes estimated proceeds after a 5% cut, assuming every bought unit resells at one copper below the next tier; deposits and future changes are excluded. The last tier has no next price, so it has no estimated resale profit. Incomplete, ambiguous, or own/account listings prevent a buyout estimate.
 
-The Purchases tab records purchase events while the addon is enabled. Commodity prices are quotes, not verified payments; missing quantities and prices show as `--`. Earlier purchases and bids won later may not be recorded.
+The Purchases tab records purchase events while the addon is enabled and shows the average price per item (total divided by quantity). Commodity prices are quotes, not verified payments; missing quantities and prices show as `--`. Earlier purchases and bids won later may not be recorded.
 
 For new listings made through the normal sell screen, Your Auctions saves the displayed deposit when it can match the confirmed listing. Deposits for older listings and ambiguous multi-item posts may be unavailable.
 

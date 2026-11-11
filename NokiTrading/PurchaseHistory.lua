@@ -19,6 +19,16 @@ local function money(copper)
   if c>0 or #parts==0 then parts[#parts+1]=c..icons[3] end
   return table.concat(parts," ")
 end
+local function averageMoney(total,quantity)
+  if type(total)~="number" or total<0 or type(quantity)~="number" or quantity<=0 then return "--" end
+  local unit=math.floor(total/quantity*10000+0.5)/10000
+  local g=math.floor(unit/10000);local s=math.floor(unit%10000/100);local c=unit%100
+  local parts={};local icons={"|TInterface\\MoneyFrame\\UI-GoldIcon:12:12:0:0|t","|TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t","|TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t"}
+  if g>0 then parts[#parts+1]=g..icons[1] end
+  if s>0 then parts[#parts+1]=s..icons[2] end
+  if c>0 or #parts==0 then parts[#parts+1]=string.format("%.4f",c):gsub("0+$",""):gsub("%.$","")..icons[3] end
+  return table.concat(parts," ")
+end
 local function render()
   if not panel then return end
   local entries=history() or {};offset=math.max(0,math.min(offset,math.max(0,#entries-pageSize)))
@@ -41,7 +51,7 @@ local function render()
       if (not name or not icon) and not requestedItems[entry.itemID] and C_Item and C_Item.RequestLoadItemDataByID then requestedItems[entry.itemID]=true;pcall(C_Item.RequestLoadItemDataByID,entry.itemID) end
       row.itemID=entry.itemID;row.icon:SetTexture(icon or "Interface\\Icons\\INV_Misc_QuestionMark")
       row.item:SetText(name or ("Item #"..entry.itemID));row.when:SetText(date("%Y-%m-%d %H:%M",entry.time));row.character:SetText(entry.character or "?");row.quantity:SetText(entry.quantity and tostring(entry.quantity) or "--")
-      row.price:SetText(entry.paidTotal and ("Paid: "..money(entry.paidTotal)) or entry.quotedTotal and ("Quote: "..money(entry.quotedTotal)) or "--");row:Show()
+      row.price:SetText(entry.paidTotal and ("Paid: "..money(entry.paidTotal)) or entry.quotedTotal and ("Quote: "..money(entry.quotedTotal)) or "--");row.average:SetText(averageMoney(entry.paidTotal or entry.quotedTotal,entry.quantity));row:Show()
     else row:Hide() end
   end
   status:SetText(#entries==0 and "No purchases recorded yet." or ("Showing "..(offset+1).."-"..math.min(offset+pageSize,#entries).." of "..#entries.." purchases"))
@@ -59,16 +69,16 @@ local function createPanel()
   panel:SetFrameStrata("DIALOG");panel:SetFrameLevel(AuctionHouseFrame:GetFrameLevel()+50)
   panel:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1});panel:SetBackdropColor(.055,.065,.07,1);panel:SetBackdropBorderColor(.24,.30,.28,1)
   local title=panel:CreateFontString(nil,"OVERLAY","GameFontNormalLarge");title:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-14);title:SetText("PURCHASE HISTORY")
-  local note=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");note:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-40);note:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-16,-40);note:SetJustifyH("LEFT");note:SetText("Confirmed purchases recorded from now on. Quotes are not verified payments; -- means unavailable. Bids won later may be missing.")
+  local note=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");note:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-40);note:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-16,-40);note:SetJustifyH("LEFT");note:SetText("Confirmed purchases recorded from now on. Avg / item is total divided by quantity. Quotes are not verified payments; -- means unavailable. Bids won later may be missing.")
   local header=CreateFrame("Frame",nil,panel,"BackdropTemplate");header:SetPoint("TOPLEFT",panel,"TOPLEFT",12,-70);header:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-36,-70);header:SetHeight(22);header:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});header:SetBackdropColor(.13,.18,.17,1)
   local function text(parent,x,width,font)
     local label=parent:CreateFontString(nil,"OVERLAY",font or "GameFontHighlightSmall");label:SetPoint("LEFT",parent,"LEFT",x,0);label:SetWidth(width);label:SetJustifyH("LEFT");label:SetWordWrap(false);return label
   end
-  for _,col in ipairs({{"ITEM",32,220},{"DATE",265,145},{"CHARACTER",415,120},{"QTY",545,50},{"TOTAL",610,160}}) do text(header,col[2],col[3],"GameFontNormalSmall"):SetText(col[1]) end
+  for _,col in ipairs({{"ITEM",32,220},{"DATE",265,145},{"CHARACTER",415,120},{"QTY",545,50},{"TOTAL",610,160},{"AVG / ITEM",790,160}}) do text(header,col[2],col[3],"GameFontNormalSmall"):SetText(col[1]) end
   for i=1,pageSize do
     local row=CreateFrame("Frame",nil,panel,"BackdropTemplate");row:SetPoint("TOPLEFT",panel,"TOPLEFT",12,-93-(i-1)*32);row:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-36,-93-(i-1)*32);row:SetHeight(31);row:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});row:SetBackdropColor(i%2==0 and .12 or .08,.12,.12,.95)
     row.icon=row:CreateTexture(nil,"ARTWORK");row.icon:SetSize(24,24);row.icon:SetPoint("LEFT",row,"LEFT",4,0)
-    row.item=text(row,32,225);row.when=text(row,265,145);row.character=text(row,415,120);row.quantity=text(row,545,50);row.price=text(row,610,160)
+    row.item=text(row,32,225);row.when=text(row,265,145);row.character=text(row,415,120);row.quantity=text(row,545,50);row.price=text(row,610,160);row.average=text(row,790,160)
     row:EnableMouse(true);row:SetScript("OnEnter",function(self) if self.itemID and GameTooltip then GameTooltip:SetOwner(self,"ANCHOR_RIGHT");GameTooltip:SetItemByID(self.itemID);GameTooltip:Show() end end);row:SetScript("OnLeave",function() if GameTooltip then GameTooltip:Hide() end end)
     rows[i]=row
   end
