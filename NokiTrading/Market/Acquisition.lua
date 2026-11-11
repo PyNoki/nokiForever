@@ -72,7 +72,7 @@ end
 local widgets={}
 local function widget(parent)
   if widgets[parent] then return widgets[parent] end
-  local box=CreateFrame("Frame",nil,parent,"BackdropTemplate");box:SetSize(228,32);box:SetPoint("TOPRIGHT",parent,"TOPRIGHT",-40,-52);box:SetFrameLevel(parent:GetFrameLevel()+10);box:EnableMouse(true)
+  local box=CreateFrame("Frame",nil,parent,"BackdropTemplate");box:SetSize(228,32);box:SetPoint("TOPLEFT",parent,"TOPLEFT",150,-8);box:SetFrameLevel(parent:GetFrameLevel()+10);box:EnableMouse(true)
   local function line(x,y,width,text)
     local t=box:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");t:SetPoint("TOPLEFT",box,"TOPLEFT",x,y);t:SetWidth(width);t:SetHeight(14);t:SetJustifyH("LEFT");t:SetWordWrap(false);if text then t:SetText(text) end;return t
   end

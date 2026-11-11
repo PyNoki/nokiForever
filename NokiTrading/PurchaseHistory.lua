@@ -1,5 +1,6 @@
 -- Record only completed purchases; a commodity quote is not a verified receipt.
 local panel,rows,status,offset,quote,pending=nil,{},nil,0,nil,nil
+local scrollbar,updatingScrollbar
 local recentCommodity,pendingItem,recentItem
 local requestedItems={}
 local function now() return (GetServerTime and GetServerTime()) or time() end
@@ -21,6 +22,10 @@ end
 local function render()
   if not panel then return end
   local entries=history() or {};offset=math.max(0,math.min(offset,math.max(0,#entries-pageSize)))
+  if scrollbar then
+    local maxOffset=math.max(0,#entries-pageSize);updatingScrollbar=true
+    scrollbar:SetMinMaxValues(0,maxOffset);scrollbar:SetValue(offset);scrollbar:SetShown(maxOffset>0);updatingScrollbar=false
+  end
   for i,row in ipairs(rows) do
     local entry=entries[#entries-offset-i+1]
     if entry then
@@ -55,18 +60,25 @@ local function createPanel()
   panel:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1});panel:SetBackdropColor(.055,.065,.07,1);panel:SetBackdropBorderColor(.24,.30,.28,1)
   local title=panel:CreateFontString(nil,"OVERLAY","GameFontNormalLarge");title:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-14);title:SetText("PURCHASE HISTORY")
   local note=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");note:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-40);note:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-16,-40);note:SetJustifyH("LEFT");note:SetText("Confirmed purchases recorded from now on. Quotes are not verified payments; -- means unavailable. Bids won later may be missing.")
-  local header=CreateFrame("Frame",nil,panel,"BackdropTemplate");header:SetPoint("TOPLEFT",panel,"TOPLEFT",12,-70);header:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-20,-70);header:SetHeight(22);header:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});header:SetBackdropColor(.13,.18,.17,1)
+  local header=CreateFrame("Frame",nil,panel,"BackdropTemplate");header:SetPoint("TOPLEFT",panel,"TOPLEFT",12,-70);header:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-36,-70);header:SetHeight(22);header:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});header:SetBackdropColor(.13,.18,.17,1)
   local function text(parent,x,width,font)
     local label=parent:CreateFontString(nil,"OVERLAY",font or "GameFontHighlightSmall");label:SetPoint("LEFT",parent,"LEFT",x,0);label:SetWidth(width);label:SetJustifyH("LEFT");label:SetWordWrap(false);return label
   end
   for _,col in ipairs({{"ITEM",32,220},{"DATE",265,145},{"CHARACTER",415,120},{"QTY",545,50},{"TOTAL",610,160}}) do text(header,col[2],col[3],"GameFontNormalSmall"):SetText(col[1]) end
   for i=1,pageSize do
-    local row=CreateFrame("Frame",nil,panel,"BackdropTemplate");row:SetPoint("TOPLEFT",panel,"TOPLEFT",12,-93-(i-1)*32);row:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-20,-93-(i-1)*32);row:SetHeight(31);row:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});row:SetBackdropColor(i%2==0 and .12 or .08,.12,.12,.95)
+    local row=CreateFrame("Frame",nil,panel,"BackdropTemplate");row:SetPoint("TOPLEFT",panel,"TOPLEFT",12,-93-(i-1)*32);row:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-36,-93-(i-1)*32);row:SetHeight(31);row:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});row:SetBackdropColor(i%2==0 and .12 or .08,.12,.12,.95)
     row.icon=row:CreateTexture(nil,"ARTWORK");row.icon:SetSize(24,24);row.icon:SetPoint("LEFT",row,"LEFT",4,0)
     row.item=text(row,32,225);row.when=text(row,265,145);row.character=text(row,415,120);row.quantity=text(row,545,50);row.price=text(row,610,160)
     row:EnableMouse(true);row:SetScript("OnEnter",function(self) if self.itemID and GameTooltip then GameTooltip:SetOwner(self,"ANCHOR_RIGHT");GameTooltip:SetItemByID(self.itemID);GameTooltip:Show() end end);row:SetScript("OnLeave",function() if GameTooltip then GameTooltip:Hide() end end)
     rows[i]=row
   end
+  scrollbar=CreateFrame("Slider","NokiPurchaseHistoryScrollBar",panel,"UIPanelScrollBarTemplate");scrollbar:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-14,-110);scrollbar:SetSize(16,220);scrollbar:SetMinMaxValues(0,0);scrollbar:SetValueStep(1)
+  if scrollbar.SetObeyStepOnDrag then scrollbar:SetObeyStepOnDrag(true) end
+  scrollbar:SetScript("OnValueChanged",function(_,value) if not updatingScrollbar then offset=math.floor(value+.5);render() end end)
+  local function wheel(_,delta) offset=math.max(0,math.min(math.max(0,#(history() or {})-pageSize),offset-delta));render() end
+  panel:EnableMouseWheel(true);panel:SetScript("OnMouseWheel",wheel)
+  for _,row in ipairs(rows) do row:EnableMouseWheel(true);row:SetScript("OnMouseWheel",wheel) end
+  scrollbar:EnableMouseWheel(true);scrollbar:SetScript("OnMouseWheel",wheel)
   status=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");status:SetPoint("BOTTOMLEFT",panel,"BOTTOMLEFT",16,45)
   local older=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");older:SetSize(80,22);older:SetPoint("BOTTOMLEFT",panel,"BOTTOMLEFT",16,15);older:SetText("Older");older:SetScript("OnClick",function() offset=offset+pageSize;render() end)
   local newer=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");newer:SetSize(80,22);newer:SetPoint("LEFT",older,"RIGHT",8,0);newer:SetText("Newer");newer:SetScript("OnClick",function() offset=math.max(0,offset-pageSize);render() end)
