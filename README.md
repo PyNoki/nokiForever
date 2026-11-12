@@ -16,7 +16,7 @@ The addon only reports range and does not cast spells. Its range estimates are a
 
 Noki Trading combines Market, Crafting, auction tracking, scanning, tooltips, and Help in one addon. It works without the AHledger or Auctionator addons. Daily sales estimates come from market data maintained by AHledger (ahledger.com).
 
-[Download Noki Trading 1.0.51](https://github.com/PyNoki/nokiForever/raw/refs/heads/main/NokiTrading-1.0.51.zip). Close WoW, extract the ZIP, and copy the `NokiTrading` folder to `World of Warcraft/_forever_/Interface/AddOns/`. Enable **Noki Trading** at the character screen and disable older Noki Market, Noki Crafting, Noki Trading Core, and unified beta addons.
+[Download Noki Trading 1.0.52](https://github.com/PyNoki/nokiForever/raw/refs/heads/main/NokiTrading-1.0.52.zip). Close WoW, extract the ZIP, and copy the `NokiTrading` folder to `World of Warcraft/_forever_/Interface/AddOns/`. Enable **Noki Trading** at the character screen and disable older Noki Market, Noki Crafting, Noki Trading Core, and unified beta addons.
 
 The combined bag footer shows an estimated auction value for carried items. It uses the last scanned price, falling back to the imported auction reference, and marks the total with an asterisk when item stacks lack prices. Hover for details. The estimate includes bound items and excludes auction fees; prices may be stale. This feature needs in-game testing.
 

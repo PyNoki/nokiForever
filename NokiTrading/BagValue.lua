@@ -6,9 +6,9 @@ local function money(value)
   local gold=math.floor(value/10000)
   local silver=math.floor(value%10000/100)
   local copper=value%100
-  return gold.."|TInterface\\MoneyFrame\\UI-GoldIcon:12:12:0:0|t "..
-    silver.."|TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t "..
-    copper.."|TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t"
+  return gold.."|TInterface\\MoneyFrame\\UI-GoldIcon:14:14:0:0|t "..
+    silver.."|TInterface\\MoneyFrame\\UI-SilverIcon:14:14:0:0|t "..
+    copper.."|TInterface\\MoneyFrame\\UI-CopperIcon:14:14:0:0|t"
 end
 local function refresh()
   pending=false
@@ -54,9 +54,9 @@ local function setup()
   if display or not bags then return end
   display=CreateFrame("Frame",nil,bags)
   display:SetFrameLevel(bags:GetFrameLevel()+20)
-  display:SetPoint("BOTTOMLEFT",bags,"BOTTOMLEFT",18,10)
+  display:SetPoint("BOTTOMLEFT",bags,"BOTTOMLEFT",18,5)
   display:SetSize(220,18)
-  display.text=display:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
+  display.text=display:CreateFontString(nil,"OVERLAY","GameFontHighlight")
   display.text:SetPoint("LEFT")
   display.text:SetJustifyH("LEFT")
   display:EnableMouse(true)
