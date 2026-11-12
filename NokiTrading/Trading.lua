@@ -192,15 +192,17 @@ local function render()
   status:SetText(#owned.." active auctions | "..(state.cancelPending and "Refreshing after cancellation..." or state.search and "Checking competition..." or (#state.queue>0 and state.index<=#state.queue and "Competition scan queued" or (#state.queue>0 and "Competition checks complete" or "Use Scan market to refresh comparisons"))))
   page:SetText((#owned==0 and "No listings" or ((scrollOffset+1).."-"..math.min(scrollOffset+8,#owned).." of "..#owned)).."  |  Scroll to browse  |  Market low can include yours  |  -- = unavailable")
 end
-local function refreshOwned()
+local function refreshOwned(fromOwnedUpdate)
   if not core.active or not C_AuctionHouse or not C_AuctionHouse.GetNumOwnedAuctions or not C_AuctionHouse.GetOwnedAuctionInfo then return end
-  local result={}
-  for i=1,C_AuctionHouse.GetNumOwnedAuctions() do
+  local result,allRows={},{};local totalRows=C_AuctionHouse.GetNumOwnedAuctions() or 0
+  for i=1,totalRows do
     local row=C_AuctionHouse.GetOwnedAuctionInfo(i)
+    if type(row)=="table" then allRows[#allRows+1]=row end
     if type(row)=="table" and row.itemKey and row.auctionID and (row.status==nil or row.status==0 or (Enum and Enum.AuctionStatus and row.status==Enum.AuctionStatus.Active)) then result[#result+1]=row end
   end
   owned=result;scrollOffset=math.min(scrollOffset,math.max(0,#owned-8));render()
   state.ownedComplete=not C_AuctionHouse.HasFullOwnedAuctionResults or C_AuctionHouse.HasFullOwnedAuctionResults()
+  if fromOwnedUpdate and state.ownedComplete and type(C_AuctionHouse.HasFullOwnedAuctionResults)=="function" and #allRows==totalRows and core.CapturePendingOwned then core.CapturePendingOwned(allRows) end
   local stillListed=false
   if state.cancelPending then for _,auction in ipairs(owned) do if auction.auctionID==state.cancelPending then stillListed=true;break end end end
   if state.ownedComplete and state.cancelPending and not stillListed then state.cancelPending=nil;state.cancelStarted=nil end
@@ -349,7 +351,7 @@ end
 local f=CreateFrame("Frame")
 for _,e in ipairs({"OWNED_AUCTIONS_UPDATED","AUCTION_CANCELED","AUCTION_HOUSE_AUCTION_CREATED","ITEM_SEARCH_RESULTS_UPDATED","ITEM_SEARCH_RESULTS_ADDED","COMMODITY_SEARCH_RESULTS_UPDATED","COMMODITY_SEARCH_RESULTS_ADDED","AUCTION_HOUSE_CLOSED","GET_ITEM_INFO_RECEIVED","ITEM_KEY_ITEM_INFO_RECEIVED"}) do pcall(f.RegisterEvent,f,e) end
 f:SetScript("OnEvent",function(_,event,arg)
-  if event=="OWNED_AUCTIONS_UPDATED" then refreshOwned()
+  if event=="OWNED_AUCTIONS_UPDATED" then refreshOwned(true)
   elseif event=="AUCTION_HOUSE_AUCTION_CREATED" then
     local now=(GetServerTime and GetServerTime()) or time()
     if type(arg)=="number" and pendingDeposit and now-pendingDeposit.time<=60 and NokiUnifiedCoreDB then
