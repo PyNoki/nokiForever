@@ -56,6 +56,27 @@ local function stackCount(tooltip,id)
       end
     end
   end
+  -- Forever bank buttons expose tab and slot separately, not GetBagID/GetID.
+  if owner.GetBankTabID and owner.GetContainerSlotID and C_Container and C_Container.GetContainerItemInfo then
+    local okBag,bank=pcall(owner.GetBankTabID,owner)
+    local okSlot,bankSlot=pcall(owner.GetContainerSlotID,owner)
+    if okBag and okSlot and type(bank)=="number" and type(bankSlot)=="number" then
+      local ok,info=pcall(C_Container.GetContainerItemInfo,bank,bankSlot)
+      local itemID=ok and type(info)=="table" and (info.itemID or (info.hyperlink and tonumber(info.hyperlink:match("item:(%d+)"))))
+      if itemID==id and type(info.stackCount)=="number" and info.stackCount>0 then return info.stackCount end
+    end
+  end
+  -- Some item buttons provide an ItemLocation instead of container IDs.
+  if owner.GetItemLocation and C_Item and C_Item.GetItemID and C_Item.GetStackCount then
+    local ok,location=pcall(owner.GetItemLocation,owner)
+    if ok and location then
+      local idOK,itemID=pcall(C_Item.GetItemID,location)
+      if idOK and itemID==id then
+        local countOK,quantity=pcall(C_Item.GetStackCount,location)
+        if countOK and type(quantity)=="number" and quantity>0 then return quantity end
+      end
+    end
+  end
   local bag=owner.GetBagID and owner:GetBagID()
   local slot=owner.GetID and owner:GetID()
   local name=owner.GetName and owner:GetName()
