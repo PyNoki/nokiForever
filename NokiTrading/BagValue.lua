@@ -54,14 +54,31 @@ local function restorePosition()
   local pos=NokiUnifiedCoreDB and NokiUnifiedCoreDB.bagPosition
   if not bags or not pos or type(pos.x)~="number" or type(pos.y)~="number" then return end
   if InCombatLockdown and InCombatLockdown() then return end
+  local x,y=pos.x,pos.y
+  -- Older releases saved coordinates in UIParent units.
+  if pos.version~=2 then local scale=bags:GetEffectiveScale()/UIParent:GetEffectiveScale();x,y=x/scale,y/scale end
   bags:ClearAllPoints()
-  bags:SetPoint("BOTTOMLEFT",UIParent,"BOTTOMLEFT",pos.x,pos.y)
+  bags:SetPoint("BOTTOMLEFT",UIParent,"BOTTOMLEFT",x,y)
 end
-local function savePosition(bags)
-  local left,bottom=bags:GetLeft(),bags:GetBottom()
-  if not left or not bottom or not NokiUnifiedCoreDB then return end
-  local scale=bags:GetEffectiveScale()/UIParent:GetEffectiveScale()
-  NokiUnifiedCoreDB.bagPosition={x=left*scale,y=bottom*scale}
+local function updateDrag(self)
+  if not self.dragging or (InCombatLockdown and InCombatLockdown()) then return end
+  local bags=self:GetParent()
+  local scale=bags:GetEffectiveScale()
+  local x,y=GetCursorPosition()
+  x=x/scale-self.dragOffsetX;y=y/scale-self.dragOffsetY
+  local uiScale=UIParent:GetEffectiveScale()/scale
+  x=math.max(0,math.min(x,math.max(0,UIParent:GetWidth()*uiScale-bags:GetWidth())))
+  y=math.max(0,math.min(y,math.max(0,UIParent:GetHeight()*uiScale-bags:GetHeight())))
+  bags:ClearAllPoints()
+  bags:SetPoint("BOTTOMLEFT",UIParent,"BOTTOMLEFT",x,y)
+  self.dragX,self.dragY=x,y
+end
+local function finishDrag(self)
+  if not self.dragging then return end
+  self.dragging=nil;self:SetScript("OnUpdate",nil)
+  if self.dragX and self.dragY and NokiUnifiedCoreDB then
+    NokiUnifiedCoreDB.bagPosition={x=self.dragX,y=self.dragY,version=2}
+  end
 end
 local function setup()
   local bags=_G.ContainerFrameCombinedBags
@@ -77,17 +94,17 @@ local function setup()
   display:RegisterForDrag("LeftButton")
   display:SetScript("OnDragStart",function(self)
     if InCombatLockdown and InCombatLockdown() then return end
-    bags:SetMovable(true)
-    bags:SetClampedToScreen(true)
-    bags:StartMoving()
+    local left,bottom=bags:GetLeft(),bags:GetBottom()
+    if not left or not bottom then return end
+    local scale=bags:GetEffectiveScale()
+    local x,y=GetCursorPosition()
+    self.dragOffsetX=x/scale-left;self.dragOffsetY=y/scale-bottom
+    self.dragX,self.dragY=left,bottom
     self.dragging=true
+    self:SetScript("OnUpdate",updateDrag)
   end)
-  display:SetScript("OnDragStop",function(self)
-    if not self.dragging then return end
-    self.dragging=nil
-    bags:StopMovingOrSizing()
-    savePosition(bags)
-  end)
+  display:SetScript("OnDragStop",finishDrag)
+  display:SetScript("OnHide",finishDrag)
   display:SetScript("OnEnter",function(self)
     GameTooltip:SetOwner(self,"ANCHOR_TOP")
     GameTooltip:AddLine("Estimated bag value")
@@ -106,9 +123,10 @@ local function setup()
   schedule()
 end
 local events=CreateFrame("Frame")
-for _,event in ipairs({"PLAYER_LOGIN","ADDON_LOADED","BAG_UPDATE_DELAYED","PLAYER_REGEN_ENABLED"}) do events:RegisterEvent(event) end
+for _,event in ipairs({"PLAYER_LOGIN","ADDON_LOADED","BAG_UPDATE_DELAYED","PLAYER_REGEN_ENABLED","PLAYER_REGEN_DISABLED"}) do events:RegisterEvent(event) end
 events:SetScript("OnEvent",function(_,event)
   if event=="PLAYER_LOGIN" or event=="ADDON_LOADED" then setup() end
+  if event=="PLAYER_REGEN_DISABLED" and display then finishDrag(display) end
   if event=="PLAYER_LOGIN" or event=="PLAYER_REGEN_ENABLED" then restorePosition() end
   schedule()
 end)
