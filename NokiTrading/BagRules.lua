@@ -2,25 +2,24 @@
 local core=NokiUnifiedCore
 local dots=setmetatable({},{__mode="k"})
 local pending,window,rows,status=false,nil,{},nil
-local defaults={{threshold=80,r=1,g=.82,b=.2},{threshold=100,r=.25,g=.85,b=.35}}
+local defaults={{threshold=20,r=1,g=.82,b=.2},{threshold=0,r=.25,g=.85,b=.35}}
 local function rules()
   if not NokiUnifiedCoreDB then return {} end
   local db=NokiUnifiedCoreDB
   if type(db.bagRules)~="table" then
     db.bagRules={}
     for i,v in ipairs(defaults) do db.bagRules[i]={threshold=v.threshold,r=v.r,g=v.g,b=v.b} end
-    db.bagRulesVersion=2
-  elseif db.bagRulesVersion~=2 then
-    -- Convert older difference ranges to their closest vendor-percentage thresholds.
+    db.bagRulesVersion=3
+  elseif db.bagRulesVersion~=3 then
     local converted={}
     for _,v in ipairs(db.bagRules) do
-      if type(v.min)=="number" and type(v.max)=="number" then
-        local threshold=100-v.min
-        if threshold>0 and threshold<=10000 then converted[#converted+1]={threshold=threshold,r=v.r,g=v.g,b=v.b} end
-      end
+      local threshold
+      if db.bagRulesVersion==2 and type(v.threshold)=="number" then threshold=100-v.threshold
+      elseif type(v.min)=="number" and type(v.max)=="number" then threshold=v.min end
+      if threshold and threshold>=-9900 and threshold<=100 then converted[#converted+1]={threshold=threshold,r=v.r,g=v.g,b=v.b} end
     end
-    table.sort(converted,function(a,b) return a.threshold<b.threshold end)
-    db.bagRules=converted;db.bagRulesVersion=2
+    table.sort(converted,function(a,b) return a.threshold>b.threshold end)
+    db.bagRules=converted;db.bagRulesVersion=3
   end
   return db.bagRules
 end
@@ -47,9 +46,9 @@ local function paint(button,bag,slot)
   if id then
     local ah=priceFor(id);local vendor=vendorFor(id,info.hyperlink)
     if type(ah)=="number" and ah>0 and type(vendor)=="number" and vendor>0 then
-      local percent=vendor*100/ah
+      local percent=(ah-vendor)*100/ah
       for _,rule in ipairs(rules()) do
-        if type(rule.threshold)=="number" and percent<rule.threshold then selected=rule;break end
+        if type(rule.threshold)=="number" and percent>rule.threshold then selected=rule;break end
       end
     end
   end
@@ -127,13 +126,13 @@ local function buildWindow()
   window:SetScript("OnDragStart",function(self) self:StartMoving() end);window:SetScript("OnDragStop",function(self) self:StopMovingOrSizing() end)
   window:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1});window:SetBackdropColor(.055,.065,.07,.98);window:SetBackdropBorderColor(.35,.42,.37,1)
   local title=window:CreateFontString(nil,"OVERLAY","GameFontNormalLarge");title:SetPoint("TOPLEFT",16,-16);title:SetText("BAG SELLING RULES")
-  local note=window:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");note:SetPoint("TOPLEFT",16,-43);note:SetPoint("TOPRIGHT",-16,-43);note:SetJustifyH("LEFT");note:SetText("Choose a color when the vendor total is less than a percentage of the auction house total. Example: 50s vendor / 1g AH = 50%. The lowest matching percentage wins.")
+  local note=window:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");note:SetPoint("TOPLEFT",16,-43);note:SetPoint("TOPRIGHT",-16,-43);note:SetJustifyH("LEFT");note:SetText("Difference is measured as a percentage of the AH price. Example: AH 1g, vendor 50s = 50% difference. The highest matching rule wins.")
   for i=1,6 do
     local row={};rows[i]=row
     local y=-110-(i-1)*39
-    local label=window:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");label:SetPoint("TOPLEFT",20,y-5);label:SetText("Vendor total is less than")
+    local label=window:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");label:SetPoint("TOPLEFT",20,y-5);label:SetText("AH difference greater than")
     row.threshold=CreateFrame("EditBox",nil,window,"InputBoxTemplate");row.threshold:SetSize(55,24);row.threshold:SetPoint("TOPLEFT",170,y);row.threshold:SetAutoFocus(false);row.threshold:SetMaxLetters(8)
-    local suffix=window:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");suffix:SetPoint("TOPLEFT",230,y-5);suffix:SetText("% of AH total   Color =")
+    local suffix=window:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");suffix:SetPoint("TOPLEFT",230,y-5);suffix:SetText("% of AH   Color =")
     row.color=CreateFrame("Button",nil,window,"BackdropTemplate");row.color:SetSize(27,24);row.color:SetPoint("TOPLEFT",375,y);row.color:SetBackdrop({edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1});row.color:SetBackdropBorderColor(.8,.8,.8,1)
     row.swatch=row.color:CreateTexture(nil,"ARTWORK");row.swatch:SetPoint("TOPLEFT",2,-2);row.swatch:SetPoint("BOTTOMRIGHT",-2,2)
     row.color:SetScript("OnClick",function() chooseColor(row) end)
@@ -151,14 +150,14 @@ local function buildWindow()
       local value=row.threshold:GetText()
       if value~="" then
         local threshold=tonumber(value)
-        if not threshold or threshold<=0 or threshold>10000 then status:SetText("Enter percentages greater than 0 and at most 10000.");return end
+        if not threshold or threshold < -9900 or threshold>100 then status:SetText("Enter a percentage from -9900 to 100.");return end
         if seen[threshold] then status:SetText("Each percentage must be different.");return end
         seen[threshold]=true
         nextRules[#nextRules+1]={threshold=threshold,r=row.r,g=row.g,b=row.b}
       end
     end
-    table.sort(nextRules,function(a,b) return a.threshold<b.threshold end)
-    NokiUnifiedCoreDB=NokiUnifiedCoreDB or {};NokiUnifiedCoreDB.bagRules=nextRules;NokiUnifiedCoreDB.bagRulesVersion=2
+    table.sort(nextRules,function(a,b) return a.threshold>b.threshold end)
+    NokiUnifiedCoreDB=NokiUnifiedCoreDB or {};NokiUnifiedCoreDB.bagRules=nextRules;NokiUnifiedCoreDB.bagRulesVersion=3
     status:SetText("Rules saved. Items without matching prices have no marker.");schedule()
   end)
   local close=CreateFrame("Button",nil,window,"UIPanelButtonTemplate");close:SetSize(90,25);close:SetPoint("BOTTOMRIGHT",-22,14);close:SetText("Close");close:SetScript("OnClick",function() window:Hide() end)
