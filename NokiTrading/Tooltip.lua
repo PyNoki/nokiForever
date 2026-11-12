@@ -72,16 +72,6 @@ local function stackCount(tooltip,id)
   return nil
 end
 NokiUnifiedCore.ItemStackContext=stackCount
-local function auctionTooltip(tooltip)
-  if not AuctionHouseFrame or not AuctionHouseFrame.IsShown or not AuctionHouseFrame:IsShown() then return false end
-  local cursor=tooltip.GetOwner and tooltip:GetOwner()
-  for _=1,16 do
-    if not cursor then break end
-    if cursor==AuctionHouseFrame then return true end
-    cursor=cursor.GetParent and cursor:GetParent()
-  end
-  return false
-end
 local function vendorSellValue(id,link)
   local getInfo=(C_Item and C_Item.GetItemInfo) or GetItemInfo
   if getInfo then
@@ -95,6 +85,22 @@ local function vendorSellValue(id,link)
     if item and type(item.vendorSell)=="number" then return item.vendorSell end
   end
   if C_Item and C_Item.RequestLoadItemDataByID then pcall(C_Item.RequestLoadItemDataByID,id) end
+end
+-- These are observed vendor offers, not a guarantee a vendor is accessible or stocked.
+local vendorBuyIndex
+local function vendorBuyReference(id)
+  if not vendorBuyIndex then
+    if type(NokiUnifiedMarketVendorData)~="table" then return nil end
+    vendorBuyIndex={}
+    for _,offer in ipairs(NokiUnifiedMarketVendorData) do
+      local item,price,pack=offer[1],offer[4],offer[5]
+      if type(item)=="number" and type(price)=="number" and price>0 and type(pack)=="number" and pack>0 then
+        local unit=price/pack
+        if not vendorBuyIndex[item] or unit<vendorBuyIndex[item] then vendorBuyIndex[item]=unit end
+      end
+    end
+  end
+  return vendorBuyIndex[id]
 end
 local function addValue(tooltip,data)
   if tooltip.IsForbidden and tooltip:IsForbidden() then return end
@@ -111,10 +117,13 @@ local function addValue(tooltip,data)
     if tooltip.AddDoubleLine then tooltip:AddDoubleLine(label,value,.45,.9,.7,1,1,1)
     else tooltip:AddLine(label.."  "..value,.45,.9,.7) end
   end
-  local inAuction=auctionTooltip(tooltip)
-  if inAuction then
-    local sell=vendorSellValue(id,link)
-    pair("Vendor sell / unit",sell and money(sell) or "Loading...")
+  local sell=vendorSellValue(id,link)
+  pair("Vendor sell / unit",sell and money(sell) or "Loading...")
+  if isMerchant and type(cost)=="number" and cost>0 and count and count>0 then
+    pair("Vendor buy / unit",money(cost/count))
+  else
+    local buy=vendorBuyReference(id)
+    pair("Vendor buy / unit (ref)",buy and money(buy) or "--")
   end
   if row and type(row.price)=="number" and row.price>0 then
     local observed=type(row.observed)=="number" and math.max(0,math.floor((now-row.observed)/60)) or scanAge
@@ -127,13 +136,6 @@ local function addValue(tooltip,data)
     else pair("AH / unit","--") end
   end
   if not IsShiftKeyDown or not IsShiftKeyDown() then tooltip:Show();return end
-  if not inAuction then
-    local sell=vendorSellValue(id,link)
-    pair("Vendor sell / unit",sell and money(sell) or "Loading...")
-  end
-  if isMerchant and type(cost)=="number" and cost>0 and count and count>0 then
-    pair("Vendor buy / unit",money(cost/count))
-  end
   if row and type(row.price)=="number" and row.price>0 then
     priceAge=type(row.observed)=="number" and math.max(0,math.floor((now-row.observed)/60)) or scanAge
     if count then
@@ -177,7 +179,7 @@ local f=CreateFrame("Frame");f:RegisterEvent("MODIFIER_STATE_CHANGED");f:Registe
   if event=="MODIFIER_STATE_CHANGED" then
     if key~="LSHIFT" and key~="RSHIFT" then return end
   else
-    if not success or itemID~=key or (not auctionTooltip(GameTooltip) and (not IsShiftKeyDown or not IsShiftKeyDown())) then return end
+    if not success or itemID~=key then return end
   end
   if securecallfunction then securecallfunction(GameTooltip.RefreshData,GameTooltip) else GameTooltip:RefreshData() end
 end)
