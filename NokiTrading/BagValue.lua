@@ -1,6 +1,6 @@
 -- Estimated auction value of items carried in the combined bags.
 local core=NokiUnifiedCore
-local display, pending
+local display, valueButton, pending
 local function money(value)
   value=math.floor(value+0.5)
   local gold=math.floor(value/10000)
@@ -12,14 +12,14 @@ local function money(value)
 end
 local function refresh()
   pending=false
-  if not display or not display:IsVisible() then return end
+  if not valueButton then return end
   local market=core.Market()
   local book=market and NokiUnifiedCoreDB and NokiUnifiedCoreDB.prices and NokiUnifiedCoreDB.prices[market]
   local total,missing,priced=0,0,0
   local container=C_Container
   if not container or not container.GetContainerNumSlots or not container.GetContainerItemInfo then
-    display.text:SetText("Bag value: --")
-    display.detail="Bag contents are unavailable."
+    valueButton.valueText="--"
+    valueButton.detail="Bag contents are unavailable."
     return
   end
   local lastBag=(Enum and Enum.BagIndex and Enum.BagIndex.ReagentBag) or NUM_BAG_SLOTS or 4
@@ -40,9 +40,8 @@ local function refresh()
       end
     end
   end
-  display.text:SetText("Bag value: "..(priced>0 and money(total) or "--")..(missing>0 and " *" or ""))
-  display.valueText=priced>0 and money(total) or "--"
-  display.detail=missing.." item stack"..(missing==1 and "" or "s").." without a price."
+  valueButton.valueText=priced>0 and money(total) or "--"
+  valueButton.detail=missing.." item stack"..(missing==1 and "" or "s").." without a price."
 end
 local function schedule()
   if pending then return end
@@ -80,16 +79,36 @@ local function finishDrag(self)
     NokiUnifiedCoreDB.bagPosition={x=self.dragX,y=self.dragY,version=2}
   end
 end
+local function setupValueButton()
+  if valueButton or not ChatFrame1 then return end
+  valueButton=CreateFrame("Button","NokiBagValueButton",UIParent,"BackdropTemplate")
+  valueButton:SetSize(24,24)
+  valueButton:SetPoint("BOTTOMLEFT",ChatFrame1,"TOPRIGHT",6,-24)
+  valueButton:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1})
+  valueButton:SetBackdropColor(.07,.08,.07,.9);valueButton:SetBackdropBorderColor(.48,.38,.20,1)
+  local icon=valueButton:CreateTexture(nil,"ARTWORK")
+  icon:SetPoint("CENTER");icon:SetSize(19,19);icon:SetTexture("Interface\\MoneyFrame\\UI-GoldIcon")
+  valueButton:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
+  valueButton:SetScript("OnEnter",function(self)
+    GameTooltip:SetOwner(self,"ANCHOR_TOP")
+    GameTooltip:AddLine("Estimated bag value")
+    GameTooltip:AddLine(self.valueText or "--",1,1,1)
+    GameTooltip:AddLine("Uses your last scanned auction price, then the imported auction reference price. Stack quantities are included.",1,1,1,true)
+    GameTooltip:AddLine("Prices may be old. Bound items are included; auction fees are not deducted.",1,1,1,true)
+    GameTooltip:AddLine(self.detail or "",1,.8,.3,true)
+    GameTooltip:Show()
+  end)
+  valueButton:SetScript("OnLeave",function() GameTooltip:Hide() end)
+end
 local function setup()
   local bags=_G.ContainerFrameCombinedBags
   if display or not bags then return end
   display=CreateFrame("Frame",nil,bags)
   display:SetFrameLevel(bags:GetFrameLevel()+20)
   display:SetPoint("BOTTOMLEFT",bags,"BOTTOMLEFT",18,5)
-  display:SetSize(220,18)
-  display.text=display:CreateFontString(nil,"OVERLAY","GameFontHighlight")
-  display.text:SetPoint("LEFT")
-  display.text:SetJustifyH("LEFT")
+  display:SetSize(26,18)
+  local grip=display:CreateFontString(nil,"OVERLAY","GameFontNormal")
+  grip:SetPoint("CENTER");grip:SetText(":::")
   display:EnableMouse(true)
   display:RegisterForDrag("LeftButton")
   display:SetScript("OnDragStart",function(self)
@@ -107,12 +126,8 @@ local function setup()
   display:SetScript("OnHide",finishDrag)
   display:SetScript("OnEnter",function(self)
     GameTooltip:SetOwner(self,"ANCHOR_TOP")
-    GameTooltip:AddLine("Estimated bag value")
-    GameTooltip:AddLine(self.valueText or "--",1,1,1)
-    GameTooltip:AddLine("Uses your last scanned auction price, then the imported auction reference price. Stack quantities are included.",1,1,1,true)
-    GameTooltip:AddLine("Prices may be old. Bound items are included; auction fees are not deducted.",1,1,1,true)
-    GameTooltip:AddLine(self.detail or "",1,.8,.3,true)
-    GameTooltip:AddLine("Drag to move bags (outside combat).",.7,.8,.75,true)
+    GameTooltip:AddLine("Drag to move bags")
+    GameTooltip:AddLine("Available outside combat. Position is saved.",1,1,1,true)
     GameTooltip:Show()
   end)
   display:SetScript("OnLeave",function() GameTooltip:Hide() end)
@@ -125,7 +140,7 @@ end
 local events=CreateFrame("Frame")
 for _,event in ipairs({"PLAYER_LOGIN","ADDON_LOADED","BAG_UPDATE_DELAYED","PLAYER_REGEN_ENABLED","PLAYER_REGEN_DISABLED"}) do events:RegisterEvent(event) end
 events:SetScript("OnEvent",function(_,event)
-  if event=="PLAYER_LOGIN" or event=="ADDON_LOADED" then setup() end
+  if event=="PLAYER_LOGIN" or event=="ADDON_LOADED" then setupValueButton();setup() end
   if event=="PLAYER_REGEN_DISABLED" and display then finishDrag(display) end
   if event=="PLAYER_LOGIN" or event=="PLAYER_REGEN_ENABLED" then restorePosition() end
   schedule()
