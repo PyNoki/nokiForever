@@ -160,6 +160,8 @@ local function buildWindow()
     NokiUnifiedCoreDB=NokiUnifiedCoreDB or {};NokiUnifiedCoreDB.bagRules=nextRules;NokiUnifiedCoreDB.bagRulesVersion=3
     status:SetText("Rules saved. Items without matching prices have no marker.");schedule()
   end)
+  local excluded=CreateFrame("Button",nil,window,"UIPanelButtonTemplate");excluded:SetSize(125,25);excluded:SetPoint("BOTTOMLEFT",20,14);excluded:SetText("Excluded items")
+  excluded:SetScript("OnClick",function() if core.ShowBagExclusions then core.ShowBagExclusions() end end)
   local close=CreateFrame("Button",nil,window,"UIPanelButtonTemplate");close:SetSize(90,25);close:SetPoint("BOTTOMRIGHT",-22,14);close:SetText("Close");close:SetScript("OnClick",function() window:Hide() end)
   window:SetScript("OnShow",function()
     local saved=rules()

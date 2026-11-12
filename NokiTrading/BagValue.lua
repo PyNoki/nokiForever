@@ -15,7 +15,7 @@ local function refresh()
   if not valueButton then return end
   local market=core.Market()
   local book=market and NokiUnifiedCoreDB and NokiUnifiedCoreDB.prices and NokiUnifiedCoreDB.prices[market]
-  local total,missing,priced=0,0,0
+  local total,missing,priced,excluded,eligible=0,0,0,0,0
   local container=C_Container
   if not container or not container.GetContainerNumSlots or not container.GetContainerItemInfo then
     valueButton.valueText="--"
@@ -28,6 +28,11 @@ local function refresh()
       local item=container.GetContainerItemInfo(bag,slot)
       if item then
         local id=item.itemID or (item.hyperlink and tonumber(item.hyperlink:match("item:(%d+)")))
+        local exclusions=NokiUnifiedCoreDB and NokiUnifiedCoreDB.bagValueExclusions
+        if id and exclusions and exclusions[tostring(id)] then
+          excluded=excluded+1
+        else
+        eligible=eligible+1
         local row=id and book and book.items and book.items[id]
         local price=row and row.price
         if not (type(price)=="number" and price>0) and id and NokiUnifiedAPI then
@@ -37,17 +42,19 @@ local function refresh()
         if type(price)=="number" and price>0 then
           total=total+price*(item.stackCount or 1);priced=priced+1
         else missing=missing+1 end
+        end
       end
     end
   end
-  valueButton.valueText=priced>0 and money(total) or "--"
-  valueButton.detail=missing.." item stack"..(missing==1 and "" or "s").." without a price."
+  valueButton.valueText=(priced>0 or eligible==0) and money(total) or "--"
+  valueButton.detail=missing.." item stack"..(missing==1 and "" or "s").." without a price; "..excluded.." excluded."
 end
 local function schedule()
   if pending then return end
   pending=true
   if C_Timer and C_Timer.After then C_Timer.After(0,refresh) else refresh() end
 end
+core.RefreshBagValue=schedule
 local function restorePosition()
   local bags=_G.ContainerFrameCombinedBags
   local pos=NokiUnifiedCoreDB and NokiUnifiedCoreDB.bagPosition
