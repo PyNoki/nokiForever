@@ -111,7 +111,8 @@ local function addValue(tooltip,data)
     if tooltip.AddDoubleLine then tooltip:AddDoubleLine(label,value,.45,.9,.7,1,1,1)
     else tooltip:AddLine(label.."  "..value,.45,.9,.7) end
   end
-  if auctionTooltip(tooltip) then
+  local inAuction=auctionTooltip(tooltip)
+  if inAuction then
     local sell=vendorSellValue(id,link)
     pair("Vendor sell / unit",sell and money(sell) or "Loading...")
   end
@@ -126,6 +127,13 @@ local function addValue(tooltip,data)
     else pair("AH / unit","--") end
   end
   if not IsShiftKeyDown or not IsShiftKeyDown() then tooltip:Show();return end
+  if not inAuction then
+    local sell=vendorSellValue(id,link)
+    pair("Vendor sell / unit",sell and money(sell) or "Loading...")
+  end
+  if isMerchant and type(cost)=="number" and cost>0 and count and count>0 then
+    pair("Vendor buy / unit",money(cost/count))
+  end
   if row and type(row.price)=="number" and row.price>0 then
     priceAge=type(row.observed)=="number" and math.max(0,math.floor((now-row.observed)/60)) or scanAge
     if count then
@@ -169,7 +177,7 @@ local f=CreateFrame("Frame");f:RegisterEvent("MODIFIER_STATE_CHANGED");f:Registe
   if event=="MODIFIER_STATE_CHANGED" then
     if key~="LSHIFT" and key~="RSHIFT" then return end
   else
-    if not success or not auctionTooltip(GameTooltip) or itemID~=key then return end
+    if not success or itemID~=key or (not auctionTooltip(GameTooltip) and (not IsShiftKeyDown or not IsShiftKeyDown())) then return end
   end
   if securecallfunction then securecallfunction(GameTooltip.RefreshData,GameTooltip) else GameTooltip:RefreshData() end
 end)
