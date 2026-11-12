@@ -2,14 +2,27 @@
 local core=NokiUnifiedCore
 local dots=setmetatable({},{__mode="k"})
 local pending,window,rows,status=false,nil,{},nil
-local defaults={{min=0,max=20,r=.25,g=.85,b=.35},{min=20,max=60,r=1,g=.82,b=.2}}
+local defaults={{threshold=80,r=1,g=.82,b=.2},{threshold=100,r=.25,g=.85,b=.35}}
 local function rules()
   if not NokiUnifiedCoreDB then return {} end
-  if type(NokiUnifiedCoreDB.bagRules)~="table" then
-    NokiUnifiedCoreDB.bagRules={}
-    for i,v in ipairs(defaults) do NokiUnifiedCoreDB.bagRules[i]={min=v.min,max=v.max,r=v.r,g=v.g,b=v.b} end
+  local db=NokiUnifiedCoreDB
+  if type(db.bagRules)~="table" then
+    db.bagRules={}
+    for i,v in ipairs(defaults) do db.bagRules[i]={threshold=v.threshold,r=v.r,g=v.g,b=v.b} end
+    db.bagRulesVersion=2
+  elseif db.bagRulesVersion~=2 then
+    -- Convert older difference ranges to their closest vendor-percentage thresholds.
+    local converted={}
+    for _,v in ipairs(db.bagRules) do
+      if type(v.min)=="number" and type(v.max)=="number" then
+        local threshold=100-v.min
+        if threshold>0 and threshold<=10000 then converted[#converted+1]={threshold=threshold,r=v.r,g=v.g,b=v.b} end
+      end
+    end
+    table.sort(converted,function(a,b) return a.threshold<b.threshold end)
+    db.bagRules=converted;db.bagRulesVersion=2
   end
-  return NokiUnifiedCoreDB.bagRules
+  return db.bagRules
 end
 local function priceFor(id)
   local market=core.Market()
@@ -34,9 +47,9 @@ local function paint(button,bag,slot)
   if id then
     local ah=priceFor(id);local vendor=vendorFor(id,info.hyperlink)
     if type(ah)=="number" and ah>0 and type(vendor)=="number" and vendor>0 then
-      local percent=(ah-vendor)*100/ah
+      local percent=vendor*100/ah
       for _,rule in ipairs(rules()) do
-        if type(rule.min)=="number" and type(rule.max)=="number" and percent>=rule.min and (percent<rule.max or (rule.max==100 and percent<=100)) then selected=rule;break end
+        if type(rule.threshold)=="number" and percent<rule.threshold then selected=rule;break end
       end
     end
   end
@@ -114,41 +127,44 @@ local function buildWindow()
   window:SetScript("OnDragStart",function(self) self:StartMoving() end);window:SetScript("OnDragStop",function(self) self:StopMovingOrSizing() end)
   window:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1});window:SetBackdropColor(.055,.065,.07,.98);window:SetBackdropBorderColor(.35,.42,.37,1)
   local title=window:CreateFontString(nil,"OVERLAY","GameFontNormalLarge");title:SetPoint("TOPLEFT",16,-16);title:SetText("BAG SELLING RULES")
-  local note=window:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");note:SetPoint("TOPLEFT",16,-43);note:SetPoint("TOPRIGHT",-16,-43);note:SetJustifyH("LEFT");note:SetText("Vendor difference = (AH price - vendor price) / AH price. Example: vendor 90s vs AH 1g = 10%. First matching rule wins. Upper bound is excluded, except 100%.")
-  local headings=window:CreateFontString(nil,"OVERLAY","GameFontNormalSmall");headings:SetPoint("TOPLEFT",27,-98);headings:SetText("MIN %                 MAX %                 COLOR")
+  local note=window:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");note:SetPoint("TOPLEFT",16,-43);note:SetPoint("TOPRIGHT",-16,-43);note:SetJustifyH("LEFT");note:SetText("Choose a color when the vendor total is less than a percentage of the auction house total. Example: 50s vendor / 1g AH = 50%. The lowest matching percentage wins.")
   for i=1,6 do
     local row={};rows[i]=row
-    local y=-123-(i-1)*39
-    row.min=CreateFrame("EditBox",nil,window,"InputBoxTemplate");row.min:SetSize(70,24);row.min:SetPoint("TOPLEFT",26,y);row.min:SetAutoFocus(false);row.min:SetMaxLetters(8)
-    row.max=CreateFrame("EditBox",nil,window,"InputBoxTemplate");row.max:SetSize(70,24);row.max:SetPoint("TOPLEFT",153,y);row.max:SetAutoFocus(false);row.max:SetMaxLetters(8)
-    row.color=CreateFrame("Button",nil,window,"BackdropTemplate");row.color:SetSize(27,24);row.color:SetPoint("TOPLEFT",281,y);row.color:SetBackdrop({edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1});row.color:SetBackdropBorderColor(.8,.8,.8,1)
+    local y=-110-(i-1)*39
+    local label=window:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");label:SetPoint("TOPLEFT",20,y-5);label:SetText("Vendor total is less than")
+    row.threshold=CreateFrame("EditBox",nil,window,"InputBoxTemplate");row.threshold:SetSize(55,24);row.threshold:SetPoint("TOPLEFT",170,y);row.threshold:SetAutoFocus(false);row.threshold:SetMaxLetters(8)
+    local suffix=window:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");suffix:SetPoint("TOPLEFT",230,y-5);suffix:SetText("% of AH total   Color =")
+    row.color=CreateFrame("Button",nil,window,"BackdropTemplate");row.color:SetSize(27,24);row.color:SetPoint("TOPLEFT",375,y);row.color:SetBackdrop({edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1});row.color:SetBackdropBorderColor(.8,.8,.8,1)
     row.swatch=row.color:CreateTexture(nil,"ARTWORK");row.swatch:SetPoint("TOPLEFT",2,-2);row.swatch:SetPoint("BOTTOMRIGHT",-2,2)
     row.color:SetScript("OnClick",function() chooseColor(row) end)
-    row.remove=CreateFrame("Button",nil,window,"UIPanelButtonTemplate");row.remove:SetSize(80,24);row.remove:SetPoint("TOPLEFT",360,y);row.remove:SetText("Remove")
+    row.remove=CreateFrame("Button",nil,window,"UIPanelButtonTemplate");row.remove:SetSize(80,24);row.remove:SetPoint("TOPLEFT",425,y);row.remove:SetText("Remove")
     row.remove:SetScript("OnClick",function()
-      for n=i,5 do local nextRow=rows[n+1];local dest=rows[n];dest.min:SetText(nextRow.min:GetText());dest.max:SetText(nextRow.max:GetText());dest.r,dest.g,dest.b=nextRow.r,nextRow.g,nextRow.b;dest.swatch:SetColorTexture(dest.r,dest.g,dest.b,1) end
-      local last=rows[6];last.min:SetText("");last.max:SetText("");last.r,last.g,last.b=1,1,1;last.swatch:SetColorTexture(1,1,1,1)
+      for n=i,5 do local nextRow=rows[n+1];local dest=rows[n];dest.threshold:SetText(nextRow.threshold:GetText());dest.r,dest.g,dest.b=nextRow.r,nextRow.g,nextRow.b;dest.swatch:SetColorTexture(dest.r,dest.g,dest.b,1) end
+      local last=rows[6];last.threshold:SetText("");last.r,last.g,last.b=1,1,1;last.swatch:SetColorTexture(1,1,1,1)
     end)
   end
   status=window:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");status:SetPoint("BOTTOMLEFT",20,49);status:SetWidth(490);status:SetJustifyH("LEFT")
   local save=CreateFrame("Button",nil,window,"UIPanelButtonTemplate");save:SetSize(100,25);save:SetPoint("BOTTOMRIGHT",-126,14);save:SetText("Save rules")
   save:SetScript("OnClick",function()
-    local nextRules={}
+    local nextRules={};local seen={}
     for _,row in ipairs(rows) do
-      local a,b=row.min:GetText(),row.max:GetText()
-      if a~="" or b~="" then
-        local lo,hi=tonumber(a),tonumber(b)
-        if not lo or not hi or lo < -10000 or hi>100 or lo>=hi then status:SetText("Enter valid ranges: minimum < maximum, from -10000 to 100.");return end
-        nextRules[#nextRules+1]={min=lo,max=hi,r=row.r,g=row.g,b=row.b}
+      local value=row.threshold:GetText()
+      if value~="" then
+        local threshold=tonumber(value)
+        if not threshold or threshold<=0 or threshold>10000 then status:SetText("Enter percentages greater than 0 and at most 10000.");return end
+        if seen[threshold] then status:SetText("Each percentage must be different.");return end
+        seen[threshold]=true
+        nextRules[#nextRules+1]={threshold=threshold,r=row.r,g=row.g,b=row.b}
       end
     end
-    NokiUnifiedCoreDB=NokiUnifiedCoreDB or {};NokiUnifiedCoreDB.bagRules=nextRules
+    table.sort(nextRules,function(a,b) return a.threshold<b.threshold end)
+    NokiUnifiedCoreDB=NokiUnifiedCoreDB or {};NokiUnifiedCoreDB.bagRules=nextRules;NokiUnifiedCoreDB.bagRulesVersion=2
     status:SetText("Rules saved. Items without matching prices have no marker.");schedule()
   end)
   local close=CreateFrame("Button",nil,window,"UIPanelButtonTemplate");close:SetSize(90,25);close:SetPoint("BOTTOMRIGHT",-22,14);close:SetText("Close");close:SetScript("OnClick",function() window:Hide() end)
   window:SetScript("OnShow",function()
     local saved=rules()
-    for i,row in ipairs(rows) do local rule=saved[i];row.min:SetText(rule and tostring(rule.min) or "");row.max:SetText(rule and tostring(rule.max) or "");row.r,row.g,row.b=rule and rule.r or 1,rule and rule.g or 1,rule and rule.b or 1;row.swatch:SetColorTexture(row.r,row.g,row.b,1) end
+    for i,row in ipairs(rows) do local rule=saved[i];row.threshold:SetText(rule and tostring(rule.threshold) or "");row.r,row.g,row.b=rule and rule.r or 1,rule and rule.g or 1,rule and rule.b or 1;row.swatch:SetColorTexture(row.r,row.g,row.b,1) end
     status:SetText("Prices use the last scan, then the AHledger low. AH cut, binding and deposits are not included.")
   end)
   window:Hide()
