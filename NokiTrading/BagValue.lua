@@ -41,6 +41,7 @@ local function refresh()
     end
   end
   display.text:SetText("Bag value: "..(priced>0 and money(total) or "--")..(missing>0 and " *" or ""))
+  display.valueText=priced>0 and money(total) or "--"
   display.detail=missing.." item stack"..(missing==1 and "" or "s").." without a price."
 end
 local function schedule()
@@ -52,6 +53,7 @@ local function setup()
   local bags=_G.ContainerFrameCombinedBags
   if display or not bags then return end
   display=CreateFrame("Frame",nil,bags)
+  display:SetFrameLevel(bags:GetFrameLevel()+20)
   display:SetPoint("BOTTOMLEFT",bags,"BOTTOMLEFT",18,10)
   display:SetSize(220,18)
   display.text=display:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
@@ -61,8 +63,9 @@ local function setup()
   display:SetScript("OnEnter",function(self)
     GameTooltip:SetOwner(self,"ANCHOR_TOP")
     GameTooltip:AddLine("Estimated bag value")
+    GameTooltip:AddLine(self.valueText or "--",1,1,1)
     GameTooltip:AddLine("Uses your last scanned auction price, then the imported auction reference price. Stack quantities are included.",1,1,1,true)
-    GameTooltip:AddLine("Prices may be old; bound items and auction fees are not excluded.",1,1,1,true)
+    GameTooltip:AddLine("Prices may be old. Bound items are included; auction fees are not deducted.",1,1,1,true)
     GameTooltip:AddLine(self.detail or "",1,.8,.3,true)
     GameTooltip:Show()
   end)
