@@ -49,6 +49,20 @@ local function schedule()
   pending=true
   if C_Timer and C_Timer.After then C_Timer.After(0,refresh) else refresh() end
 end
+local function restorePosition()
+  local bags=_G.ContainerFrameCombinedBags
+  local pos=NokiUnifiedCoreDB and NokiUnifiedCoreDB.bagPosition
+  if not bags or not pos or type(pos.x)~="number" or type(pos.y)~="number" then return end
+  if InCombatLockdown and InCombatLockdown() then return end
+  bags:ClearAllPoints()
+  bags:SetPoint("BOTTOMLEFT",UIParent,"BOTTOMLEFT",pos.x,pos.y)
+end
+local function savePosition(bags)
+  local left,bottom=bags:GetLeft(),bags:GetBottom()
+  if not left or not bottom or not NokiUnifiedCoreDB then return end
+  local scale=bags:GetEffectiveScale()/UIParent:GetEffectiveScale()
+  NokiUnifiedCoreDB.bagPosition={x=left*scale,y=bottom*scale}
+end
 local function setup()
   local bags=_G.ContainerFrameCombinedBags
   if display or not bags then return end
@@ -60,6 +74,20 @@ local function setup()
   display.text:SetPoint("LEFT")
   display.text:SetJustifyH("LEFT")
   display:EnableMouse(true)
+  display:RegisterForDrag("LeftButton")
+  display:SetScript("OnDragStart",function(self)
+    if InCombatLockdown and InCombatLockdown() then return end
+    bags:SetMovable(true)
+    bags:SetClampedToScreen(true)
+    bags:StartMoving()
+    self.dragging=true
+  end)
+  display:SetScript("OnDragStop",function(self)
+    if not self.dragging then return end
+    self.dragging=nil
+    bags:StopMovingOrSizing()
+    savePosition(bags)
+  end)
   display:SetScript("OnEnter",function(self)
     GameTooltip:SetOwner(self,"ANCHOR_TOP")
     GameTooltip:AddLine("Estimated bag value")
@@ -67,16 +95,21 @@ local function setup()
     GameTooltip:AddLine("Uses your last scanned auction price, then the imported auction reference price. Stack quantities are included.",1,1,1,true)
     GameTooltip:AddLine("Prices may be old. Bound items are included; auction fees are not deducted.",1,1,1,true)
     GameTooltip:AddLine(self.detail or "",1,.8,.3,true)
+    GameTooltip:AddLine("Drag to move bags (outside combat).",.7,.8,.75,true)
     GameTooltip:Show()
   end)
   display:SetScript("OnLeave",function() GameTooltip:Hide() end)
-  bags:HookScript("OnShow",schedule)
+  bags:HookScript("OnShow",function()
+    schedule()
+    if C_Timer and C_Timer.After then C_Timer.After(0,restorePosition) else restorePosition() end
+  end)
   schedule()
 end
 local events=CreateFrame("Frame")
-for _,event in ipairs({"PLAYER_LOGIN","ADDON_LOADED","BAG_UPDATE_DELAYED"}) do events:RegisterEvent(event) end
+for _,event in ipairs({"PLAYER_LOGIN","ADDON_LOADED","BAG_UPDATE_DELAYED","PLAYER_REGEN_ENABLED"}) do events:RegisterEvent(event) end
 events:SetScript("OnEvent",function(_,event)
   if event=="PLAYER_LOGIN" or event=="ADDON_LOADED" then setup() end
+  if event=="PLAYER_LOGIN" or event=="PLAYER_REGEN_ENABLED" then restorePosition() end
   schedule()
 end)
 core.Subscribe(schedule)
