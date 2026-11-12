@@ -83,7 +83,21 @@ local function setupValueButton()
   if valueButton or not ChatFrame1 then return end
   valueButton=CreateFrame("Button","NokiBagValueButton",UIParent,"BackdropTemplate")
   valueButton:SetSize(24,24)
-  valueButton:SetPoint("BOTTOMLEFT",ChatFrame1,"TOPRIGHT",6,-24)
+  local pos=NokiUnifiedCoreDB and NokiUnifiedCoreDB.bagValueButtonPosition
+  if pos and type(pos.x)=="number" and type(pos.y)=="number" then valueButton:SetPoint("BOTTOMLEFT",UIParent,"BOTTOMLEFT",pos.x,pos.y)
+  else valueButton:SetPoint("BOTTOMLEFT",ChatFrame1,"TOPRIGHT",6,-24) end
+  valueButton:SetMovable(true);valueButton:SetClampedToScreen(true);valueButton:RegisterForDrag("LeftButton")
+  valueButton:SetScript("OnMouseDown",function(self) self.wasDragged=false end)
+  valueButton:SetScript("OnDragStart",function(self) self.wasDragged=true;self:StartMoving() end)
+  valueButton:SetScript("OnDragStop",function(self)
+    self:StopMovingOrSizing()
+    local x,y=self:GetLeft(),self:GetBottom()
+    if x and y and NokiUnifiedCoreDB then
+      local scale=self:GetEffectiveScale()/UIParent:GetEffectiveScale()
+      NokiUnifiedCoreDB.bagValueButtonPosition={x=x*scale,y=y*scale}
+    end
+  end)
+  valueButton:SetScript("OnClick",function(self) if not self.wasDragged and core.ToggleBagRules then core.ToggleBagRules() end end)
   valueButton:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1})
   valueButton:SetBackdropColor(.07,.08,.07,.9);valueButton:SetBackdropBorderColor(.48,.38,.20,1)
   local icon=valueButton:CreateTexture(nil,"ARTWORK")
@@ -96,6 +110,7 @@ local function setupValueButton()
     GameTooltip:AddLine("Uses your last scanned auction price, then the imported auction reference price. Stack quantities are included.",1,1,1,true)
     GameTooltip:AddLine("Prices may be old. Bound items are included; auction fees are not deducted.",1,1,1,true)
     GameTooltip:AddLine(self.detail or "",1,.8,.3,true)
+    GameTooltip:AddLine("Click for bag selling rules; drag to move this icon.",.7,.8,.75,true)
     GameTooltip:Show()
   end)
   valueButton:SetScript("OnLeave",function() GameTooltip:Hide() end)

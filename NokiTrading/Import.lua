@@ -36,6 +36,7 @@ function core.ImportTable(text)
   NokiUnifiedCoreDB.importedTables[market]={updated=updated,count=count,text=body}
   if NokiUnifiedMarketRefreshFlips then NokiUnifiedMarketRefreshFlips() end
   if NokiUnifiedCraftRefreshFlips then NokiUnifiedCraftRefreshFlips() end
+  if core.RefreshBagRules then core.RefreshBagRules() end
   return {market=market,count=count,updated=updated}
 end
 local window,box,resultText
