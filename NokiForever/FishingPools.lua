@@ -6,18 +6,36 @@ local driver=CreateFrame("Frame")
 local function secret(v) return issecretvalue and issecretvalue(v) end
 local function safe(v) return not secret(v) end
 local function say(message) print("Noki fishing: "..message) end
+local function setStatus(message)
+  lastStatus=message
+  if NokiForeverUpdateFishingStatus then NokiForeverUpdateFishingStatus() end
+end
+function NokiForeverFishingStatus() return lastStatus end
 local function fishTracking()
-  if not C_Minimap or not C_Minimap.GetNumTrackingTypes or not C_Minimap.GetTrackingInfo then return nil end
+  if not C_Minimap or not C_Minimap.GetNumTrackingTypes or not C_Minimap.GetTrackingInfo then return nil,nil end
   local spellName=C_Spell and C_Spell.GetSpellName and C_Spell.GetSpellName(43308)
   local ok,count=pcall(C_Minimap.GetNumTrackingTypes)
-  if not ok or not safe(count) or type(count)~="number" then return nil end
+  if not ok or not safe(count) or type(count)~="number" then return nil,nil end
   for i=1,count do
     local good,info=pcall(C_Minimap.GetTrackingInfo,i)
     if good and safe(info) and type(info)=="table" and safe(info.spellID) and safe(info.name) and safe(info.active) then
-      if info.spellID==43308 or (spellName and info.name==spellName) or info.name=="Find Fish" then return info.active and true or false end
+      if info.spellID==43308 or (spellName and info.name==spellName) or info.name=="Find Fish" then return info.active and true or false,i end
     end
   end
-  return false
+  return false,nil
+end
+local function ensureFishTracking()
+  local active,index=fishTracking()
+  if active then return true end
+  if active==nil then setStatus("Find Fish status unavailable.");return false end
+  if not index then setStatus("Find Fish unavailable or not learned.");return false end
+  if not C_Minimap.SetTracking then setStatus("Cannot enable Find Fish automatically.");return false end
+  if InCombatLockdown and InCombatLockdown() then setStatus("Find Fish resumes after combat.");return false end
+  local ok=pcall(C_Minimap.SetTracking,index,true)
+  if not ok then setStatus("Could not enable Find Fish.");return false end
+  local enabledNow=fishTracking()
+  if enabledNow then return true end
+  setStatus("Waiting for Find Fish to turn on.");return false
 end
 local function fishName(text)
   if type(text)~="string" or not safe(text) then return false end
@@ -71,10 +89,10 @@ local function finishScan(s)
   for _,count in pairs(s.responses) do repeats=repeats+1;if count>maxRepeats then maxRepeats=count end end
   -- A client that ignores probe positions can return the same hovered tooltip for every point.
   if #s.points>0 and maxRepeats>#s.points*.35 then
-    found={};lastStatus="Minimap probe did not distinguish positions; detection unavailable on this client."
+    found={};setStatus("Minimap probe unavailable on this client.")
   else
     found=s.hits
-    lastStatus=#found>0 and (#found.." fishing pool(s) detected recently.") or "No pool confirmed; none nearby or detection unavailable."
+    setStatus(#found>0 and (#found.." pool(s) detected recently.") or "No pool confirmed; detection may be unavailable.")
   end
   scan=nil;updateMap()
   if s.manual then say(lastStatus) end
@@ -83,13 +101,12 @@ local function startScan(manual)
   if scan then if manual then say("A scan is already running.") end;return end
   if not enabled then if manual then say("Turn detection on first: /nokifish on") end;return end
   if not Minimap or not Minimap:IsVisible() or not Minimap.UpdateMouseoverAtPoint or not Minimap.SetUsingSoftCursor or not C_TooltipInfo or not C_TooltipInfo.GetMinimapMouseover or not C_Minimap or not C_Minimap.GetViewRadius then
-    lastStatus="Minimap detection is unavailable.";if manual then say(lastStatus) end;return
+    setStatus("Minimap detection unavailable.");if manual then say(lastStatus) end;return
   end
   if InCombatLockdown and InCombatLockdown() then if manual then say("Try outside combat.") end;return end
-  local tracking=fishTracking()
-  if not tracking then lastStatus=tracking==false and "Turn on Find Fish tracking." or "Cannot verify Find Fish tracking.";found={};updateMap();if manual then say(lastStatus) end;return end
+  if not ensureFishTracking() then found={};updateMap();if manual then say(lastStatus) end;return end
   local map,x,y,w,h=position();local left,bottom=Minimap:GetLeft(),Minimap:GetBottom();local width,height=Minimap:GetWidth(),Minimap:GetHeight();local radius=C_Minimap.GetViewRadius()
-  if not map or not left or not bottom or not width or not height or not safe(radius) or not radius or radius<=0 then lastStatus="Map position unavailable.";if manual then say(lastStatus) end;return end
+  if not map or not left or not bottom or not width or not height or not safe(radius) or not radius or radius<=0 then setStatus("Map position unavailable.");if manual then say(lastStatus) end;return end
   local rotate=(C_CVar and C_CVar.GetCVar and C_CVar.GetCVar("rotateMinimap")=="1") or false
   local facing=rotate and GetPlayerFacing and GetPlayerFacing() or 0
   if not safe(facing) or not facing then if manual then say("Minimap direction unavailable.") end;return end
@@ -99,14 +116,14 @@ local function startScan(manual)
     if nx*nx+ny*ny<=.94 then points[#points+1]={x=xx,y=yy} end
   end end
   scan={points=points,next=1,hits={},responses={},map=map,x=x,y=y,w=w,h=h,left=left,bottom=bottom,width=width,height=height,radius=radius,facing=facing,rotate=rotate,manual=manual}
-  lastRun=GetTime();lastStatus="Checking nearby minimap..."
+  lastRun=GetTime();setStatus("Scanning nearby pools...")
 end
 local function processScan()
   local s=scan;if not s then return end
   if not enabled or (InCombatLockdown and InCombatLockdown()) or not Minimap:IsVisible() then scan=nil;return end
   local map,x,y=position()
-  if map~=s.map or not x or math.abs(x-s.x)>.00005 or math.abs(y-s.y)>.00005 then scan=nil;lastStatus="Scan interrupted by movement.";return end
-  if s.rotate and GetPlayerFacing then local f=GetPlayerFacing();if not safe(f) or not f or math.abs((f-s.facing+math.pi)%(2*math.pi)-math.pi)>.02 then scan=nil;lastStatus="Scan interrupted by turning.";return end end
+  if map~=s.map or not x or math.abs(x-s.x)>.00005 or math.abs(y-s.y)>.00005 then scan=nil;setStatus("Waiting until you stop moving.");return end
+  if s.rotate and GetPlayerFacing then local f=GetPlayerFacing();if not safe(f) or not f or math.abs((f-s.facing+math.pi)%(2*math.pi)-math.pi)>.02 then scan=nil;setStatus("Waiting until you stop turning.");return end end
   local scale=Minimap:GetEffectiveScale()
   local ok=pcall(function()
     Minimap:SetUsingSoftCursor(true)
@@ -132,21 +149,31 @@ local function processScan()
     end
   end)
   pcall(Minimap.SetUsingSoftCursor,Minimap,false)
-  if not ok then scan=nil;found={};lastStatus="Minimap probe failed; detection unavailable.";updateMap();if s.manual then say(lastStatus) end;return end
+  if not ok then scan=nil;found={};setStatus("Minimap probe unavailable on this client.");updateMap();if s.manual then say(lastStatus) end;return end
   s.next=s.next+12
   if s.next>#s.points then finishScan(s) end
+end
+function NokiForeverSetFishingDetection(on)
+  enabled=on and true or false
+  ForeverRangeAccessDB=ForeverRangeAccessDB or {};ForeverRangeAccessDB.fishDetection=enabled
+  if enabled then
+    setStatus("Starting automatic scan...")
+    startScan(false)
+  else
+    scan=nil;found={};hidePins();setStatus("Disabled")
+  end
 end
 SLASH_NOKIFISH1="/nokifish"
 SlashCmdList.NOKIFISH=function(message)
   local cmd=(message or ""):lower():match("^%s*(%S*)")
-  if cmd=="on" then enabled=true;ForeverRangeAccessDB=ForeverRangeAccessDB or {};ForeverRangeAccessDB.fishDetection=true;say("Experimental detection enabled. Turn on Find Fish; /nokifish scan checks now.");startScan(true)
-  elseif cmd=="off" then enabled=false;scan=nil;found={};ForeverRangeAccessDB=ForeverRangeAccessDB or {};ForeverRangeAccessDB.fishDetection=false;hidePins();say("Detection disabled.")
+  if cmd=="on" then NokiForeverSetFishingDetection(true)
+  elseif cmd=="off" then NokiForeverSetFishingDetection(false)
   elseif cmd=="scan" then startScan(true)
-  else say(lastStatus.." Use /nokifish on, /nokifish scan, or /nokifish off.") end
+  else say(lastStatus) end
 end
 local elapsed=0
 driver:RegisterEvent("PLAYER_LOGIN")
-driver:SetScript("OnEvent",function() enabled=ForeverRangeAccessDB and ForeverRangeAccessDB.fishDetection==true or false;if enabled then lastStatus="Waiting to check Find Fish." end end)
+driver:SetScript("OnEvent",function() enabled=ForeverRangeAccessDB and ForeverRangeAccessDB.fishDetection==true or false;if enabled then setStatus("Starting automatic scan...");lastRun=-10 end end)
 driver:SetScript("OnUpdate",function(_,dt)
   if scan then processScan() end
   elapsed=elapsed+dt;if elapsed<.5 then return end;elapsed=0

@@ -10,7 +10,7 @@ Open the settings menu with `/noki`, the toolkit's **NOKI SETTINGS** button, or 
 
 Use `/fra bag 1.25` to enlarge the default bags and `/fra bag 1` to restore normal scale. This feature needs in-game testing and may conflict with other bag addons. `/fra` opens spell selection.
 
-Experimental nearby fishing pool detection is available in Noki settings or with /nokifish on. Turn on Find Fish tracking and open the map to see short-lived markers for pools the minimap probe identifies. /nokifish scan checks now and reports status; /nokifish off disables it. Markers are approximate recent observations, not proof a pool is still active; missing markers do not mean no pools exist. This English-name prototype depends on minimap probing that recent Forever builds may restrict, and needs in-game testing.
+Turn on Fishing Pool Detection in Noki settings to automatically enable Find Fish when available and scan nearby pools. The settings show when Find Fish is unavailable or a scan cannot be verified. Markers are approximate recent observations, not proof a pool is still active; missing markers do not mean no pools exist. Find Fish must be learned, and enabling it may change the active minimap tracking type. This English-name prototype depends on minimap probing that recent Forever builds may restrict, and needs in-game testing.
 
 The addon only reports range and does not cast spells. Its range estimates are approximate and depend on client behavior. GitHub's main branch is the update source; changes published there are distributed the next time users run the updater.
 

@@ -144,7 +144,8 @@ manaButton:SetSize(110, 27)
 manaButton:SetPoint("TOPRIGHT", -24, -325)
 divider(-365)
 label("FISHING POOL DETECTION", 25, -383)
-local fishHint = label("Experimental: needs Find Fish", 25, -403, "GameFontHighlightSmall")
+local fishHint = label("Automatically scans nearby pools", 25, -403, "GameFontHighlightSmall")
+fishHint:SetWidth(240);fishHint:SetJustifyH("LEFT");fishHint:SetWordWrap(true)
 fishHint:SetTextColor(0.7, 0.73, 0.75)
 local fishButton = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
 fishButton:SetSize(110, 27)
@@ -159,6 +160,11 @@ list:SetFrameLevel(panel:GetFrameLevel() + 20)
 list:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8", edgeFile="Interface\\Buttons\\WHITE8X8", edgeSize=1})
 list:SetBackdropColor(0.08, 0.08, 0.08, 1)
 list:Hide()
+function NokiForeverUpdateFishingStatus()
+  if ForeverRangeAccessDB and ForeverRangeAccessDB.fishDetection and NokiForeverFishingStatus then
+    fishHint:SetText(NokiForeverFishingStatus())
+  else fishHint:SetText("Automatically scans nearby pools") end
+end
 local function refresh()
   local index = ForeverRangeAccessDB and tonumber(ForeverRangeAccessDB.partyNameColor) or 1
   local color = options[index] or options[1]
@@ -167,9 +173,10 @@ local function refresh()
   bagInput:SetText(tostring(ForeverRangeAccessDB and ForeverRangeAccessDB.bagScale or 1))
   manaButton:SetText(ForeverRangeAccessDB and ForeverRangeAccessDB.manaRegenHidden and "Show" or "Hide")
   fishButton:SetText(ForeverRangeAccessDB and ForeverRangeAccessDB.fishDetection and "Disable" or "Enable")
+  NokiForeverUpdateFishingStatus()
 end
 fishButton:SetScript("OnClick", function()
-  if SlashCmdList.NOKIFISH then SlashCmdList.NOKIFISH(ForeverRangeAccessDB and ForeverRangeAccessDB.fishDetection and "off" or "on") end
+  if NokiForeverSetFishingDetection then NokiForeverSetFishingDetection(not (ForeverRangeAccessDB and ForeverRangeAccessDB.fishDetection)) end
   refresh()
 end)
 manaButton:SetScript("OnClick", function()
