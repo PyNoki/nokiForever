@@ -4,6 +4,12 @@ local sortMode='score'
 local detail, detailRows, detailTitle, detailNote, detailPageText, detailPlaceholder, selected, detailPage, detailDrops
 local page, currentTab, results = 1, 'Bag', {}
 local itemRequests={}
+local function mobName(id,mob)
+  local name=mob.name
+  local saved=NokiBetaCoreDB and NokiBetaCoreDB.farmObservedNames
+  if (not name or name=='' or name=='NPC '..id) and saved and type(saved[id])=='string' then return saved[id] end
+  return name and name~='' and name or ('NPC '..id)
+end
 local function requestItem(id)
   if not itemRequests[id] then
     itemRequests[id]=true
@@ -144,7 +150,7 @@ local function showDetails(item)
       end
       table.sort(detailDrops,function(a,b) if (a.unit or -1)==(b.unit or -1) then return a.drop[1]<b.drop[1] end return (a.unit or -1)>(b.unit or -1) end)
       local pages=math.max(1,math.ceil(#detailDrops/11));detailPage=math.max(1,math.min(detailPage,pages))
-      detailTitle:SetText(selected.mob.name..'  |  LOOT')
+      detailTitle:SetText(mobName(selected.id,selected.mob)..'  |  LOOT')
       detailNote:SetText(scanAge()..' | Prices: latest AH scan  |  Drops & estimated sales: AHledger')
       detailPageText:SetText('Page '..detailPage..' / '..pages..'  |  '..#detailDrops..' recorded drops')
       for i,row in ipairs(detailRows) do
@@ -182,22 +188,23 @@ local function refresh()
   for id,mob in pairs(NokiTradingLoot.mobs) do
     local low,high,levelSource=levelFor(id,mob)
     local location=table.concat(mob.locations or {},' | ')
-    if (not minLevel and not maxLevel or (low>0 and (not minLevel or high>=minLevel) and (not maxLevel or low<=maxLevel))) and (not areaCheck:GetChecked() or core.FarmInZone(mob,zone)) and (query=='' or mob.name:lower():find(query,1,true) or (mob.zone or ''):lower():find(query,1,true) or location:lower():find(query,1,true)) then
+    local name=mobName(id,mob)
+    if (not minLevel and not maxLevel or (low>0 and (not minLevel or high>=minLevel) and (not maxLevel or low<=maxLevel))) and (not areaCheck:GetChecked() or core.FarmInZone(mob,zone)) and (query=='' or name:lower():find(query,1,true) or (mob.zone or ''):lower():find(query,1,true) or location:lower():find(query,1,true)) then
       local estimate=core.FarmValue(mob,cachedMarket,kills,share)
-      results[#results+1]={id=id,mob=mob,estimate=estimate,low=low,high=high,levelSource=levelSource}
+      results[#results+1]={id=id,mob=mob,name=name,estimate=estimate,low=low,high=high,levelSource=levelSource}
     end
   end
   table.sort(results,function(a,b)
     if sortMode=='score' and (a.estimate.value or -1)~=(b.estimate.value or -1) then return (a.estimate.value or -1)>(b.estimate.value or -1) end
     if sortMode=='gross' and (a.estimate.gross or -1)~=(b.estimate.gross or -1) then return (a.estimate.gross or -1)>(b.estimate.gross or -1) end
     if sortMode=='level' then local al=a.low>0 and a.low or 9999;local bl=b.low>0 and b.low or 9999;if al~=bl then return al<bl end end
-    if a.mob.name==b.mob.name then return a.id<b.id end return a.mob.name:lower()<b.mob.name:lower()
+    if a.name==b.name then return a.id<b.id end return a.name:lower()<b.name:lower()
   end)
   page=math.max(1,math.min(page,math.max(1,math.ceil(#results/8))))
   summary:SetText(scanAge()..' | '..kills..' kills, '..math.floor(share*100+.5)..'% demand | * partial | Page '..page..' / '..math.max(1,math.ceil(#results/8)))
   for i,r in ipairs(rows) do
     local item=results[(page-1)*8+i];if item then
-      local e=item.estimate;local shown=e.value;if sortMode=='gross' then shown=e.gross end;local partial=(e.missingPrice+e.missingRate+(sortMode=='gross' and 0 or e.missingActivity+e.missingSupply+e.missingSample+e.stale))>0;r.item=item;r.name:SetText(item.mob.name..'  |cff899998'..(item.low>0 and ((item.levelSource=='zone range' and 'zone ' or 'lvl ')..item.low..'-'..item.high) or 'level ?')..'|r');r.value:SetText(shown and (money(shown)..(partial and '*' or '')) or '--');r.note:SetText(item.mob.zone~='' and item.mob.zone or 'Zone unknown');r:Show()
+      local e=item.estimate;local shown=e.value;if sortMode=='gross' then shown=e.gross end;local partial=(e.missingPrice+e.missingRate+(sortMode=='gross' and 0 or e.missingActivity+e.missingSupply+e.missingSample+e.stale))>0;r.item=item;r.name:SetText(item.name..'  |cff899998'..(item.low>0 and ((item.levelSource=='zone range' and 'zone ' or 'lvl ')..item.low..'-'..item.high) or 'level ?')..'|r');r.value:SetText(shown and (money(shown)..(partial and '*' or '')) or '--');r.note:SetText(item.mob.zone~='' and item.mob.zone or 'Zone unknown');r:Show()
     end
   end
 end
@@ -232,12 +239,22 @@ local function build()
   local areaLabel=text(frame,'GameFontHighlightSmall',53,-187);areaLabel:SetText('Current zone')
   sortButton=button(frame,'Sort: Score',160,-180,125,function()sortMode=sortMode=='score' and 'gross' or sortMode=='gross' and 'level' or sortMode=='level' and 'name' or 'score';sortButton:SetText('Sort: '..(sortMode=='score' and 'Score' or sortMode=='gross' and 'Gross' or sortMode=='level' and 'Level' or 'Name'));page=1;refresh()end)
   local valueLabel=text(frame,'GameFontNormalSmall',298,-187);valueLabel:SetText('24H SCORE / KILL')
+  local scoreHelp=button(frame,'?',460,-180,25,function()end)
+  scoreHelp:SetScript('OnEnter',function(self)
+    local kills,share=farmScenario();GameTooltip:SetOwner(self,'ANCHOR_RIGHT');GameTooltip:AddLine('How the farm score works',.5,1,.65)
+    GameTooltip:AddLine('For each drop: estimate how many you could obtain, then limit modeled sales by your share of daily demand and competition.',1,1,1,true)
+    GameTooltip:AddLine('The modeled sales are valued at the latest AH scan price after a 5% cut, then divided by kills.',1,1,1,true)
+    GameTooltip:AddLine('Current scenario: '..kills..' kills; '..math.floor(share*100+.5)..'% of daily market sales. Change this with Scenario.',1,.85,.45,true)
+    GameTooltip:AddLine('Uses conservative drop-rate estimates and assumes one item per drop. Market share and sales are estimates; deposits and coin drops are excluded.',.8,.85,.8,true)
+    GameTooltip:AddLine('* means some inputs are missing or activity is old. Scores are not guaranteed earnings.',1,.75,.4,true);GameTooltip:Show()
+  end);scoreHelp:SetScript('OnLeave',function()GameTooltip:Hide()end)
   rows={};for i=1,8 do
     local row=CreateFrame('Button',nil,frame,'BackdropTemplate');row:SetPoint('TOPLEFT',22,-218-(i-1)*27);row:SetSize(585,26);row:SetBackdrop({bgFile='Interface\\Buttons\\WHITE8X8'});row:SetBackdropColor(i%2==0 and .075 or .045,i%2==0 and .13 or .095,i%2==0 and .095 or .07,.95)
     row.name=text(row,'GameFontHighlightSmall',8,-6,260);row.value=text(row,'GameFontNormalSmall',275,-6,95);row.note=text(row,'GameFontHighlightSmall',375,-6,205)
     row:EnableMouse(true);row:SetScript('OnEnter',function(s)
       local v=s.item;if not v then return end;s:SetBackdropColor(.11,.23,.15,1)
-      GameTooltip:SetOwner(s,'ANCHOR_RIGHT');GameTooltip:AddLine(v.mob.name)
+      GameTooltip:SetOwner(s,'ANCHOR_RIGHT');GameTooltip:AddLine(v.name)
+      if v.mob.nameSource then GameTooltip:AddLine('Name source: '..v.mob.nameSource,.75,.85,.8,true) end
       if v.mob.zone and v.mob.zone~='' then GameTooltip:AddLine('Zone: '..v.mob.zone,1,1,1,true) end
       for _,location in ipairs(v.mob.locations or {}) do GameTooltip:AddLine(location,.75,.85,.8,true) end
       GameTooltip:AddLine(v.low>0 and ('Level source: '..v.levelSource) or 'Level unknown',1,1,1,true)
@@ -276,7 +293,7 @@ local function build()
     settings:SetScript('OnShow',function()local n,p=farmScenario();k:SetText(tostring(n));s:SetText(tostring(math.floor(p*100+.5)));status:SetText('')end)
     local n,p=farmScenario();k:SetText(tostring(n));s:SetText(tostring(math.floor(p*100+.5)))
   end)
-  local oldRefresh=refresh;refresh=function()oldRefresh();local show=currentTab=='Farm';fl:SetShown(show);fl2:SetShown(show);areaLabel:SetShown(show);valueLabel:SetText(sortMode=='gross' and 'GROSS / KILL' or '24H SCORE / KILL');valueLabel:SetShown(show);searchLabel:SetShown(show);prev:SetShown(show);nextb:SetShown(show);scenario:SetShown(show);if not show and settings then settings:Hide() end end
+  local oldRefresh=refresh;refresh=function()oldRefresh();local show=currentTab=='Farm';fl:SetShown(show);fl2:SetShown(show);areaLabel:SetShown(show);valueLabel:SetText(sortMode=='gross' and 'GROSS / KILL' or '24H SCORE / KILL');valueLabel:SetShown(show);scoreHelp:SetShown(show);searchLabel:SetShown(show);prev:SetShown(show);nextb:SetShown(show);scenario:SetShown(show);if not show and settings then settings:Hide() end end
   frame:SetScript('OnShow',function(self)self.ageElapsed=0;refresh()end)
   frame:SetScript('OnUpdate',function(self,elapsed)
     self.ageElapsed=(self.ageElapsed or 0)+elapsed
@@ -312,7 +329,14 @@ local events=CreateFrame('Frame');events:RegisterEvent('PLAYER_LOGIN');events:Re
   local ok,guid=pcall(UnitGUID,'target');if not ok or (issecretvalue and issecretvalue(guid)) or type(guid)~='string' then return end
   local kind,id=guid:match('^(%a+)%-[^%-]+%-[^%-]+%-[^%-]+%-[^%-]+%-(%d+)%-')
   id=tonumber(id);if kind~='Creature' or not id or not NokiTradingLoot.mobs[id] then return end
-  local good,lvl=pcall(UnitLevel,'target');if not good or (issecretvalue and issecretvalue(lvl)) or type(lvl)~='number' or lvl<1 or lvl>100 then return end
+  local mob=NokiTradingLoot.mobs[id]
+  if (not mob.name or mob.name=='' or mob.name=='NPC '..id) and UnitName then
+    local nameOK,name=pcall(UnitName,'target')
+    if nameOK and not (issecretvalue and issecretvalue(name)) and type(name)=='string' and name~='' and name~=('NPC '..id) then
+      NokiBetaCoreDB.farmObservedNames=NokiBetaCoreDB.farmObservedNames or {};NokiBetaCoreDB.farmObservedNames[id]=name
+    end
+  end
+  local good,lvl=pcall(UnitLevel,'target');if not good or (issecretvalue and issecretvalue(lvl)) or type(lvl)~='number' or lvl<1 or lvl>100 then refresh();return end
   NokiBetaCoreDB.farmObservedLevels=NokiBetaCoreDB.farmObservedLevels or {};local entry=NokiBetaCoreDB.farmObservedLevels[id]
   if entry then entry.min=math.min(entry.min,lvl);entry.max=math.max(entry.max,lvl) else NokiBetaCoreDB.farmObservedLevels[id]={min=lvl,max=lvl} end
   refresh()
