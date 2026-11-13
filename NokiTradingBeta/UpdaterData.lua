@@ -1,1 +1,0 @@
--- Market data is written here by the optional Noki Trading Updater.
