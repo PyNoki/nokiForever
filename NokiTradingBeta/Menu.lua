@@ -43,7 +43,9 @@ local function levelFor(id,mob)
   if mob.min>0 then return mob.min,mob.max,mob.levelSource or 'Classic reference' end
   local observed=NokiBetaCoreDB.farmObservedLevels and NokiBetaCoreDB.farmObservedLevels[id]
   if observed then return observed.min,observed.max,'observed' end
-  return mob.min,mob.max,'Classic'
+  local zoneMin,zoneMax=core.FarmZoneLevel(mob)
+  if zoneMin then return zoneMin,zoneMax,'zone range' end
+  return 0,0,'unknown'
 end
 local function showDetails(item)
   selected=item;detailPage=1
@@ -115,7 +117,7 @@ local function refresh()
   summary:SetText((areaCheck:GetChecked() and ('Zone: '..(zone or 'unavailable')..' | ') or '')..'* = partial estimate. Hover for details. Page '..page..' / '..math.max(1,math.ceil(#results/8)))
   for i,r in ipairs(rows) do
     local item=results[(page-1)*8+i];if item then
-      local e=item.estimate;r.item=item;r.name:SetText(item.mob.name..'  |cff899998'..(item.low>0 and (item.low..'-'..item.high) or 'level ?')..'|r');r.value:SetText(e.value and (money(e.value)..((e.missingPrice+e.missingRate)>0 and '*' or '')) or '--');r.note:SetText(item.mob.zone~='' and item.mob.zone or 'Zone unknown');r:Show()
+      local e=item.estimate;r.item=item;r.name:SetText(item.mob.name..'  |cff899998'..(item.low>0 and ((item.levelSource=='zone range' and 'zone ' or 'lvl ')..item.low..'-'..item.high) or 'level ?')..'|r');r.value:SetText(e.value and (money(e.value)..((e.missingPrice+e.missingRate)>0 and '*' or '')) or '--');r.note:SetText(item.mob.zone~='' and item.mob.zone or 'Zone unknown');r:Show()
     end
   end
 end
@@ -157,6 +159,7 @@ local function build()
       if v.mob.zone and v.mob.zone~='' then GameTooltip:AddLine('Zone: '..v.mob.zone,1,1,1,true) end
       for _,location in ipairs(v.mob.locations or {}) do GameTooltip:AddLine(location,.75,.85,.8,true) end
       GameTooltip:AddLine(v.low>0 and ('Level source: '..v.levelSource) or 'Level unknown',1,1,1,true)
+      if v.levelSource=='zone range' then GameTooltip:AddLine('Zone bracket only; the monster can be outside this range.',1,.8,.3,true) end
       if v.low>0 and v.levelSource:find('observed') then GameTooltip:AddLine('Observed levels may not include the full range.',1,1,1,true) end
       local e=v.estimate
       GameTooltip:AddLine('Estimated value per kill: '..(e.value and money(e.value) or 'unavailable'),1,1,1,true)
