@@ -1,4 +1,4 @@
--- Noki local beta: owned auction view. Cancellation only occurs from a row click.
+-- Owned auction view. Each cancellation requires a deliberate click.
 local core=NokiUnifiedCore
 local owned, competitions={},{}
 local state={queue={},index=1,search=nil,alerted=false}
@@ -18,6 +18,8 @@ local startChecks
 local panel, summary, status, page, rows, scrollOffset, scrollbar, updatingScrollbar
 local requestedNames={}
 local expandedAuction
+local selectedAuctions={}
+local bulkCancel,selectAll,clearSelection
 local pendingDeposit
 scrollOffset=0
 local function formatMoney(n)
@@ -145,6 +147,12 @@ local function comparison(auction)
   return lower>0 and "undercut" or "no lower price",lower
 end
 core.CompareOwned=comparison
+local function selectedCount()
+  local n=0;for _ in pairs(selectedAuctions) do n=n+1 end;return n
+end
+local function nextSelected()
+  for _,item in ipairs(owned) do if item.auctionID and selectedAuctions[item.auctionID] then return item end end
+end
 local function render()
   if not panel then return end
   local maxOffset=math.max(0,#owned-8)
@@ -154,6 +162,10 @@ local function render()
   for _,a in ipairs(owned) do local _,value=auctionValues(a);if value then total=total+value else count=count+1 end end
   local net=math.floor(total*95/100)
   summary:SetText((state.ownedComplete and "Gross: " or "Partial gross: ")..formatMoney(total).." | Est. after 5%: "..formatMoney(net)..(count>0 and (" | "..count.." price unknown") or "").." | Deposits excluded")
+  local selected=selectedCount()
+  if bulkCancel then bulkCancel:SetText("Cancel next ("..selected..")");bulkCancel:SetEnabled(core.active and state.ownedComplete and not state.cancelPending and selected>0) end
+  if selectAll then selectAll:SetEnabled(core.active and state.ownedComplete and not state.cancelPending and #owned>0) end
+  if clearSelection then clearSelection:SetEnabled(not state.cancelPending and selected>0) end
   local rowY=-104
   for i,row in ipairs(rows) do
     local item=owned[scrollOffset+i];row.item=item
@@ -167,6 +179,7 @@ local function render()
       local marketLow=lowestPrice(item.itemKey and competitions[keyString(item.itemKey)])
       row.name:SetText(name);row.quantity:SetText(tostring(item.quantity or "?"));row.unit:SetText(formatMoney(unit));row.total:SetText(formatMoney(total));row.low:SetText(formatMoney(marketLow));row.state:SetText(condition=="no lower price" and "|TInterface\\RaidFrame\\ReadyCheck-Ready:14:14|t" or condition);row.ahead:SetText(ahead~=nil and tostring(ahead) or "--");row.deposit:SetText(formatMoney(auctionDeposit(item)));row.time:SetText(timeLeft(item))
       row.state:SetTextColor(condition=="undercut" and 1 or .75,condition=="undercut" and .3 or .85,.4)
+      row.select:SetChecked(selectedAuctions[item.auctionID] and true or false);row.select:SetEnabled(core.active and state.ownedComplete and not state.cancelPending)
       row.expand:SetText(expanded and "-" or "+");row.detail:SetShown(expanded)
       if expanded then
         local match=relistValues(item.quantity,marketLow,false);local under=relistValues(item.quantity,marketLow,true)
@@ -189,7 +202,7 @@ local function render()
     else row:Hide() end
   end
   page:ClearAllPoints();page:SetPoint("TOPLEFT",panel,"TOPLEFT",16,rowY-8)
-  status:SetText(#owned.." active auctions | "..(state.cancelPending and "Refreshing after cancellation..." or state.search and "Checking competition..." or (#state.queue>0 and state.index<=#state.queue and "Competition scan queued" or (#state.queue>0 and "Competition checks complete" or "Use Scan market to refresh comparisons"))))
+  status:SetText(#owned.." active auctions | "..(state.cancelPending and "Refreshing after cancellation..." or selected>0 and (selected.." selected: click Cancel next once per auction. Deposits may be lost.") or state.search and "Checking competition..." or (#state.queue>0 and state.index<=#state.queue and "Competition scan queued" or (#state.queue>0 and "Competition checks complete" or "Use Scan market to refresh comparisons"))))
   page:SetText((#owned==0 and "No listings" or ((scrollOffset+1).."-"..math.min(scrollOffset+8,#owned).." of "..#owned)).."  |  Scroll to browse  |  Market low can include yours  |  -- = unavailable")
 end
 local function refreshOwned(fromOwnedUpdate)
@@ -202,6 +215,10 @@ local function refreshOwned(fromOwnedUpdate)
   end
   owned=result;scrollOffset=math.min(scrollOffset,math.max(0,#owned-8));render()
   state.ownedComplete=not C_AuctionHouse.HasFullOwnedAuctionResults or C_AuctionHouse.HasFullOwnedAuctionResults()
+  if state.ownedComplete then
+    local present={};for _,item in ipairs(owned) do present[item.auctionID]=true end
+    for id in pairs(selectedAuctions) do if not present[id] then selectedAuctions[id]=nil end end
+  end
   if fromOwnedUpdate and state.ownedComplete and type(C_AuctionHouse.HasFullOwnedAuctionResults)=="function" and #allRows==totalRows and core.CapturePendingOwned then core.CapturePendingOwned(allRows) end
   local stillListed=false
   if state.cancelPending then for _,auction in ipairs(owned) do if auction.auctionID==state.cancelPending then stillListed=true;break end end end
@@ -234,14 +251,30 @@ local function createPanel()
   end}
   local title=panel:CreateFontString(nil,"OVERLAY","GameFontNormalLarge");title:SetPoint("TOPLEFT",panel,"TOPLEFT",16,-12);title:SetText("YOUR AUCTIONS")
   local scan=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");scan:SetSize(120,24);scan:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-20,-8);scan:SetText("Scan market");scan:SetScript("OnClick",function() local ok,err=core.Scan();if not ok then print("Noki Trading: "..tostring(err)) end end)
+  selectAll=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");selectAll:SetSize(85,24);selectAll:SetPoint("TOPLEFT",panel,"TOPLEFT",230,-8);selectAll:SetText("Select all")
+  selectAll:SetScript("OnClick",function() if not core.active or not state.ownedComplete or state.cancelPending then return end;for _,item in ipairs(owned) do if item.auctionID then selectedAuctions[item.auctionID]=true end end;render() end)
+  clearSelection=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");clearSelection:SetSize(70,24);clearSelection:SetPoint("LEFT",selectAll,"RIGHT",5,0);clearSelection:SetText("Clear")
+  clearSelection:SetScript("OnClick",function() if state.cancelPending then return end;selectedAuctions={};render() end)
+  bulkCancel=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");bulkCancel:SetSize(130,24);bulkCancel:SetPoint("LEFT",clearSelection,"RIGHT",5,0)
+  bulkCancel:SetScript("OnClick",function()
+    if not core.active or not state.ownedComplete or state.cancelPending or not C_AuctionHouse or not C_AuctionHouse.CancelAuction then return end
+    local item=nextSelected();if not item then render();return end
+    if C_AuctionHouse.CanCancelAuction and not C_AuctionHouse.CanCancelAuction(item.auctionID) then print("Noki Trading: this listing cannot be cancelled. Clear it from the selection or refresh auctions.");return end
+    if C_AuctionHouse.IsThrottledMessageSystemReady and not C_AuctionHouse.IsThrottledMessageSystemReady() then print("Noki Trading: auction house is busy; try again shortly.");return end
+    local ok,err=pcall(C_AuctionHouse.CancelAuction,item.auctionID)
+    if not ok then print("Noki Trading: cancellation failed: "..tostring(err));return end
+    state.cancelPending=item.auctionID;state.cancelStarted=(GetServerTime and GetServerTime()) or time();state.needOwned=true;state.ownedRequested=nil;render()
+  end)
   summary=rowText(panel,16,-40,700);status=rowText(panel,16,-60,700)
   local header=CreateFrame("Frame",nil,panel,"BackdropTemplate");header:SetPoint("TOPLEFT",panel,"TOPLEFT",12,-82);header:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-32,-82);header:SetHeight(21);header:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});header:SetBackdropColor(.13,.18,.17,1)
   for _,col in ipairs({{"ITEM",4,200},{"QTY",205,65},{"UNIT",270,80},{"TOTAL",350,90},{"MKT LOW",440,85},{"STATUS",525,75},{"LOWER",600,65},{"DEPOSIT",665,80},{"TIME",745,60}}) do local label=header:CreateFontString(nil,"OVERLAY","GameFontNormalSmall");label:SetPoint("TOPLEFT",header,"TOPLEFT",col[2],-4);label:SetWidth(col[3]);label:SetJustifyH("LEFT");label:SetText(col[1]) end
   rows={}
   for i=1,8 do
     local row=CreateFrame("Frame",nil,panel,"BackdropTemplate");row:SetPoint("TOPLEFT",panel,"TOPLEFT",12,-104-(i-1)*32);row:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-32,-104-(i-1)*32);row:SetHeight(30);row:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});row:SetBackdropColor(i%2==0 and .12 or .08,.12,.12,.95)
-    row.expand=CreateFrame("Button",nil,row,"UIPanelButtonTemplate");row.expand:SetSize(18,20);row.expand:SetPoint("TOPLEFT",row,"TOPLEFT",3,-5);row.expand:SetText("+");row.expand:SetScript("OnClick",function() if row.item then if expandedAuction==row.item.auctionID then expandedAuction=nil else expandedAuction=row.item.auctionID end;render() end end)
-    row.name=rowText(row,25,-8,179);row.quantity=rowText(row,205,-8,65);row.unit=rowText(row,270,-8,80);row.total=rowText(row,350,-8,90);row.low=rowText(row,440,-8,85);row.state=rowText(row,525,-8,75);row.ahead=rowText(row,600,-8,65);row.deposit=rowText(row,665,-8,80);row.time=rowText(row,745,-8,60)
+    row.select=CreateFrame("CheckButton",nil,row,"UICheckButtonTemplate");row.select:SetSize(23,23);row.select:SetPoint("TOPLEFT",row,"TOPLEFT",2,-3)
+    row.select:SetScript("OnClick",function(self) if row.item and row.item.auctionID and not state.cancelPending then selectedAuctions[row.item.auctionID]=self:GetChecked() and true or nil;render() end end)
+    row.expand=CreateFrame("Button",nil,row,"UIPanelButtonTemplate");row.expand:SetSize(18,20);row.expand:SetPoint("TOPLEFT",row,"TOPLEFT",27,-5);row.expand:SetText("+");row.expand:SetScript("OnClick",function() if row.item then if expandedAuction==row.item.auctionID then expandedAuction=nil else expandedAuction=row.item.auctionID end;render() end end)
+    row.name=rowText(row,49,-8,155);row.quantity=rowText(row,205,-8,65);row.unit=rowText(row,270,-8,80);row.total=rowText(row,350,-8,90);row.low=rowText(row,440,-8,85);row.state=rowText(row,525,-8,75);row.ahead=rowText(row,600,-8,65);row.deposit=rowText(row,665,-8,80);row.time=rowText(row,745,-8,60)
     row.detail=rowText(row,25,-31,850);row.detail:SetWordWrap(true);row.detail:Hide()
     row.view=CreateFrame("Button",nil,row,"UIPanelButtonTemplate");row.view:SetSize(50,22);row.view:SetPoint("TOPRIGHT",row,"TOPRIGHT",-60,-4);row.view:SetText("View");row.view:SetScript("OnClick",function()
       local item=row.item
@@ -363,12 +396,13 @@ f:SetScript("OnEvent",function(_,event,arg)
     local id=state.cancelPending
     if id and (type(arg)~="number" or arg==id) then
       for i=#owned,1,-1 do if owned[i].auctionID==id then table.remove(owned,i) end end
+      selectedAuctions[id]=nil
       if expandedAuction==id then expandedAuction=nil end
       state.cancelPending=nil;state.cancelStarted=nil;scrollOffset=math.min(scrollOffset,math.max(0,#owned-8));render()
     end
-    state.ownedComplete=false;state.needOwned=true;state.ownedRequested=nil;if NokiUnifiedMarketOwnedChanged then NokiUnifiedMarketOwnedChanged() end;requestOwned()
+    state.ownedComplete=false;state.needOwned=true;state.ownedRequested=nil;if NokiUnifiedMarketOwnedChanged then NokiUnifiedMarketOwnedChanged() end;requestOwned();render()
   elseif event=="GET_ITEM_INFO_RECEIVED" or event=="ITEM_KEY_ITEM_INFO_RECEIVED" then render()
-  elseif event=="AUCTION_HOUSE_CLOSED" then pendingDeposit=nil;state.queue={};state.index=1;state.search=nil;core.SetWorking("competition",false);core.SetWorking("pending",false)
+  elseif event=="AUCTION_HOUSE_CLOSED" then selectedAuctions={};pendingDeposit=nil;state.queue={};state.index=1;state.search=nil;core.SetWorking("competition",false);core.SetWorking("pending",false)
   elseif state.search and ((state.search.commodity and (event=="COMMODITY_SEARCH_RESULTS_UPDATED" or event=="COMMODITY_SEARCH_RESULTS_ADDED") and arg==state.search.key.itemID) or (not state.search.commodity and (event=="ITEM_SEARCH_RESULTS_UPDATED" or event=="ITEM_SEARCH_RESULTS_ADDED") and type(arg)=="table" and keyString(arg)==state.search.keyString)) then state.search.seen=true;checkDone() end
 end)
 local interval=0;f:SetScript("OnUpdate",function(_,delta)
