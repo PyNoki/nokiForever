@@ -1,6 +1,6 @@
 local core=NokiUnifiedCore
 local frame, body, title, mini, coinCheck, filter, maxFilter, search, rows, summary, areaCheck, sortButton
-local sortMode='value'
+local sortMode='score'
 local detail, detailRows, detailTitle, detailNote, detailPageText, selected, detailPage, detailDrops
 local page, currentTab, results = 1, 'Bag', {}
 local itemRequests={}
@@ -45,7 +45,7 @@ end
 local function price(id)
   local market=core.Market();local book=market and NokiBetaCoreDB.prices and NokiBetaCoreDB.prices[market];local r=book and book.items and book.items[id]
   if r and not r.carried and type(r.price)=='number' and r.price>0 then
-    return r.price,r.observed or book.observed,'AH scan'
+    return r.price,r.observed or book.observed,'AH scan',r.quantity
   end
 end
 local function money(c)
@@ -113,6 +113,15 @@ local function showDetails(item)
           GameTooltip:AddLine(NokiUnifiedMarketActivityLabel(x.activity),.8,.8,.8,true)
           GameTooltip:AddLine('Market-wide estimate, not confirmed sales or a guarantee of selling.',.8,.8,.8,true)
         else GameTooltip:AddLine('Sales estimate unavailable: '..(x.activityError or 'no activity data'),1,.75,.4,true) end
+        local contribution,reason,weight,lower=core.FarmDropScore(d,x.market)
+        if contribution then
+          GameTooltip:AddLine('24h model weight: '..string.format('%.1f%%',weight*100)..' | Conservative drop rate: '..string.format('%.1f%%',lower*100),.7,1,.75,true)
+          GameTooltip:AddLine('Last scan listed: '..(type(x.market.listed)=='number' and tostring(x.market.listed) or 'unavailable')..' | Estimated sold / day: '..salesText(x.activity.sales),.8,.9,.8,true)
+          GameTooltip:AddLine('Score contribution: '..money(contribution)..' / kill; assumes one item and 5% AH cut.',.8,.9,.8,true)
+        else
+          local labels={rate='drop rate unavailable',price='current scan price unavailable',activity='sales estimate unavailable',supply='listed quantity unavailable',sample='drop sample unavailable'}
+          GameTooltip:AddLine('No 24h score contribution: '..(labels[reason] or 'data unavailable')..'.',1,.75,.4,true)
+        end
         GameTooltip:Show()
       end);row:SetScript('OnLeave',function(s)s:SetBackdropColor(i%2==0 and .075 or .045,i%2==0 and .13 or .095,i%2==0 and .095 or .07,.95);GameTooltip:Hide()end);detailRows[i]=row
     end
@@ -123,9 +132,9 @@ local function showDetails(item)
     detail.render=function()
       detailDrops={}
       for _,d in ipairs(selected.mob.drops) do
-        local p,when,source=price(d[1]);local activity,err
+        local p,when,source,listed=price(d[1]);local activity,err
         if NokiUnifiedMarketActivity then activity,err=NokiUnifiedMarketActivity(d[1]) end
-        detailDrops[#detailDrops+1]={drop=d,unit=p,when=when,source=source,activity=activity,activityError=err}
+        detailDrops[#detailDrops+1]={drop=d,unit=p,when=when,source=source,activity=activity,activityError=err,market={price=p,listed=listed,activity=activity}}
       end
       table.sort(detailDrops,function(a,b) if (a.unit or -1)==(b.unit or -1) then return a.drop[1]<b.drop[1] end return (a.unit or -1)>(b.unit or -1) end)
       local pages=math.max(1,math.ceil(#detailDrops/11));detailPage=math.max(1,math.min(detailPage,pages))
@@ -148,25 +157,32 @@ local function refresh()
   local minLevel=tonumber(filter:GetText());local maxLevel=tonumber(maxFilter:GetText());local query=search:GetText():lower();results={}
   local zone=(GetRealZoneText and GetRealZoneText()) or (GetZoneText and GetZoneText())
   if issecretvalue and issecretvalue(zone) then zone=nil end
-  local prices={};local function cachedPrice(id) if prices[id]==nil then prices[id]=price(id) or false end;return prices[id] end
+  local markets={};local function cachedMarket(id)
+    if not markets[id] then
+      local p,_,_,listed=price(id);local activity=NokiUnifiedMarketActivity and NokiUnifiedMarketActivity(id)
+      markets[id]={price=p,listed=listed,activity=activity}
+    end
+    return markets[id]
+  end
   for id,mob in pairs(NokiTradingLoot.mobs) do
     local low,high,levelSource=levelFor(id,mob)
     local location=table.concat(mob.locations or {},' | ')
     if (not minLevel and not maxLevel or (low>0 and (not minLevel or high>=minLevel) and (not maxLevel or low<=maxLevel))) and (not areaCheck:GetChecked() or core.FarmInZone(mob,zone)) and (query=='' or mob.name:lower():find(query,1,true) or (mob.zone or ''):lower():find(query,1,true) or location:lower():find(query,1,true)) then
-      local estimate=core.FarmValue(mob,cachedPrice)
+      local estimate=core.FarmValue(mob,cachedMarket)
       results[#results+1]={id=id,mob=mob,estimate=estimate,low=low,high=high,levelSource=levelSource}
     end
   end
   table.sort(results,function(a,b)
-    if sortMode=='value' and (a.estimate.value or -1)~=(b.estimate.value or -1) then return (a.estimate.value or -1)>(b.estimate.value or -1) end
+    if sortMode=='score' and (a.estimate.value or -1)~=(b.estimate.value or -1) then return (a.estimate.value or -1)>(b.estimate.value or -1) end
+    if sortMode=='gross' and (a.estimate.gross or -1)~=(b.estimate.gross or -1) then return (a.estimate.gross or -1)>(b.estimate.gross or -1) end
     if sortMode=='level' then local al=a.low>0 and a.low or 9999;local bl=b.low>0 and b.low or 9999;if al~=bl then return al<bl end end
     if a.mob.name==b.mob.name then return a.id<b.id end return a.mob.name:lower()<b.mob.name:lower()
   end)
   page=math.max(1,math.min(page,math.max(1,math.ceil(#results/8))))
-  summary:SetText(scanAge()..' | * = partial | Page '..page..' / '..math.max(1,math.ceil(#results/8))..(areaCheck:GetChecked() and (' | Zone: '..(zone or 'unavailable')) or ''))
+  summary:SetText(scanAge()..' | * = partial or old activity | Page '..page..' / '..math.max(1,math.ceil(#results/8))..(areaCheck:GetChecked() and (' | Zone: '..(zone or 'unavailable')) or ''))
   for i,r in ipairs(rows) do
     local item=results[(page-1)*8+i];if item then
-      local e=item.estimate;r.item=item;r.name:SetText(item.mob.name..'  |cff899998'..(item.low>0 and ((item.levelSource=='zone range' and 'zone ' or 'lvl ')..item.low..'-'..item.high) or 'level ?')..'|r');r.value:SetText(e.value and (money(e.value)..((e.missingPrice+e.missingRate)>0 and '*' or '')) or '--');r.note:SetText(item.mob.zone~='' and item.mob.zone or 'Zone unknown');r:Show()
+      local e=item.estimate;local shown=e.value;if sortMode=='gross' then shown=e.gross end;local partial=(e.missingPrice+e.missingRate+(sortMode=='gross' and 0 or e.missingActivity+e.missingSupply+e.missingSample+e.stale))>0;r.item=item;r.name:SetText(item.mob.name..'  |cff899998'..(item.low>0 and ((item.levelSource=='zone range' and 'zone ' or 'lvl ')..item.low..'-'..item.high) or 'level ?')..'|r');r.value:SetText(shown and (money(shown)..(partial and '*' or '')) or '--');r.note:SetText(item.mob.zone~='' and item.mob.zone or 'Zone unknown');r:Show()
     end
   end
 end
@@ -198,8 +214,8 @@ local function build()
   local searchLabel=text(frame,'GameFontHighlightSmall',500,-155);searchLabel:SetText('Name / zone; Enter')
   areaCheck=CreateFrame('CheckButton',nil,frame,'UICheckButtonTemplate');areaCheck:SetSize(25,25);areaCheck:SetPoint('TOPLEFT',23,-181);areaCheck:SetScript('OnClick',function()page=1;refresh()end)
   local areaLabel=text(frame,'GameFontHighlightSmall',53,-187);areaLabel:SetText('Current zone')
-  sortButton=button(frame,'Sort: Value',160,-180,125,function()sortMode=sortMode=='value' and 'level' or sortMode=='level' and 'name' or 'value';sortButton:SetText('Sort: '..(sortMode=='value' and 'Value' or sortMode=='level' and 'Level' or 'Name'));page=1;refresh()end)
-  local valueLabel=text(frame,'GameFontNormalSmall',298,-187);valueLabel:SetText('EST. / KILL')
+  sortButton=button(frame,'Sort: Score',160,-180,125,function()sortMode=sortMode=='score' and 'gross' or sortMode=='gross' and 'level' or sortMode=='level' and 'name' or 'score';sortButton:SetText('Sort: '..(sortMode=='score' and 'Score' or sortMode=='gross' and 'Gross' or sortMode=='level' and 'Level' or 'Name'));page=1;refresh()end)
+  local valueLabel=text(frame,'GameFontNormalSmall',298,-187);valueLabel:SetText('24H SCORE / KILL')
   rows={};for i=1,8 do
     local row=CreateFrame('Button',nil,frame,'BackdropTemplate');row:SetPoint('TOPLEFT',22,-218-(i-1)*27);row:SetSize(585,26);row:SetBackdrop({bgFile='Interface\\Buttons\\WHITE8X8'});row:SetBackdropColor(i%2==0 and .075 or .045,i%2==0 and .13 or .095,i%2==0 and .095 or .07,.95)
     row.name=text(row,'GameFontHighlightSmall',8,-6,260);row.value=text(row,'GameFontNormalSmall',275,-6,95);row.note=text(row,'GameFontHighlightSmall',375,-6,205)
@@ -212,15 +228,17 @@ local function build()
       if v.levelSource=='zone range' then GameTooltip:AddLine('Zone bracket only; the monster can be outside this range.',1,.8,.3,true) end
       if v.low>0 and v.levelSource:find('observed') then GameTooltip:AddLine('Observed levels may not include the full range.',1,1,1,true) end
       local e=v.estimate
-      GameTooltip:AddLine('Estimated value per kill: '..(e.value and money(e.value) or 'unavailable'),1,1,1,true)
-      GameTooltip:AddLine('Uses recorded drop rates per looted corpse and one item per drop; stack quantities and coin are unavailable.',1,1,1,true)
-      GameTooltip:AddLine(e.missingPrice..' drops without a price in the latest AH scan; '..e.missingRate..' without a usable rate. Scan prices may be stale; fees excluded.',1,.8,.3,true)
+      GameTooltip:AddLine('24h score / kill: '..(e.value and money(e.value) or 'unavailable')..' | Gross estimate: '..(e.gross and money(e.gross) or 'unavailable'),1,1,1,true)
+      GameTooltip:AddLine('Score = conservative drop rate x AH price x 95% x (1 - exp(-sales/day / (listed + 1))).',1,1,1,true)
+      GameTooltip:AddLine('Drop rate uses a 90% one-sided Wilson lower bound from observed loot windows.',1,1,1,true)
+      GameTooltip:AddLine('Heuristic assumes stable, equally competing listings and one item per drop. It is not a sale prediction; coin and deposits are excluded.',1,1,1,true)
+      GameTooltip:AddLine('Missing: '..e.missingPrice..' prices, '..e.missingRate..' rates, '..e.missingActivity..' sales, '..e.missingSupply..' listed quantities, '..e.missingSample..' samples. Old or undated activity: '..e.stale..'.',1,.8,.3,true)
       GameTooltip:AddLine('Click for individual drop observations and AH prices.',1,.8,.3,true);GameTooltip:Show()
     end);row:SetScript('OnLeave',function(s)s:SetBackdropColor(i%2==0 and .075 or .045,i%2==0 and .13 or .095,i%2==0 and .095 or .07,.95);GameTooltip:Hide()end);row:SetScript('OnClick',function(s)if s.item then showDetails(s.item) end end);rows[i]=row
   end
   summary=text(frame,'GameFontHighlightSmall',24,-444,580)
   local prev=button(frame,'Previous',24,-478,85,function()page=page-1;refresh()end);local nextb=button(frame,'Next',117,-478,85,function()page=page+1;refresh()end)
-  local oldRefresh=refresh;refresh=function()oldRefresh();local show=currentTab=='Farm';fl:SetShown(show);fl2:SetShown(show);areaLabel:SetShown(show);valueLabel:SetShown(show);searchLabel:SetShown(show);prev:SetShown(show);nextb:SetShown(show)end
+  local oldRefresh=refresh;refresh=function()oldRefresh();local show=currentTab=='Farm';fl:SetShown(show);fl2:SetShown(show);areaLabel:SetShown(show);valueLabel:SetText(sortMode=='gross' and 'GROSS / KILL' or '24H SCORE / KILL');valueLabel:SetShown(show);searchLabel:SetShown(show);prev:SetShown(show);nextb:SetShown(show)end
   frame:SetScript('OnShow',function(self)self.ageElapsed=0;refresh()end)
   frame:SetScript('OnUpdate',function(self,elapsed)
     self.ageElapsed=(self.ageElapsed or 0)+elapsed
