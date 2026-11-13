@@ -63,11 +63,8 @@ local function showDetails(item)
       row.name=text(row,'GameFontHighlightSmall',7,-7,245);row.rate=text(row,'GameFontHighlightSmall',263,-7,140);row.unit=text(row,'GameFontHighlightSmall',410,-7,105);row.total=text(row,'GameFontHighlightSmall',520,-7,100)
       row:EnableMouse(true);row:SetScript('OnEnter',function(s)
         local x=s.entry;if not x then return end;local d=x.drop
-        GameTooltip:SetOwner(s,'ANCHOR_RIGHT');GameTooltip:AddLine(itemName(d[1]));GameTooltip:AddLine('Everloot '..d[5]..': '..d[2]..' / '..d[3]..' loot windows; '..d[6]..' reporters.',1,1,1,true)
-        if d[3]<20 or d[6]<2 then GameTooltip:AddLine('Not enough data to display a drop percentage: fewer than 20 windows or 2 reporters.',1,.55,.2,true) end
-        local other=NokiTradingLootCrosscheck and NokiTradingLootCrosscheck[selected.id..':'..d[1]]
-        if other then GameTooltip:AddLine('EG Link: '..other[1]..' item slots / '..other[2]..' solo loot windows; '..other[3]..' sources. Build '..other[4]..', through '..other[5]..'.',1,1,1,true);GameTooltip:AddLine('Separate observations; methods differ and sources may overlap.',.8,.8,.8,true)
-        else GameTooltip:AddLine('EG Link: no matching solo drop observation in the checked builds. This is not a zero rate.',.8,.8,.8,true) end
+        GameTooltip:SetOwner(s,'ANCHOR_RIGHT');GameTooltip:AddLine(itemName(d[1]));GameTooltip:AddLine('AHledger: '..d[5]..' loot'..(d[3]>0 and (', '..d[2]..' / '..d[3]..' observations') or ', sample unavailable')..(d[6]>0 and ('; '..d[6]..' reporters.') or '.'),1,1,1,true)
+        if d[7] or type(d[8])~='number' then GameTooltip:AddLine('Drop percentage unavailable: not enough sample data.',1,.55,.2,true) end
         GameTooltip:AddLine((x.source or 'Price unavailable')..' observed: '..(x.when and date('%Y-%m-%d %H:%M',x.when) or 'unknown'),1,1,1);GameTooltip:Show()
       end);row:SetScript('OnLeave',function()GameTooltip:Hide()end);detailRows[i]=row
     end
@@ -81,10 +78,10 @@ local function showDetails(item)
       table.sort(detailDrops,function(a,b) if (a.unit or -1)==(b.unit or -1) then return a.drop[1]<b.drop[1] end return (a.unit or -1)>(b.unit or -1) end)
       local pages=math.max(1,math.ceil(#detailDrops/11));detailPage=math.max(1,math.min(detailPage,pages))
       detailTitle:SetText(selected.mob.name..'  |  LOOT')
-      detailNote:SetText('Percentages require at least 20 loot windows and 2 reporters; even then they are estimates. Hover for observations, sources and price age.')
+      detailNote:SetText('AHledger drop rates are observed estimates. Hover for sample details and price age.')
       detailPageText:SetText('Page '..detailPage..' / '..pages..'  |  '..#detailDrops..' recorded drops')
       for i,row in ipairs(detailRows) do
-        local x=detailDrops[(detailPage-1)*11+i];if x then local d=x.drop;row.entry=x;row.name:SetText(itemName(d[1]));local rate=(d[3]<20 or d[6]<2) and string.format('Not enough (%d/%d)',d[2],d[3]) or string.format('%.1f%% (%d/%d)',100*d[2]/d[3],d[2],d[3]);row.rate:SetText(rate);row.unit:SetText(x.unit and money(x.unit) or 'No price');row.total:SetText(x.source or '--');row:Show() else row:Hide() end
+        local x=detailDrops[(detailPage-1)*11+i];if x then local d=x.drop;row.entry=x;row.name:SetText(itemName(d[1]));local rate=type(d[8])=='number' and string.format('%.1f%% (%d/%d)',d[8],d[2],d[3]) or 'Not enough data';row.rate:SetText(rate);row.unit:SetText(x.unit and money(x.unit) or 'No price');row.total:SetText(x.source or '--');row:Show() else row:Hide() end
       end
     end
   end
@@ -99,9 +96,10 @@ local function refresh()
   local level=tonumber(filter:GetText());local query=search:GetText():lower();results={}
   for id,mob in pairs(NokiTradingLoot.mobs) do
     local low,high,levelSource=levelFor(id,mob)
-    if (not level or (low>0 and low<=level and high>=level)) and (query=='' or mob.name:lower():find(query,1,true)) then
+    local location=table.concat(mob.locations or {},' | ')
+    if (not level or (low>0 and low<=level and high>=level)) and (query=='' or mob.name:lower():find(query,1,true) or (mob.zone or ''):lower():find(query,1,true) or location:lower():find(query,1,true)) then
       local missing,lowSamples=0,0
-      for _,d in ipairs(mob.drops) do if not price(d[1]) then missing=missing+1 end;if d[3]<20 or d[6]<2 then lowSamples=lowSamples+1 end end
+      for _,d in ipairs(mob.drops) do if not price(d[1]) then missing=missing+1 end;if d[7] or type(d[8])~='number' then lowSamples=lowSamples+1 end end
       results[#results+1]={id=id,mob=mob,missing=missing,lowSamples=lowSamples,low=low,high=high,levelSource=levelSource}
     end
   end
@@ -110,7 +108,7 @@ local function refresh()
   summary:SetText('Click a mob for loot and AH prices. Hover for level source. Page '..page..' / '..math.max(1,math.ceil(#results/8)))
   for i,r in ipairs(rows) do
     local item=results[(page-1)*8+i];if item then
-      r.item=item;r.name:SetText(item.mob.name..'  |cff899998'..(item.low>0 and (item.low..'-'..item.high) or 'level ?')..'|r');r.value:SetText(#item.mob.drops..' drops');r.note:SetText(item.missing..' unpriced  |  '..item.lowSamples..' low sample');r:Show()
+      r.item=item;r.name:SetText(item.mob.name..'  |cff899998'..(item.low>0 and (item.low..'-'..item.high) or 'level ?')..'|r');r.value:SetText(#item.mob.drops..' drops');r.note:SetText(item.mob.zone~='' and item.mob.zone or 'Zone unknown');r:Show()
     end
   end
 end
@@ -136,13 +134,15 @@ local function build()
   filter=CreateFrame('EditBox',nil,frame,'InputBoxTemplate');filter:SetSize(85,25);filter:SetPoint('TOPLEFT',31,-151);filter:SetAutoFocus(false);filter:SetNumeric(true);filter:SetMaxLetters(2);filter:SetScript('OnEnterPressed',function(s)s:ClearFocus();page=1;refresh()end);filter:SetScript('OnEscapePressed',function(s)s:ClearFocus()end)
   local fl=text(frame,'GameFontHighlightSmall',125,-155);fl:SetText('Level')
   search=CreateFrame('EditBox',nil,frame,'InputBoxTemplate');search:SetSize(180,25);search:SetPoint('TOPLEFT',305,-151);search:SetAutoFocus(false);search:SetMaxLetters(50);search:SetScript('OnEnterPressed',function(s)s:ClearFocus();page=1;refresh()end);search:SetScript('OnEscapePressed',function(s)s:ClearFocus()end)
-  local searchLabel=text(frame,'GameFontHighlightSmall',500,-155);searchLabel:SetText('Name; Enter')
+  local searchLabel=text(frame,'GameFontHighlightSmall',500,-155);searchLabel:SetText('Name / zone; Enter')
   rows={};for i=1,8 do
     local row=CreateFrame('Button',nil,frame,'BackdropTemplate');row:SetPoint('TOPLEFT',22,-188-(i-1)*27);row:SetSize(585,26);row:SetBackdrop({bgFile='Interface\\Buttons\\WHITE8X8'});row:SetBackdropColor(i%2==0 and .10 or .07,.13,.12,.95)
     row.name=text(row,'GameFontHighlightSmall',8,-6,260);row.value=text(row,'GameFontNormalSmall',275,-6,95);row.note=text(row,'GameFontHighlightSmall',375,-6,205)
     row:EnableMouse(true);row:SetScript('OnEnter',function(s)
       local v=s.item;if not v then return end
       GameTooltip:SetOwner(s,'ANCHOR_RIGHT');GameTooltip:AddLine(v.mob.name)
+      if v.mob.zone and v.mob.zone~='' then GameTooltip:AddLine('Zone: '..v.mob.zone,1,1,1,true) end
+      for _,location in ipairs(v.mob.locations or {}) do GameTooltip:AddLine(location,.75,.85,.8,true) end
       GameTooltip:AddLine(v.low>0 and ('Level source: '..v.levelSource) or 'Level unknown',1,1,1,true)
       if v.low>0 and v.levelSource:find('observed') then GameTooltip:AddLine('Observed levels may not include the full range.',1,1,1,true) end
       GameTooltip:AddLine(#v.mob.drops..' recorded drops; '..v.missing..' unpriced; '..v.lowSamples..' low sample.',1,1,1,true)
