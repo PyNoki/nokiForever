@@ -26,18 +26,26 @@ local function button(parent,label,x,y,w,action)
 end
 local function price(id)
   local market=core.Market();local book=market and NokiBetaCoreDB.prices and NokiBetaCoreDB.prices[market];local r=book and book.items and book.items[id]
-  local scan=r and type(r.price)=='number' and r.price>0 and r or nil
-  local p=NokiUnifiedAPI.GetPrice(id);local imported=p and type(p.minBuyout)=='number' and p.minBuyout>0 and p or nil
-  local scanTime=scan and (scan.observed or book.observed)
-  if scan and (not imported or not imported.updated or (scanTime and scanTime>=imported.updated)) then return scan.price,scanTime,scan.carried and 'Earlier AH scan' or 'AH scan' end
-  if imported then return imported.minBuyout,imported.updated,'AHledger' end
-  if scan then return scan.price,scanTime,scan.carried and 'Earlier AH scan' or 'AH scan' end
+  if r and not r.carried and type(r.price)=='number' and r.price>0 then
+    return r.price,r.observed or book.observed,'AH scan'
+  end
 end
 local function money(c)
   c=math.floor(c+.5);local g=math.floor(c/10000);local s=math.floor(c%10000/100);local copper=c%100
   if g>0 then return g..'g '..s..'s '..copper..'c' end
   if s>0 then return s..'s '..copper..'c' end
   return copper..'c'
+end
+local function scanAge()
+  local market=core.Market()
+  local book=market and NokiBetaCoreDB and NokiBetaCoreDB.prices and NokiBetaCoreDB.prices[market]
+  if not book or type(book.observed)~='number' then return 'No completed AH scan' end
+  local current=(GetServerTime and GetServerTime()) or time()
+  local minutes=math.max(0,math.floor((current-book.observed)/60))
+  if minutes<60 then return 'AH scan: '..minutes..'m ago' end
+  local hours=math.floor(minutes/60)
+  if hours<48 then return 'AH scan: '..hours..'h '..(minutes%60)..'m ago' end
+  return 'AH scan: '..math.floor(hours/24)..'d '..(hours%24)..'h ago'
 end
 local function levelFor(id,mob)
   if mob.min>0 then return mob.min,mob.max,mob.levelSource or 'Classic reference' end
@@ -52,6 +60,10 @@ local function showDetails(item)
   if not detail then
     detail=CreateFrame('Frame','NokiTradingLootDetails',UIParent,'BackdropTemplate');detail:SetSize(670,520);detail:SetPoint('CENTER',UIParent,'CENTER',120,0);detail:SetFrameStrata('DIALOG');detail:SetMovable(true);detail:EnableMouse(true);detail:RegisterForDrag('LeftButton');detail:SetClampedToScreen(true)
     detail:SetScript('OnDragStart',function(s)s:StartMoving()end);detail:SetScript('OnDragStop',function(s)s:StopMovingOrSizing()end)
+    detail:SetScript('OnUpdate',function(self,elapsed)
+      self.ageElapsed=(self.ageElapsed or 0)+elapsed
+      if self.ageElapsed>=60 then self.ageElapsed=0;if self.render then self.render() end end
+    end)
     detail:SetBackdrop({bgFile='Interface\\Buttons\\WHITE8X8',edgeFile='Interface\\Buttons\\WHITE8X8',edgeSize=1});detail:SetBackdropColor(.035,.055,.055,.98);detail:SetBackdropBorderColor(.55,.42,.19,1)
     detailTitle=text(detail,'GameFontNormalLarge',20,-20,580)
     detailNote=text(detail,'GameFontHighlightSmall',20,-50,625)
@@ -81,10 +93,10 @@ local function showDetails(item)
       table.sort(detailDrops,function(a,b) if (a.unit or -1)==(b.unit or -1) then return a.drop[1]<b.drop[1] end return (a.unit or -1)>(b.unit or -1) end)
       local pages=math.max(1,math.ceil(#detailDrops/11));detailPage=math.max(1,math.min(detailPage,pages))
       detailTitle:SetText(selected.mob.name..'  |  LOOT')
-      detailNote:SetText('AHledger drop rates are observed estimates. Hover for sample details and price age.')
+      detailNote:SetText(scanAge()..' | Drop rates: AHledger. Prices: latest completed AH scan only. Hover for details.')
       detailPageText:SetText('Page '..detailPage..' / '..pages..'  |  '..#detailDrops..' recorded drops')
       for i,row in ipairs(detailRows) do
-        local x=detailDrops[(detailPage-1)*11+i];if x then local d=x.drop;row.entry=x;row.name:SetText(itemName(d[1]));local rate=type(d[8])=='number' and string.format('%.1f%% (%d/%d)',d[8],d[2],d[3]) or 'Not enough data';row.rate:SetText(rate);row.unit:SetText(x.unit and money(x.unit) or 'No price');row.total:SetText(x.source or '--');row:Show() else row:Hide() end
+        local x=detailDrops[(detailPage-1)*11+i];if x then local d=x.drop;row.entry=x;row.name:SetText(itemName(d[1]));local rate=type(d[8])=='number' and string.format('%.1f%% (%d/%d)',d[8],d[2],d[3]) or 'Not enough data';row.rate:SetText(rate);row.unit:SetText(x.unit and money(x.unit) or 'No scan price');row.total:SetText(x.source or '--');row:Show() else row:Hide() end
       end
     end
   end
@@ -114,7 +126,7 @@ local function refresh()
     if a.mob.name==b.mob.name then return a.id<b.id end return a.mob.name:lower()<b.mob.name:lower()
   end)
   page=math.max(1,math.min(page,math.max(1,math.ceil(#results/8))))
-  summary:SetText((areaCheck:GetChecked() and ('Zone: '..(zone or 'unavailable')..' | ') or '')..'* = partial estimate. Hover for details. Page '..page..' / '..math.max(1,math.ceil(#results/8)))
+  summary:SetText(scanAge()..' | * = partial | Page '..page..' / '..math.max(1,math.ceil(#results/8))..(areaCheck:GetChecked() and (' | Zone: '..(zone or 'unavailable')) or ''))
   for i,r in ipairs(rows) do
     local item=results[(page-1)*8+i];if item then
       local e=item.estimate;r.item=item;r.name:SetText(item.mob.name..'  |cff899998'..(item.low>0 and ((item.levelSource=='zone range' and 'zone ' or 'lvl ')..item.low..'-'..item.high) or 'level ?')..'|r');r.value:SetText(e.value and (money(e.value)..((e.missingPrice+e.missingRate)>0 and '*' or '')) or '--');r.note:SetText(item.mob.zone~='' and item.mob.zone or 'Zone unknown');r:Show()
@@ -164,14 +176,19 @@ local function build()
       local e=v.estimate
       GameTooltip:AddLine('Estimated value per kill: '..(e.value and money(e.value) or 'unavailable'),1,1,1,true)
       GameTooltip:AddLine('Uses recorded drop rates per looted corpse and one item per drop; stack quantities and coin are unavailable.',1,1,1,true)
-      GameTooltip:AddLine(e.missingPrice..' drops without AH price; '..e.missingRate..' without a usable rate. Prices may be stale; fees excluded.',1,.8,.3,true)
+      GameTooltip:AddLine(e.missingPrice..' drops without a price in the latest AH scan; '..e.missingRate..' without a usable rate. Scan prices may be stale; fees excluded.',1,.8,.3,true)
       GameTooltip:AddLine('Click for individual drop observations and AH prices.',1,.8,.3,true);GameTooltip:Show()
     end);row:SetScript('OnLeave',function()GameTooltip:Hide()end);row:SetScript('OnClick',function(s)if s.item then showDetails(s.item) end end);rows[i]=row
   end
   summary=text(frame,'GameFontHighlightSmall',24,-444,580)
   local prev=button(frame,'Previous',24,-478,85,function()page=page-1;refresh()end);local nextb=button(frame,'Next',117,-478,85,function()page=page+1;refresh()end)
   local oldRefresh=refresh;refresh=function()oldRefresh();local show=currentTab=='Farm';fl:SetShown(show);fl2:SetShown(show);areaLabel:SetShown(show);valueLabel:SetShown(show);searchLabel:SetShown(show);prev:SetShown(show);nextb:SetShown(show)end
-  frame:SetScript('OnShow',function()refresh()end);frame:Hide()
+  frame:SetScript('OnShow',function(self)self.ageElapsed=0;refresh()end)
+  frame:SetScript('OnUpdate',function(self,elapsed)
+    self.ageElapsed=(self.ageElapsed or 0)+elapsed
+    if self.ageElapsed>=60 then self.ageElapsed=0;refresh() end
+  end)
+  frame:Hide()
 end
 function core.OpenTradingMenu(tab) build();currentTab=tab or 'Bag';frame:Show();refresh() end
 local function setupMini()
