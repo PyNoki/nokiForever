@@ -4,25 +4,43 @@ local sortMode='value'
 local detail, detailRows, detailTitle, detailNote, detailPageText, selected, detailPage, detailDrops
 local page, currentTab, results = 1, 'Bag', {}
 local itemRequests={}
+local function requestItem(id)
+  if not itemRequests[id] then
+    itemRequests[id]=true
+    if C_Item and C_Item.RequestLoadItemDataByID then pcall(C_Item.RequestLoadItemDataByID,id) end
+  end
+end
 local function itemName(id)
   local bundled=NokiTradingLoot.items[id]
-  if type(bundled)=='string' and bundled~='' then return bundled end
+  if type(bundled)=='string' and bundled~='' and bundled~=('Item '..id) then return bundled end
   local getter=GetItemInfo or (C_Item and C_Item.GetItemInfo)
   if getter then
     local ok,name=pcall(getter,id)
     if ok and not (issecretvalue and issecretvalue(name)) and type(name)=='string' and name~='' then return name end
   end
-  if not itemRequests[id] then
-    itemRequests[id]=true
-    if C_Item and C_Item.RequestLoadItemDataByID then pcall(C_Item.RequestLoadItemDataByID,id) end
-  end
+  requestItem(id)
   return 'Item '..id
+end
+local function itemIcon(id)
+  local getter=(C_Item and C_Item.GetItemIconByID) or GetItemIcon
+  if getter then local ok,icon=pcall(getter,id);if ok and icon and not (issecretvalue and issecretvalue(icon)) then return icon end end
+  requestItem(id)
+  return 134400
 end
 local function text(parent, template, x, y, width)
   local f=parent:CreateFontString(nil,'OVERLAY',template);f:SetPoint('TOPLEFT',x,y);if width then f:SetWidth(width);f:SetJustifyH('LEFT') end;return f
 end
 local function button(parent,label,x,y,w,action)
   local b=CreateFrame('Button',nil,parent,'UIPanelButtonTemplate');b:SetSize(w,26);b:SetPoint('TOPLEFT',x,y);b:SetText(label);b:SetScript('OnClick',action);return b
+end
+local function band(parent,x,y,width,height,r,g,b,a)
+  local t=parent:CreateTexture(nil,'BACKGROUND');t:SetPoint('TOPLEFT',x,y);t:SetSize(width,height);t:SetColorTexture(r,g,b,a or 1);return t
+end
+local function salesText(n)
+  if type(n)~='number' then return '--' end
+  if n>=1000 then return string.format('%.1fk',n/1000) end
+  if n>=100 then return string.format('%.0f',n) end
+  return string.format('%.1f',n):gsub('%.0$','')
 end
 local function price(id)
   local market=core.Market();local book=market and NokiBetaCoreDB.prices and NokiBetaCoreDB.prices[market];local r=book and book.items and book.items[id]
@@ -64,24 +82,39 @@ local function showDetails(item)
       self.ageElapsed=(self.ageElapsed or 0)+elapsed
       if self.ageElapsed>=60 then self.ageElapsed=0;if self.render then self.render() end end
     end)
-    detail:SetBackdrop({bgFile='Interface\\Buttons\\WHITE8X8',edgeFile='Interface\\Buttons\\WHITE8X8',edgeSize=1});detail:SetBackdropColor(.035,.055,.055,.98);detail:SetBackdropBorderColor(.55,.42,.19,1)
+    detail:SetBackdrop({bgFile='Interface\\Buttons\\WHITE8X8',edgeFile='Interface\\Buttons\\WHITE8X8',edgeSize=1});detail:SetBackdropColor(.025,.045,.038,.98);detail:SetBackdropBorderColor(.20,.43,.29,1)
+    band(detail,1,-1,668,77,.045,.10,.068,.98);band(detail,20,-79,630,2,.24,.65,.39,.9)
+    band(detail,20,-95,630,25,.09,.17,.125,.95)
     detailTitle=text(detail,'GameFontNormalLarge',20,-20,580)
     detailNote=text(detail,'GameFontHighlightSmall',20,-50,625)
     text(detail,'GameFontNormalSmall',27,-101,245):SetText('ITEM')
-    text(detail,'GameFontNormalSmall',283,-101,140):SetText('DROP OBSERVATIONS')
+    text(detail,'GameFontNormalSmall',283,-101,140):SetText('DROP RATE')
     text(detail,'GameFontNormalSmall',430,-101,105):SetText('AH / ITEM')
-    text(detail,'GameFontNormalSmall',540,-101,100):SetText('PRICE SOURCE')
+    text(detail,'GameFontNormalSmall',540,-101,100):SetText('EST. SOLD / DAY')
     button(detail,'X',625,-14,28,function()detail:Hide()end)
     detailRows={}
     for i=1,11 do
-      local row=CreateFrame('Frame',nil,detail,'BackdropTemplate');row:SetPoint('TOPLEFT',20,-123-(i-1)*29);row:SetSize(630,28);row:SetBackdrop({bgFile='Interface\\Buttons\\WHITE8X8'});row:SetBackdropColor(i%2==0 and .10 or .07,.13,.12,.95)
-      row.name=text(row,'GameFontHighlightSmall',7,-7,245);row.rate=text(row,'GameFontHighlightSmall',263,-7,140);row.unit=text(row,'GameFontHighlightSmall',410,-7,105);row.total=text(row,'GameFontHighlightSmall',520,-7,100)
+      local row=CreateFrame('Frame',nil,detail,'BackdropTemplate');row:SetPoint('TOPLEFT',20,-123-(i-1)*29);row:SetSize(630,28);row:SetBackdrop({bgFile='Interface\\Buttons\\WHITE8X8'});row:SetBackdropColor(i%2==0 and .075 or .045,i%2==0 and .13 or .095,i%2==0 and .095 or .07,.95)
+      row.icon=row:CreateTexture(nil,'ARTWORK');row.icon:SetSize(22,22);row.icon:SetPoint('TOPLEFT',4,-3)
+      row.name=text(row,'GameFontHighlightSmall',32,-7,220);row.rate=text(row,'GameFontHighlightSmall',263,-7,140);row.unit=text(row,'GameFontHighlightSmall',410,-7,105);row.total=text(row,'GameFontHighlightSmall',520,-7,100)
       row:EnableMouse(true);row:SetScript('OnEnter',function(s)
         local x=s.entry;if not x then return end;local d=x.drop
-        GameTooltip:SetOwner(s,'ANCHOR_RIGHT');GameTooltip:AddLine(itemName(d[1]));GameTooltip:AddLine('AHledger: '..d[5]..' loot'..(d[3]>0 and (', '..d[2]..' / '..d[3]..' observations') or ', sample unavailable')..(d[6]>0 and ('; '..d[6]..' reporters.') or '.'),1,1,1,true)
+        s:SetBackdropColor(.11,.23,.15,1)
+        GameTooltip:SetOwner(s,'ANCHOR_RIGHT')
+        local ok=false
+        if GameTooltip.SetItemByID then ok=pcall(GameTooltip.SetItemByID,GameTooltip,d[1]) end
+        if not ok and GameTooltip.SetHyperlink then ok=pcall(GameTooltip.SetHyperlink,GameTooltip,'item:'..d[1]) end
+        if not ok then GameTooltip:AddLine(itemName(d[1])) end
+        GameTooltip:AddLine('AHledger: '..d[5]..' loot'..(d[3]>0 and (', '..d[2]..' / '..d[3]..' observations') or ', sample unavailable')..(d[6]>0 and ('; '..d[6]..' reporters.') or '.'),1,1,1,true)
         if d[7] or type(d[8])~='number' then GameTooltip:AddLine('Drop percentage unavailable: not enough sample data.',1,.55,.2,true) end
-        GameTooltip:AddLine((x.source or 'Price unavailable')..' observed: '..(x.when and date('%Y-%m-%d %H:%M',x.when) or 'unknown'),1,1,1);GameTooltip:Show()
-      end);row:SetScript('OnLeave',function()GameTooltip:Hide()end);detailRows[i]=row
+        GameTooltip:AddLine((x.source or 'Price unavailable')..' observed: '..(x.when and date('%Y-%m-%d %H:%M',x.when) or 'unknown'),1,1,1)
+        if x.activity then
+          GameTooltip:AddLine('AHledger estimated sales / day: '..salesText(x.activity.sales),.7,1,.75,true)
+          GameTooltip:AddLine(NokiUnifiedMarketActivityLabel(x.activity),.8,.8,.8,true)
+          GameTooltip:AddLine('Market-wide estimate, not confirmed sales or a guarantee of selling.',.8,.8,.8,true)
+        else GameTooltip:AddLine('Sales estimate unavailable: '..(x.activityError or 'no activity data'),1,.75,.4,true) end
+        GameTooltip:Show()
+      end);row:SetScript('OnLeave',function(s)s:SetBackdropColor(i%2==0 and .075 or .045,i%2==0 and .13 or .095,i%2==0 and .095 or .07,.95);GameTooltip:Hide()end);detailRows[i]=row
     end
     detailPageText=text(detail,'GameFontHighlightSmall',220,-465,300)
     button(detail,'Previous',20,-460,90,function()detailPage=detailPage-1;detail.render()end)
@@ -89,14 +122,18 @@ local function showDetails(item)
     button(detail,'Scan market',515,-460,135,function()local ok,err=core.Scan();detailNote:SetText(ok and 'Scanning the open auction house. Prices update when the scan finishes.' or ('Cannot scan: '..tostring(err))) end)
     detail.render=function()
       detailDrops={}
-      for _,d in ipairs(selected.mob.drops) do local p,when,source=price(d[1]);detailDrops[#detailDrops+1]={drop=d,unit=p,when=when,source=source} end
+      for _,d in ipairs(selected.mob.drops) do
+        local p,when,source=price(d[1]);local activity,err
+        if NokiUnifiedMarketActivity then activity,err=NokiUnifiedMarketActivity(d[1]) end
+        detailDrops[#detailDrops+1]={drop=d,unit=p,when=when,source=source,activity=activity,activityError=err}
+      end
       table.sort(detailDrops,function(a,b) if (a.unit or -1)==(b.unit or -1) then return a.drop[1]<b.drop[1] end return (a.unit or -1)>(b.unit or -1) end)
       local pages=math.max(1,math.ceil(#detailDrops/11));detailPage=math.max(1,math.min(detailPage,pages))
       detailTitle:SetText(selected.mob.name..'  |  LOOT')
-      detailNote:SetText(scanAge()..' | Drop rates: AHledger. Prices: latest completed AH scan only. Hover for details.')
+      detailNote:SetText(scanAge()..' | Prices: latest AH scan  |  Drops & estimated sales: AHledger')
       detailPageText:SetText('Page '..detailPage..' / '..pages..'  |  '..#detailDrops..' recorded drops')
       for i,row in ipairs(detailRows) do
-        local x=detailDrops[(detailPage-1)*11+i];if x then local d=x.drop;row.entry=x;row.name:SetText(itemName(d[1]));local rate=type(d[8])=='number' and string.format('%.1f%% (%d/%d)',d[8],d[2],d[3]) or 'Not enough data';row.rate:SetText(rate);row.unit:SetText(x.unit and money(x.unit) or 'No scan price');row.total:SetText(x.source or '--');row:Show() else row:Hide() end
+        local x=detailDrops[(detailPage-1)*11+i];if x then local d=x.drop;row.entry=x;row.name:SetText(itemName(d[1]));row.icon:SetTexture(itemIcon(d[1]));local rate=type(d[8])=='number' and string.format('%.1f%% (%d/%d)',d[8],d[2],d[3]) or 'Not enough data';row.rate:SetText(rate);row.unit:SetText(x.unit and money(x.unit) or 'No scan price');row.total:SetText(x.activity and salesText(x.activity.sales) or '--');row:Show() else row:Hide() end
       end
     end
   end
@@ -137,7 +174,8 @@ local function build()
   if frame then return end
   frame=CreateFrame('Frame','NokiTradingMenu',UIParent,'BackdropTemplate');frame:SetSize(630,520);frame:SetPoint('CENTER');frame:SetMovable(true);frame:EnableMouse(true);frame:RegisterForDrag('LeftButton');frame:SetClampedToScreen(true)
   frame:SetScript('OnDragStart',function(s)s:StartMoving()end);frame:SetScript('OnDragStop',function(s)s:StopMovingOrSizing()end)
-  frame:SetBackdrop({bgFile='Interface\\Buttons\\WHITE8X8',edgeFile='Interface\\Buttons\\WHITE8X8',edgeSize=1});frame:SetBackdropColor(.035,.055,.055,.98);frame:SetBackdropBorderColor(.55,.42,.19,1)
+  frame:SetBackdrop({bgFile='Interface\\Buttons\\WHITE8X8',edgeFile='Interface\\Buttons\\WHITE8X8',edgeSize=1});frame:SetBackdropColor(.025,.045,.038,.98);frame:SetBackdropBorderColor(.20,.43,.29,1)
+  band(frame,1,-1,628,65,.045,.10,.068,.98);band(frame,22,-111,585,2,.24,.65,.39,.9)
   local brand=text(frame,'GameFontNormalLarge',22,-20);brand:SetText('NOKI  |  TRADING')
   local subtitle=text(frame,'GameFontHighlightSmall',23,-44);subtitle:SetText('Your market companion')
   button(frame,'X',585,-14,28,function()frame:Hide()end)
@@ -163,10 +201,10 @@ local function build()
   sortButton=button(frame,'Sort: Value',160,-180,125,function()sortMode=sortMode=='value' and 'level' or sortMode=='level' and 'name' or 'value';sortButton:SetText('Sort: '..(sortMode=='value' and 'Value' or sortMode=='level' and 'Level' or 'Name'));page=1;refresh()end)
   local valueLabel=text(frame,'GameFontNormalSmall',298,-187);valueLabel:SetText('EST. / KILL')
   rows={};for i=1,8 do
-    local row=CreateFrame('Button',nil,frame,'BackdropTemplate');row:SetPoint('TOPLEFT',22,-218-(i-1)*27);row:SetSize(585,26);row:SetBackdrop({bgFile='Interface\\Buttons\\WHITE8X8'});row:SetBackdropColor(i%2==0 and .10 or .07,.13,.12,.95)
+    local row=CreateFrame('Button',nil,frame,'BackdropTemplate');row:SetPoint('TOPLEFT',22,-218-(i-1)*27);row:SetSize(585,26);row:SetBackdrop({bgFile='Interface\\Buttons\\WHITE8X8'});row:SetBackdropColor(i%2==0 and .075 or .045,i%2==0 and .13 or .095,i%2==0 and .095 or .07,.95)
     row.name=text(row,'GameFontHighlightSmall',8,-6,260);row.value=text(row,'GameFontNormalSmall',275,-6,95);row.note=text(row,'GameFontHighlightSmall',375,-6,205)
     row:EnableMouse(true);row:SetScript('OnEnter',function(s)
-      local v=s.item;if not v then return end
+      local v=s.item;if not v then return end;s:SetBackdropColor(.11,.23,.15,1)
       GameTooltip:SetOwner(s,'ANCHOR_RIGHT');GameTooltip:AddLine(v.mob.name)
       if v.mob.zone and v.mob.zone~='' then GameTooltip:AddLine('Zone: '..v.mob.zone,1,1,1,true) end
       for _,location in ipairs(v.mob.locations or {}) do GameTooltip:AddLine(location,.75,.85,.8,true) end
@@ -178,7 +216,7 @@ local function build()
       GameTooltip:AddLine('Uses recorded drop rates per looted corpse and one item per drop; stack quantities and coin are unavailable.',1,1,1,true)
       GameTooltip:AddLine(e.missingPrice..' drops without a price in the latest AH scan; '..e.missingRate..' without a usable rate. Scan prices may be stale; fees excluded.',1,.8,.3,true)
       GameTooltip:AddLine('Click for individual drop observations and AH prices.',1,.8,.3,true);GameTooltip:Show()
-    end);row:SetScript('OnLeave',function()GameTooltip:Hide()end);row:SetScript('OnClick',function(s)if s.item then showDetails(s.item) end end);rows[i]=row
+    end);row:SetScript('OnLeave',function(s)s:SetBackdropColor(i%2==0 and .075 or .045,i%2==0 and .13 or .095,i%2==0 and .095 or .07,.95);GameTooltip:Hide()end);row:SetScript('OnClick',function(s)if s.item then showDetails(s.item) end end);rows[i]=row
   end
   summary=text(frame,'GameFontHighlightSmall',24,-444,580)
   local prev=button(frame,'Previous',24,-478,85,function()page=page-1;refresh()end);local nextb=button(frame,'Next',117,-478,85,function()page=page+1;refresh()end)
@@ -204,8 +242,12 @@ local function setupMini()
  mini:SetScript('OnEnter',function(s)GameTooltip:SetOwner(s,'ANCHOR_LEFT');GameTooltip:AddLine('Noki Trading');GameTooltip:AddLine('Click: open menu | Drag: move',1,1,1);GameTooltip:Show()end);mini:SetScript('OnLeave',function()GameTooltip:Hide()end)
 end
 SLASH_NOKITRADINGMENU1='/ntrading';SlashCmdList.NOKITRADINGMENU=function()core.OpenTradingMenu('Bag')end
-local events=CreateFrame('Frame');events:RegisterEvent('PLAYER_LOGIN');events:RegisterEvent('PLAYER_TARGET_CHANGED');events:RegisterEvent('GET_ITEM_INFO_RECEIVED');events:SetScript('OnEvent',function(_,event,id,success)
+local events=CreateFrame('Frame');events:RegisterEvent('PLAYER_LOGIN');events:RegisterEvent('PLAYER_TARGET_CHANGED');events:RegisterEvent('GET_ITEM_INFO_RECEIVED');events:RegisterEvent('MODIFIER_STATE_CHANGED');events:SetScript('OnEvent',function(_,event,id,success)
   if event=='PLAYER_LOGIN' then setupMini();return end
+  if event=='MODIFIER_STATE_CHANGED' then
+    if detail and detail:IsShown() then for _,row in ipairs(detailRows or {}) do if row:IsShown() and row:IsMouseOver() then local handler=row:GetScript('OnEnter');if handler then handler(row) end;break end end end
+    return
+  end
   if event=='GET_ITEM_INFO_RECEIVED' then
     if id and itemRequests[id] and success and detail and detail:IsShown() then detail.render() end
     return
