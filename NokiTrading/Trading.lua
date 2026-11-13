@@ -15,7 +15,7 @@ function core.OwnedItemQuantity(id)
   return total
 end
 local startChecks
-local panel, summary, status, page, rows, scrollOffset, scrollbar, updatingScrollbar
+local panel, summary, status, incoming, page, rows, scrollOffset, scrollbar, updatingScrollbar
 local requestedNames={}
 local expandedAuction
 local selectedAuctions={}
@@ -162,11 +162,18 @@ local function render()
   for _,a in ipairs(owned) do local _,value=auctionValues(a);if value then total=total+value else count=count+1 end end
   local net=math.floor(total*95/100)
   summary:SetText((state.ownedComplete and "Gross: " or "Partial gross: ")..formatMoney(total).." | Est. after 5%: "..formatMoney(net)..(count>0 and (" | "..count.." price unknown") or "").." | Deposits excluded")
+  local saved=core.GetPendingAuctionSnapshot and core.GetPendingAuctionSnapshot()
+  if saved then
+    local unknown=type(saved.unknown)=="number" and saved.unknown or 0
+    local amount=type(saved.amount)=="number" and saved.amount or 0
+    local age=type(saved.checked)=="number" and math.max(0,math.floor((((GetServerTime and GetServerTime()) or time())-saved.checked)/60)) or nil
+    incoming:SetText("Sold, payment on the way: "..(unknown>0 and amount==0 and "--" or ((unknown>0 and "at least " or "")..formatMoney(amount))).." | Last AH check: "..(age and (age.."m ago") or "unknown").."; may have arrived"..(unknown>0 and (" | "..unknown.." amount(s) unavailable") or ""))
+  else incoming:SetText("Sold, payment on the way: -- | Waiting for a complete auction update") end
   local selected=selectedCount()
   if bulkCancel then bulkCancel:SetText("Cancel next ("..selected..")");bulkCancel:SetEnabled(core.active and state.ownedComplete and not state.cancelPending and selected>0) end
   if selectAll then selectAll:SetEnabled(core.active and state.ownedComplete and not state.cancelPending and #owned>0) end
   if clearSelection then clearSelection:SetEnabled(not state.cancelPending and selected>0) end
-  local rowY=-104
+  local rowY=-124
   for i,row in ipairs(rows) do
     local item=owned[scrollOffset+i];row.item=item
     if item then
@@ -239,7 +246,7 @@ local function createPanel()
   if panel or not AuctionHouseFrame or not NokiUnifiedTabs then return end
   panel=CreateFrame("Frame",nil,AuctionHouseFrame,"BackdropTemplate");panel:Hide();panel:SetPoint("TOPLEFT",AuctionHouseFrame,"TOPLEFT",12,-75);panel:SetPoint("BOTTOMRIGHT",AuctionHouseFrame,"BOTTOMRIGHT",-12,35);panel:SetFrameStrata("DIALOG");panel:SetFrameLevel(AuctionHouseFrame:GetFrameLevel()+50);panel:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1});panel:SetBackdropColor(.055,.065,.07,1);panel:SetBackdropBorderColor(.24,.30,.28,1)
   local previousWidth,previousHeight
-  panel:SetScript("OnShow",function() if not previousWidth then previousWidth,previousHeight=AuctionHouseFrame:GetWidth(),AuctionHouseFrame:GetHeight();AuctionHouseFrame:SetSize(previousWidth+220,previousHeight+160) end end)
+  panel:SetScript("OnShow",function() if not previousWidth then previousWidth,previousHeight=AuctionHouseFrame:GetWidth(),AuctionHouseFrame:GetHeight();AuctionHouseFrame:SetSize(previousWidth+220,previousHeight+180) end end)
   panel:SetScript("OnHide",function() if StaticPopup_Hide then StaticPopup_Hide("NOKI_CONFIRM_CANCEL_AUCTION") end;if previousWidth and previousHeight then AuctionHouseFrame:SetSize(previousWidth,previousHeight) end;previousWidth=nil;previousHeight=nil end)
   StaticPopupDialogs["NOKI_CONFIRM_CANCEL_AUCTION"]={text="Cancel the auction for %s?",button1="Cancel auction",button2="Keep auction",timeout=0,whileDead=true,hideOnEscape=true,OnAccept=function(_,id)
     if not core.active or state.cancelPending or not C_AuctionHouse or not C_AuctionHouse.CancelAuction then return end
@@ -266,11 +273,12 @@ local function createPanel()
     state.cancelPending=item.auctionID;state.cancelStarted=(GetServerTime and GetServerTime()) or time();state.needOwned=true;state.ownedRequested=nil;render()
   end)
   summary=rowText(panel,16,-40,700);status=rowText(panel,16,-60,700)
-  local header=CreateFrame("Frame",nil,panel,"BackdropTemplate");header:SetPoint("TOPLEFT",panel,"TOPLEFT",12,-82);header:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-32,-82);header:SetHeight(21);header:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});header:SetBackdropColor(.13,.18,.17,1)
+  incoming=rowText(panel,16,-80,850)
+  local header=CreateFrame("Frame",nil,panel,"BackdropTemplate");header:SetPoint("TOPLEFT",panel,"TOPLEFT",12,-102);header:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-32,-102);header:SetHeight(21);header:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});header:SetBackdropColor(.13,.18,.17,1)
   for _,col in ipairs({{"ITEM",4,200},{"QTY",205,65},{"UNIT",270,80},{"TOTAL",350,90},{"MKT LOW",440,85},{"STATUS",525,75},{"LOWER",600,65},{"DEPOSIT",665,80},{"TIME",745,60}}) do local label=header:CreateFontString(nil,"OVERLAY","GameFontNormalSmall");label:SetPoint("TOPLEFT",header,"TOPLEFT",col[2],-4);label:SetWidth(col[3]);label:SetJustifyH("LEFT");label:SetText(col[1]) end
   rows={}
   for i=1,8 do
-    local row=CreateFrame("Frame",nil,panel,"BackdropTemplate");row:SetPoint("TOPLEFT",panel,"TOPLEFT",12,-104-(i-1)*32);row:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-32,-104-(i-1)*32);row:SetHeight(30);row:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});row:SetBackdropColor(i%2==0 and .12 or .08,.12,.12,.95)
+    local row=CreateFrame("Frame",nil,panel,"BackdropTemplate");row:SetPoint("TOPLEFT",panel,"TOPLEFT",12,-124-(i-1)*32);row:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-32,-124-(i-1)*32);row:SetHeight(30);row:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});row:SetBackdropColor(i%2==0 and .12 or .08,.12,.12,.95)
     row.select=CreateFrame("CheckButton",nil,row,"UICheckButtonTemplate");row.select:SetSize(23,23);row.select:SetPoint("TOPLEFT",row,"TOPLEFT",2,-3)
     row.select:SetScript("OnClick",function(self) if row.item and row.item.auctionID and not state.cancelPending then selectedAuctions[row.item.auctionID]=self:GetChecked() and true or nil;render() end end)
     row.expand=CreateFrame("Button",nil,row,"UIPanelButtonTemplate");row.expand:SetSize(18,20);row.expand:SetPoint("TOPLEFT",row,"TOPLEFT",27,-5);row.expand:SetText("+");row.expand:SetScript("OnClick",function() if row.item then if expandedAuction==row.item.auctionID then expandedAuction=nil else expandedAuction=row.item.auctionID end;render() end end)
@@ -295,7 +303,7 @@ local function createPanel()
     end)
     rows[i]=row
   end
-  scrollbar=CreateFrame("Slider","NokiTradingOwnedScrollBar",panel,"UIPanelScrollBarTemplate");scrollbar:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-14,-119);scrollbar:SetSize(16,210);scrollbar:SetMinMaxValues(0,0);scrollbar:SetValueStep(1)
+  scrollbar=CreateFrame("Slider","NokiTradingOwnedScrollBar",panel,"UIPanelScrollBarTemplate");scrollbar:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-14,-139);scrollbar:SetSize(16,210);scrollbar:SetMinMaxValues(0,0);scrollbar:SetValueStep(1)
   if scrollbar.SetObeyStepOnDrag then scrollbar:SetObeyStepOnDrag(true) end
   scrollbar:SetScript("OnValueChanged",function(_,value) if not updatingScrollbar then local nextOffset=math.max(0,math.min(math.max(0,#owned-8),math.floor(value+.5)));if nextOffset~=scrollOffset then scrollOffset=nextOffset;render() end end end)
   page=rowText(panel,16,-370,700)

@@ -23,6 +23,7 @@ local function snapshot()
   local id=owner();local saved=NokiUnifiedCoreDB and NokiUnifiedCoreDB.pendingAuctionSnapshots
   return id and saved and saved[id] or nil
 end
+core.GetPendingAuctionSnapshot=snapshot
 local function money(amount)
   if GetCoinTextureString then return GetCoinTextureString(amount) end
   local gold=math.floor(amount/10000);local silver=math.floor(amount%10000/100);local copper=amount%100
