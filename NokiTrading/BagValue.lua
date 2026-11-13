@@ -127,7 +127,7 @@ local function setup()
   if display or not bags then return end
   display=CreateFrame("Frame",nil,bags)
   display:SetFrameLevel(bags:GetFrameLevel()+20)
-  display:SetPoint("BOTTOMLEFT",bags,"BOTTOMLEFT",18,10)
+  display:SetPoint("BOTTOMLEFT",bags,"BOTTOMLEFT",18,7)
   display:SetSize(26,18)
   local grip=display:CreateFontString(nil,"OVERLAY","GameFontNormal")
   grip:SetPoint("CENTER");grip:SetText(":::")
