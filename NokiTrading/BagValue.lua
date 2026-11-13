@@ -104,7 +104,7 @@ local function setupValueButton()
       NokiUnifiedCoreDB.bagValueButtonPosition={x=x*scale,y=y*scale}
     end
   end)
-  valueButton:SetScript("OnClick",function(self) if not self.wasDragged and core.ToggleBagRules then core.ToggleBagRules() end end)
+  valueButton:SetScript("OnClick",function(self) if not self.wasDragged and core.OpenTradingMenu then core.OpenTradingMenu("Bag") end end)
   valueButton:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1})
   valueButton:SetBackdropColor(.07,.08,.07,.9);valueButton:SetBackdropBorderColor(.48,.38,.20,1)
   local icon=valueButton:CreateTexture(nil,"ARTWORK")
@@ -117,10 +117,14 @@ local function setupValueButton()
     GameTooltip:AddLine("Uses your last scanned auction price, then the imported auction reference price. Stack quantities are included.",1,1,1,true)
     GameTooltip:AddLine("Prices may be old. Bound items are included; auction fees are not deducted.",1,1,1,true)
     GameTooltip:AddLine(self.detail or "",1,.8,.3,true)
-    GameTooltip:AddLine("Click for bag selling rules; drag to move this icon.",.7,.8,.75,true)
+    GameTooltip:AddLine("Click for the Bag menu; drag to move this coin.",.7,.8,.75,true)
     GameTooltip:Show()
   end)
   valueButton:SetScript("OnLeave",function() GameTooltip:Hide() end)
+  core.UpdateBagCoinVisibility()
+end
+function core.UpdateBagCoinVisibility()
+  if valueButton then valueButton:SetShown(NokiUnifiedCoreDB and NokiUnifiedCoreDB.bagCoinEnabled==true) end
 end
 local function setup()
   local bags=_G.ContainerFrameCombinedBags

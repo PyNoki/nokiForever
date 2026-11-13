@@ -15,12 +15,12 @@ static class Program {
 }
 sealed class Updater : Form {
  ComboBox region=new ComboBox(),ruleset=new ComboBox(),faction=new ComboBox();
- TextBox folder=new TextBox(); Label status=new Label(); Button update=new Button(); CheckBox auto=new CheckBox(); Timer timer=new Timer(), addonTimer=new Timer();
+ TextBox folder=new TextBox(); Label status=new Label(); Button update=new Button(); CheckBox auto=new CheckBox(), notify=new CheckBox(); Timer timer=new Timer(), addonTimer=new Timer();
  bool loading=true; string availableVersion, availableCommit, lastNotifiedVersion; Button installAddon=new Button(); Label versionStatus=new Label();
  string cacheDir=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"NokiTradingUpdater");
  string settings { get { return Path.Combine(cacheDir,"settings.txt"); } }
  public Updater(){
-  Text="Noki Trading Updater";ClientSize=new Size(590,430);FormBorderStyle=FormBorderStyle.FixedDialog;MaximizeBox=false;StartPosition=FormStartPosition.CenterScreen;
+  Text="Noki Trading Updater";ClientSize=new Size(590,460);FormBorderStyle=FormBorderStyle.FixedDialog;MaximizeBox=false;StartPosition=FormStartPosition.CenterScreen;
   Controls.Add(new Label{Text="AHledger market data for Noki Market",Left=20,Top=15,Width=540,Height=24,Font=new Font(Font,FontStyle.Bold)});
   AddLabel("Region",20,53);AddLabel("Ruleset",175,53);AddLabel("Faction",365,53);
   Setup(region,20,75,140,new[]{"US","EU","CN"});Setup(ruleset,175,75,175,new[]{"Normal","PvP","RP","RP PvP"});Setup(faction,365,75,200,new[]{"Alliance","Horde"});
@@ -34,7 +34,8 @@ sealed class Updater : Form {
   var checkAddon=new Button{Text="Check addon updates",Left=20,Top=341,Width=150,Height=30};checkAddon.Click+=async(s,e)=>await CheckAddon();Controls.Add(checkAddon);
   installAddon.Text="Install addon update";installAddon.SetBounds(180,341,150,30);installAddon.Enabled=false;installAddon.Click+=async(s,e)=>await InstallAddon();Controls.Add(installAddon);
   var fallback=new LinkLabel{Text="Open GitHub repository",Left=345,Top=349,Width=190,Height=22};fallback.LinkClicked+=(s,e)=>OpenDownloadPage();Controls.Add(fallback);
-  var migrate=new Button{Text="Migrate old data",Left=20,Top=383,Width=150,Height=30};migrate.Click+=(s,e)=>MigrateBetaData();Controls.Add(migrate);
+  notify.Text="Notify me when an addon update is ready";notify.SetBounds(20,383,340,24);notify.CheckedChanged+=(s,e)=>SaveSettings();Controls.Add(notify);
+  var migrate=new Button{Text="Migrate old data",Left=20,Top=416,Width=150,Height=30};migrate.Click+=(s,e)=>MigrateBetaData();Controls.Add(migrate);
   timer.Interval=30*60*1000;timer.Tick+=async(s,e)=>await RunUpdate(); addonTimer.Interval=30*60*1000;addonTimer.Tick+=async(s,e)=>await CheckAddon();addonTimer.Start(); LoadSettings(); loading=false;
   Shown+=async(s,e)=>await CheckAddon();
  }
@@ -43,8 +44,8 @@ sealed class Updater : Form {
  string MarketRegion(){return region.SelectedItem.ToString().ToLowerInvariant();}
  string Ruleset(){return ruleset.SelectedItem.ToString().ToLowerInvariant().Replace(" ","");}
  string Faction(){return faction.SelectedItem.ToString().ToLowerInvariant();}
- void SaveSettings(){try{if(loading)return;if(region.SelectedItem==null||ruleset.SelectedItem==null||faction.SelectedItem==null)return;Directory.CreateDirectory(cacheDir);File.WriteAllLines(settings,new[]{region.SelectedIndex.ToString(),ruleset.SelectedIndex.ToString(),faction.SelectedIndex.ToString(),folder.Text,auto.Checked.ToString()});}catch{}}
- void LoadSettings(){try{if(!File.Exists(settings))return;string[] a=File.ReadAllLines(settings);if(a.Length<5)return;int n;if(int.TryParse(a[0],out n)&&n>=0&&n<region.Items.Count)region.SelectedIndex=n;if(int.TryParse(a[1],out n)&&n>=0&&n<ruleset.Items.Count)ruleset.SelectedIndex=n;if(int.TryParse(a[2],out n)&&n>=0&&n<faction.Items.Count)faction.SelectedIndex=n;if(a[3].Length>0)folder.Text=a[3];bool v;if(bool.TryParse(a[4],out v))auto.Checked=v;}catch{}}
+ void SaveSettings(){try{if(loading)return;if(region.SelectedItem==null||ruleset.SelectedItem==null||faction.SelectedItem==null)return;Directory.CreateDirectory(cacheDir);File.WriteAllLines(settings,new[]{region.SelectedIndex.ToString(),ruleset.SelectedIndex.ToString(),faction.SelectedIndex.ToString(),folder.Text,auto.Checked.ToString(),notify.Checked.ToString()});}catch{}}
+ void LoadSettings(){try{if(!File.Exists(settings))return;string[] a=File.ReadAllLines(settings);if(a.Length<5)return;int n;if(int.TryParse(a[0],out n)&&n>=0&&n<region.Items.Count)region.SelectedIndex=n;if(int.TryParse(a[1],out n)&&n>=0&&n<ruleset.Items.Count)ruleset.SelectedIndex=n;if(int.TryParse(a[2],out n)&&n>=0&&n<faction.Items.Count)faction.SelectedIndex=n;if(a[3].Length>0)folder.Text=a[3];bool v;if(bool.TryParse(a[4],out v))auto.Checked=v;if(a.Length>5&&bool.TryParse(a[5],out v))notify.Checked=v;}catch{}}
  async Task RunUpdate(){
   update.Enabled=false;timer.Stop();status.Text="Downloading market data...";
   string reg=MarketRegion(),rule=Ruleset(),fact=Faction(),dir=folder.Text.Trim();SaveSettings();
@@ -99,7 +100,7 @@ sealed class Updater : Form {
  }
  const string CommitUrl="https://api.github.com/repos/PyNoki/nokiForever/commits/main";
  const string TocUrl="https://raw.githubusercontent.com/PyNoki/nokiForever/{0}/NokiTrading/NokiTrading.toc";
- const string ArchiveUrl="https://github.com/PyNoki/nokiForever/archive/{0}.zip";
+ const string ArchiveUrl="https://raw.githubusercontent.com/PyNoki/nokiForever/{0}/NokiTradingVersions/NokiTrading-{1}.zip";
  const string DownloadPage="https://github.com/PyNoki/nokiForever";
  static void OpenDownloadPage(){try{Process.Start(new ProcessStartInfo(DownloadPage){UseShellExecute=true});}catch{MessageBox.Show("Open this address in your browser:\n"+DownloadPage,"Download Noki Market");}}
  static string TocVersion(string text){var m=Regex.Match(text,@"(?m)^##\s*Version:\s*([^\r\n]+)");return m.Success?m.Groups[1].Value.Trim():null;}
@@ -115,13 +116,13 @@ sealed class Updater : Form {
  async Task CheckAddon(){
   installAddon.Enabled=false;availableVersion=null;availableCommit=null;versionStatus.Text="Checking for addon updates...";string dir=folder.Text.Trim();
   try{string localPath=Path.Combine(dir,"NokiTrading.toc");if(!File.Exists(localPath))throw new Exception("Select the NokiTrading addon folder");string local=TocVersion(File.ReadAllText(localPath));var published=await Task.Run(()=>{string commit=PublishedCommit();return new[]{commit,TocVersion(DownloadText(string.Format(TocUrl,commit)))};});string remote=published[1];if(remote==null)throw new Exception("No published addon version was found");
-   int cmp=CompareVersion(remote,local);if(cmp>0){availableVersion=remote;availableCommit=published[0];installAddon.Enabled=true;versionStatus.Text="New addon update detected: "+local+" to "+remote;if(lastNotifiedVersion!=remote){lastNotifiedVersion=remote;MessageBox.Show("A new addon update ("+remote+") is available. Click Install addon update to install it.","Noki Trading update");}}else versionStatus.Text="Addon is up to date ("+local+").";
+   int cmp=CompareVersion(remote,local);if(cmp>0){availableVersion=remote;availableCommit=published[0];installAddon.Enabled=true;versionStatus.Text="New addon update detected: "+local+" to "+remote;if(notify.Checked&&lastNotifiedVersion!=remote){lastNotifiedVersion=remote;MessageBox.Show("A new addon update ("+remote+") is available. Click Install addon update to install it.","Noki Trading update");}}else versionStatus.Text="Addon is up to date ("+local+").";
   }catch(WebException e){var response=e.Response as HttpWebResponse;if(response!=null&&response.StatusCode==HttpStatusCode.NotFound)versionStatus.Text="No published addon update found (404). Market-data updates still work.";else versionStatus.Text="Could not check addon updates: "+e.Message+". Check the GitHub repository.";}
   catch(Exception e){versionStatus.Text="Could not check addon updates: "+e.Message+". Check the GitHub repository.";}
  }
  async Task InstallAddon(){
   if(availableVersion==null||availableCommit==null)return;string wanted=availableVersion,commit=availableCommit;string dir=folder.Text.Trim();installAddon.Enabled=false;versionStatus.Text="Downloading addon update...";
-  try{await Task.Run(()=>{ServicePointManager.SecurityProtocol=SecurityProtocolType.Tls12;byte[] archive;using(var c=new WebClient()){c.Headers.Add(HttpRequestHeader.UserAgent,"NokiTradingUpdater/1.0");archive=c.DownloadData(string.Format(ArchiveUrl,commit));}InstallArchive(archive,dir,wanted);});versionStatus.Text="Addon updated to "+wanted+". Type /reload in game.";availableVersion=null;availableCommit=null;}
+  try{await Task.Run(()=>{ServicePointManager.SecurityProtocol=SecurityProtocolType.Tls12;byte[] archive;using(var c=new WebClient()){c.Headers.Add(HttpRequestHeader.UserAgent,"NokiTradingUpdater/1.0");archive=c.DownloadData(string.Format(ArchiveUrl,commit,Uri.EscapeDataString(wanted)));}InstallArchive(archive,dir,wanted);});versionStatus.Text="Addon updated to "+wanted+". Type /reload in game.";availableVersion=null;availableCommit=null;}
   catch(Exception e){versionStatus.Text="Addon update failed: "+e.Message+". Use the download link.";installAddon.Enabled=true;}
  }
  static void InstallArchive(byte[] archive,string dir,string wanted){
@@ -129,7 +130,7 @@ sealed class Updater : Form {
   string temp=Path.Combine(Path.GetTempPath(),"noki-addon-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(temp);
   var entries=new Dictionary<string,string>(StringComparer.OrdinalIgnoreCase);long bytes=0;
   try{using(var mem=new MemoryStream(archive))using(var zip=new ZipArchive(mem,ZipArchiveMode.Read)){
-    string prefix=null;foreach(var entry in zip.Entries){var m=Regex.Match(entry.FullName,@"^[^/]+/NokiTrading/NokiTrading\.toc$");if(m.Success){if(prefix!=null)throw new Exception("Duplicate addon folders");prefix=entry.FullName.Substring(0,entry.FullName.Length-"NokiTrading.toc".Length);}}
+    string prefix=null;foreach(var entry in zip.Entries){var m=Regex.Match(entry.FullName,@"^(?:[^/]+/)?NokiTrading/NokiTrading\.toc$");if(m.Success){if(prefix!=null)throw new Exception("Duplicate addon folders");prefix=entry.FullName.Substring(0,entry.FullName.Length-"NokiTrading.toc".Length);}}
     if(prefix==null)throw new Exception("The download does not contain NokiTrading");
     foreach(var entry in zip.Entries){if(!entry.FullName.StartsWith(prefix,StringComparison.Ordinal)||entry.FullName.EndsWith("/"))continue;string relative=entry.FullName.Substring(prefix.Length).Replace('/',Path.DirectorySeparatorChar);if(relative.Equals("UpdaterData.lua",StringComparison.OrdinalIgnoreCase))continue;
      if(relative.Length==0||relative.IndexOf(':')>=0)throw new Exception("Unsafe archive path");string destination=Path.GetFullPath(Path.Combine(target,relative));string staged=Path.GetFullPath(Path.Combine(temp,relative));
@@ -138,7 +139,7 @@ sealed class Updater : Form {
     }
    }
    string stagedToc;if(!entries.TryGetValue("NokiTrading.toc",out stagedToc)||TocVersion(File.ReadAllText(stagedToc))!=wanted)throw new Exception("The published version changed; check again");
-   string backup=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"NokiTradingUpdater","backups",DateTime.UtcNow.ToString("yyyyMMdd-HHmmss")+"-"+Guid.NewGuid().ToString("N"));
+   string backup=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"NokiTradingUpdater","Older versions",DateTime.UtcNow.ToString("yyyyMMdd-HHmmss")+"-"+Guid.NewGuid().ToString("N"));
    var written=new List<string>();try{foreach(var pair in entries){string path=Path.Combine(target,pair.Key);Directory.CreateDirectory(Path.GetDirectoryName(path));if(File.Exists(path)){string save=Path.Combine(backup,pair.Key);Directory.CreateDirectory(Path.GetDirectoryName(save));File.Copy(path,save,false);}written.Add(pair.Key);File.Copy(pair.Value,path,true);}}
    catch{foreach(string rel in written){string path=Path.Combine(target,rel),save=Path.Combine(backup,rel);try{if(File.Exists(save))File.Copy(save,path,true);else if(File.Exists(path))File.Delete(path);}catch{}}throw;}
   }finally{try{Directory.Delete(temp,true);}catch{}}

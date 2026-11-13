@@ -299,18 +299,3 @@ SlashCmdList.NOKIUNIFIEDMARKET = function(message)
   elseif command == "" or command == "status" then showStatus()
   else say("Commands: /nm add <item ID or link>, remove <ID>, item <ID>, list, sample, status, auto on|off, interval <minutes (1+)> ") end
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

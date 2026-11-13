@@ -256,7 +256,7 @@ end
 local events=CreateFrame("Frame")
 for _,event in ipairs({"ADDON_LOADED","PLAYER_LOGIN","AUCTION_HOUSE_SHOW","AUCTION_HOUSE_CLOSED","AUCTION_HOUSE_BROWSE_RESULTS_UPDATED","AUCTION_HOUSE_BROWSE_RESULTS_ADDED","AUCTION_HOUSE_BROWSE_FAILURE","AUCTION_HOUSE_THROTTLED_MESSAGE_RESPONSE_RECEIVED"}) do pcall(events.RegisterEvent,events,event) end
 events:SetScript("OnEvent",function(_,event,arg)
-  if event=="ADDON_LOADED" and arg=="NokiTrading" then NokiUnifiedCoreDB=NokiUnifiedCoreDB or {};NokiUnifiedCoreDB.prices=NokiUnifiedCoreDB.prices or {};if NokiUnifiedCoreDB.autoScan==nil then NokiUnifiedCoreDB.autoScan=true end;core.SetAutoScanInterval(NokiUnifiedCoreDB.scanIntervalMinutes or 30)
+  if event=="ADDON_LOADED" and arg=="NokiTrading" then NokiUnifiedCoreDB=NokiUnifiedCoreDB or {};NokiUnifiedCoreDB.prices=NokiUnifiedCoreDB.prices or {};if NokiUnifiedCoreDB.bagCoinEnabled==nil then NokiUnifiedCoreDB.bagCoinEnabled=true end;if NokiUnifiedCoreDB.autoScan==nil then NokiUnifiedCoreDB.autoScan=true end;core.SetAutoScanInterval(NokiUnifiedCoreDB.scanIntervalMinutes or 30)
   elseif event=="PLAYER_LOGIN" then core.RestoreQuantitiesFromScan()
   elseif event=="AUCTION_HOUSE_SHOW" then core.active=true;updateSellScanNotice();setupSellListLayout();if core.OnOpen then core.OnOpen() end
   elseif event=="AUCTION_HOUSE_CLOSED" then
