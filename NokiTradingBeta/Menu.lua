@@ -1,7 +1,7 @@
 local core=NokiUnifiedCore
 local frame, body, title, mini, coinCheck, filter, maxFilter, search, rows, summary, areaCheck, sortButton
 local sortMode='score'
-local detail, detailRows, detailTitle, detailNote, detailPageText, selected, detailPage, detailDrops
+local detail, detailRows, detailTitle, detailNote, detailPageText, detailPlaceholder, selected, detailPage, detailDrops
 local page, currentTab, results = 1, 'Bag', {}
 local itemRequests={}
 local function requestItem(id)
@@ -82,8 +82,7 @@ end
 local function showDetails(item)
   selected=item;detailPage=1
   if not detail then
-    detail=CreateFrame('Frame','NokiTradingLootDetails',UIParent,'BackdropTemplate');detail:SetSize(670,520);detail:SetPoint('CENTER',UIParent,'CENTER',120,0);detail:SetFrameStrata('DIALOG');detail:SetMovable(true);detail:EnableMouse(true);detail:RegisterForDrag('LeftButton');detail:SetClampedToScreen(true)
-    detail:SetScript('OnDragStart',function(s)s:StartMoving()end);detail:SetScript('OnDragStop',function(s)s:StopMovingOrSizing()end)
+    detail=CreateFrame('Frame','NokiTradingLootDetails',frame,'BackdropTemplate');detail:SetSize(670,520);detail:SetPoint('TOPLEFT',frame,'TOPLEFT',630,0);detail:SetFrameLevel(frame:GetFrameLevel()+2)
     detail:SetScript('OnUpdate',function(self,elapsed)
       self.ageElapsed=(self.ageElapsed or 0)+elapsed
       if self.ageElapsed>=60 then self.ageElapsed=0;if self.render then self.render() end end
@@ -97,7 +96,6 @@ local function showDetails(item)
     text(detail,'GameFontNormalSmall',283,-101,140):SetText('DROP RATE')
     text(detail,'GameFontNormalSmall',430,-101,105):SetText('AH / ITEM')
     text(detail,'GameFontNormalSmall',540,-101,100):SetText('EST. SOLD / DAY')
-    button(detail,'X',625,-14,28,function()detail:Hide()end)
     detailRows={}
     for i=1,11 do
       local row=CreateFrame('Frame',nil,detail,'BackdropTemplate');row:SetPoint('TOPLEFT',20,-123-(i-1)*29);row:SetSize(630,28);row:SetBackdrop({bgFile='Interface\\Buttons\\WHITE8X8'});row:SetBackdropColor(i%2==0 and .075 or .045,i%2==0 and .13 or .095,i%2==0 and .095 or .07,.95)
@@ -154,10 +152,19 @@ local function showDetails(item)
       end
     end
   end
+  if detailPlaceholder then detailPlaceholder:Hide() end
   detail:Show();detail.render()
 end
 local function refresh()
   if not frame or not frame:IsShown() then return end
+  local farming=currentTab=='Farm'
+  frame:SetWidth(farming and 1300 or 630)
+  if UIParent and UIParent.GetWidth and UIParent.GetHeight then
+    local width,height=UIParent:GetWidth(),UIParent:GetHeight()
+    if width and height and width>0 and height>0 then frame:SetScale(math.min(1,(width-20)/(farming and 1300 or 630),(height-20)/520)) end
+  end
+  if detail then detail:SetShown(farming and selected~=nil) end
+  if detailPlaceholder then detailPlaceholder:SetShown(farming and not selected) end
   body:SetShown(currentTab=='Bag');filter:SetShown(currentTab=='Farm');maxFilter:SetShown(currentTab=='Farm');search:SetShown(currentTab=='Farm');summary:SetShown(currentTab=='Farm');areaCheck:SetShown(currentTab=='Farm');sortButton:SetShown(currentTab=='Farm')
   for _,r in ipairs(rows) do r:Hide() end
   title:SetText(currentTab=='Bag' and 'BAG TOOLS' or 'FARMING  |  MONSTER DROPS')
@@ -200,9 +207,10 @@ local function build()
   frame:SetScript('OnDragStart',function(s)s:StartMoving()end);frame:SetScript('OnDragStop',function(s)s:StopMovingOrSizing()end)
   frame:SetBackdrop({bgFile='Interface\\Buttons\\WHITE8X8',edgeFile='Interface\\Buttons\\WHITE8X8',edgeSize=1});frame:SetBackdropColor(.025,.045,.038,.98);frame:SetBackdropBorderColor(.20,.43,.29,1)
   band(frame,1,-1,628,65,.045,.10,.068,.98);band(frame,22,-111,585,2,.24,.65,.39,.9)
+  detailPlaceholder=text(frame,'GameFontHighlight',665,-145,590);detailPlaceholder:SetText('Select a monster to see its drops, auction prices, and estimated market activity.');detailPlaceholder:Hide()
   local brand=text(frame,'GameFontNormalLarge',22,-20);brand:SetText('NOKI  |  TRADING')
   local subtitle=text(frame,'GameFontHighlightSmall',23,-44);subtitle:SetText('Your market companion')
-  button(frame,'X',585,-14,28,function()frame:Hide()end)
+  local close=button(frame,'X',585,-14,28,function()frame:Hide()end);close:ClearAllPoints();close:SetPoint('TOPRIGHT',frame,'TOPRIGHT',-15,-14);close:SetFrameLevel(frame:GetFrameLevel()+10)
   button(frame,'Bag',22,-75,100,function()currentTab='Bag';refresh()end)
   button(frame,'Farm',130,-75,100,function()currentTab='Farm';page=1;refresh()end)
   title=text(frame,'GameFontNormal',22,-118)
