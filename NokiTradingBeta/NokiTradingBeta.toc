@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: Noki Trading Beta
 ## Notes: Market, crafting, auction tracking and help.
-## Version: 1.0.76-beta
+## Version: 1.0.77-beta
 ## SavedVariables: NokiBetaCoreDB, NokiBetaMarketDB, NokiBetaCraftDB
 UpdaterData.lua
 Core.lua

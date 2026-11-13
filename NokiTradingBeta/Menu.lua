@@ -65,6 +65,12 @@ local function scanAge()
   if hours<48 then return 'AH scan: '..hours..'h '..(minutes%60)..'m ago' end
   return 'AH scan: '..math.floor(hours/24)..'d '..(hours%24)..'h ago'
 end
+local function farmScenario()
+  local db=NokiBetaCoreDB or {}
+  local kills=math.max(1,math.min(10000,tonumber(db.farmScenarioKills) or 100))
+  local share=math.max(1,math.min(100,tonumber(db.farmScenarioShare) or 10))
+  return kills,share/100
+end
 local function levelFor(id,mob)
   if mob.min>0 then return mob.min,mob.max,mob.levelSource or 'Classic reference' end
   local observed=NokiBetaCoreDB.farmObservedLevels and NokiBetaCoreDB.farmObservedLevels[id]
@@ -113,10 +119,12 @@ local function showDetails(item)
           GameTooltip:AddLine(NokiUnifiedMarketActivityLabel(x.activity),.8,.8,.8,true)
           GameTooltip:AddLine('Market-wide estimate, not confirmed sales or a guarantee of selling.',.8,.8,.8,true)
         else GameTooltip:AddLine('Sales estimate unavailable: '..(x.activityError or 'no activity data'),1,.75,.4,true) end
-        local contribution,reason,weight,lower=core.FarmDropScore(d,x.market)
+        local kills,share=farmScenario()
+        local contribution,reason,weight,lower,modeled,farmed,cap=core.FarmDropScore(d,x.market,kills,share)
         if contribution then
-          GameTooltip:AddLine('24h model weight: '..string.format('%.1f%%',weight*100)..' | Conservative drop rate: '..string.format('%.1f%%',lower*100),.7,1,.75,true)
+          GameTooltip:AddLine('Conservative drop rate: '..string.format('%.1f%%',lower*100)..' | Liquidity weight: '..string.format('%.1f%%',weight*100),.7,1,.75,true)
           GameTooltip:AddLine('Last scan listed: '..(type(x.market.listed)=='number' and tostring(x.market.listed) or 'unavailable')..' | Estimated sold / day: '..salesText(x.activity.sales),.8,.9,.8,true)
+          GameTooltip:AddLine(string.format('For %d kills: %.1f drops, %.1f demand share cap, %.1f modeled sales.',kills,farmed,cap,modeled),.8,.9,.8,true)
           GameTooltip:AddLine('Score contribution: '..money(contribution)..' / kill; assumes one item and 5% AH cut.',.8,.9,.8,true)
         else
           local labels={rate='drop rate unavailable',price='current scan price unavailable',activity='sales estimate unavailable',supply='listed quantity unavailable',sample='drop sample unavailable'}
@@ -154,7 +162,7 @@ local function refresh()
   for _,r in ipairs(rows) do r:Hide() end
   title:SetText(currentTab=='Bag' and 'BAG TOOLS' or 'FARMING  |  MONSTER DROPS')
   if currentTab=='Bag' then coinCheck:SetChecked(NokiBetaCoreDB.bagCoinEnabled==true);return end
-  local minLevel=tonumber(filter:GetText());local maxLevel=tonumber(maxFilter:GetText());local query=search:GetText():lower();results={}
+  local minLevel=tonumber(filter:GetText());local maxLevel=tonumber(maxFilter:GetText());local query=search:GetText():lower();local kills,share=farmScenario();results={}
   local zone=(GetRealZoneText and GetRealZoneText()) or (GetZoneText and GetZoneText())
   if issecretvalue and issecretvalue(zone) then zone=nil end
   local markets={};local function cachedMarket(id)
@@ -168,7 +176,7 @@ local function refresh()
     local low,high,levelSource=levelFor(id,mob)
     local location=table.concat(mob.locations or {},' | ')
     if (not minLevel and not maxLevel or (low>0 and (not minLevel or high>=minLevel) and (not maxLevel or low<=maxLevel))) and (not areaCheck:GetChecked() or core.FarmInZone(mob,zone)) and (query=='' or mob.name:lower():find(query,1,true) or (mob.zone or ''):lower():find(query,1,true) or location:lower():find(query,1,true)) then
-      local estimate=core.FarmValue(mob,cachedMarket)
+      local estimate=core.FarmValue(mob,cachedMarket,kills,share)
       results[#results+1]={id=id,mob=mob,estimate=estimate,low=low,high=high,levelSource=levelSource}
     end
   end
@@ -179,7 +187,7 @@ local function refresh()
     if a.mob.name==b.mob.name then return a.id<b.id end return a.mob.name:lower()<b.mob.name:lower()
   end)
   page=math.max(1,math.min(page,math.max(1,math.ceil(#results/8))))
-  summary:SetText(scanAge()..' | * = partial or old activity | Page '..page..' / '..math.max(1,math.ceil(#results/8))..(areaCheck:GetChecked() and (' | Zone: '..(zone or 'unavailable')) or ''))
+  summary:SetText(scanAge()..' | '..kills..' kills, '..math.floor(share*100+.5)..'% demand | * partial | Page '..page..' / '..math.max(1,math.ceil(#results/8)))
   for i,r in ipairs(rows) do
     local item=results[(page-1)*8+i];if item then
       local e=item.estimate;local shown=e.value;if sortMode=='gross' then shown=e.gross end;local partial=(e.missingPrice+e.missingRate+(sortMode=='gross' and 0 or e.missingActivity+e.missingSupply+e.missingSample+e.stale))>0;r.item=item;r.name:SetText(item.mob.name..'  |cff899998'..(item.low>0 and ((item.levelSource=='zone range' and 'zone ' or 'lvl ')..item.low..'-'..item.high) or 'level ?')..'|r');r.value:SetText(shown and (money(shown)..(partial and '*' or '')) or '--');r.note:SetText(item.mob.zone~='' and item.mob.zone or 'Zone unknown');r:Show()
@@ -229,7 +237,9 @@ local function build()
       if v.low>0 and v.levelSource:find('observed') then GameTooltip:AddLine('Observed levels may not include the full range.',1,1,1,true) end
       local e=v.estimate
       GameTooltip:AddLine('24h score / kill: '..(e.value and money(e.value) or 'unavailable')..' | Gross estimate: '..(e.gross and money(e.gross) or 'unavailable'),1,1,1,true)
-      GameTooltip:AddLine('Score = conservative drop rate x AH price x 95% x (1 - exp(-sales/day / (listed + 1))).',1,1,1,true)
+      local kills,share=farmScenario()
+      GameTooltip:AddLine('Scenario: '..kills..' kills; '..math.floor(share*100+.5)..'% of daily market demand.',1,1,1,true)
+      GameTooltip:AddLine('Modeled sales are limited by expected drops, demand share, and a listing competition weight. Score divides their after-cut value by kills.',1,1,1,true)
       GameTooltip:AddLine('Drop rate uses a 90% one-sided Wilson lower bound from observed loot windows.',1,1,1,true)
       GameTooltip:AddLine('Heuristic assumes stable, equally competing listings and one item per drop. It is not a sale prediction; coin and deposits are excluded.',1,1,1,true)
       GameTooltip:AddLine('Missing: '..e.missingPrice..' prices, '..e.missingRate..' rates, '..e.missingActivity..' sales, '..e.missingSupply..' listed quantities, '..e.missingSample..' samples. Old or undated activity: '..e.stale..'.',1,.8,.3,true)
@@ -238,7 +248,27 @@ local function build()
   end
   summary=text(frame,'GameFontHighlightSmall',24,-444,580)
   local prev=button(frame,'Previous',24,-478,85,function()page=page-1;refresh()end);local nextb=button(frame,'Next',117,-478,85,function()page=page+1;refresh()end)
-  local oldRefresh=refresh;refresh=function()oldRefresh();local show=currentTab=='Farm';fl:SetShown(show);fl2:SetShown(show);areaLabel:SetShown(show);valueLabel:SetText(sortMode=='gross' and 'GROSS / KILL' or '24H SCORE / KILL');valueLabel:SetShown(show);searchLabel:SetShown(show);prev:SetShown(show);nextb:SetShown(show)end
+  local settings
+  local scenario=button(frame,'Scenario',210,-478,100,function()
+    if settings then settings:SetShown(not settings:IsShown());return end
+    settings=CreateFrame('Frame',nil,frame,'BackdropTemplate');settings:SetSize(370,218);settings:SetPoint('CENTER');settings:SetFrameLevel(frame:GetFrameLevel()+30);settings:SetBackdrop({bgFile='Interface\\Buttons\\WHITE8X8',edgeFile='Interface\\Buttons\\WHITE8X8',edgeSize=1});settings:SetBackdropColor(.025,.06,.04,1);settings:SetBackdropBorderColor(.20,.43,.29,1)
+    text(settings,'GameFontNormal',16,-15,330):SetText('FARMING SCENARIO')
+    text(settings,'GameFontHighlightSmall',16,-41,335):SetText('Estimate sales over one day. Your market share is an assumption, not a measured value.')
+    text(settings,'GameFontHighlightSmall',16,-90,190):SetText('Kills per session')
+    text(settings,'GameFontHighlightSmall',16,-125,190):SetText('Your share of daily sales (%)')
+    local k=CreateFrame('EditBox',nil,settings,'InputBoxTemplate');k:SetSize(65,24);k:SetPoint('TOPLEFT',250,-84);k:SetAutoFocus(false);k:SetNumeric(true);k:SetMaxLetters(5)
+    local s=CreateFrame('EditBox',nil,settings,'InputBoxTemplate');s:SetSize(65,24);s:SetPoint('TOPLEFT',250,-119);s:SetAutoFocus(false);s:SetNumeric(true);s:SetMaxLetters(3)
+    local status=text(settings,'GameFontHighlightSmall',16,-153,330)
+    button(settings,'Save',158,-180,90,function()
+      local n,p=tonumber(k:GetText()),tonumber(s:GetText())
+      if not n or n<1 or n>10000 or not p or p<1 or p>100 then status:SetText('Enter 1-10000 kills and 1-100% share.');return end
+      NokiBetaCoreDB.farmScenarioKills=math.floor(n);NokiBetaCoreDB.farmScenarioShare=math.floor(p);settings:Hide();page=1;refresh();if detail and detail:IsShown() then detail.render() end
+    end)
+    button(settings,'Close',257,-180,90,function()settings:Hide()end)
+    settings:SetScript('OnShow',function()local n,p=farmScenario();k:SetText(tostring(n));s:SetText(tostring(math.floor(p*100+.5)));status:SetText('')end)
+    local n,p=farmScenario();k:SetText(tostring(n));s:SetText(tostring(math.floor(p*100+.5)))
+  end)
+  local oldRefresh=refresh;refresh=function()oldRefresh();local show=currentTab=='Farm';fl:SetShown(show);fl2:SetShown(show);areaLabel:SetShown(show);valueLabel:SetText(sortMode=='gross' and 'GROSS / KILL' or '24H SCORE / KILL');valueLabel:SetShown(show);searchLabel:SetShown(show);prev:SetShown(show);nextb:SetShown(show);scenario:SetShown(show);if not show and settings then settings:Hide() end end
   frame:SetScript('OnShow',function(self)self.ageElapsed=0;refresh()end)
   frame:SetScript('OnUpdate',function(self,elapsed)
     self.ageElapsed=(self.ageElapsed or 0)+elapsed

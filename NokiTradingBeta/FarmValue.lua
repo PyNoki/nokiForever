@@ -16,14 +16,15 @@ function core.FarmZoneLevel(mob)
   local zone=mob and zoneLevels[mob.zone]
   if zone then return zone[1],zone[2] end
 end
--- A conservative score, not a measured probability: assume homogeneous items,
--- a stable pool of competing listings and Poisson sales distributed evenly.
--- The 90% one-sided Wilson lower bound reduces sensitivity to tiny samples.
-function core.FarmDropScore(drop,market)
+-- Scenario model: limit a session's expected drops by an assumed share of
+-- daily demand and a liquidity proxy. Neither limit is a guaranteed sale.
+function core.FarmDropScore(drop,market,kills,share)
   if type(drop[8])~='number' then return nil,'rate' end
   if not market or type(market.price)~='number' or market.price<=0 then return nil,'price' end
   local a=market.activity
   if not a or type(a.sales)~='number' or a.sales<0 then return nil,'activity' end
+  kills=tonumber(kills) or 100;share=tonumber(share) or .10
+  if kills<1 or kills>10000 or share<=0 or share>1 then return nil,'scenario' end
   local saleWeight
   if a.sales==0 then saleWeight=0
   elseif type(market.listed)=='number' and market.listed>=0 then saleWeight=1-math.exp(-a.sales/(market.listed+1))
@@ -33,16 +34,19 @@ function core.FarmDropScore(drop,market)
   local p=hits/samples;local z=1.2815515655;local z2=z*z
   local lower=(p+z2/(2*samples)-z*math.sqrt((p*(1-p)+z2/(4*samples))/samples))/(1+z2/samples)
   lower=math.max(0,math.min(1,lower))
-  return lower*market.price*.95*saleWeight,nil,saleWeight,lower
+  local farmed=kills*lower
+  local demandCap=a.sales*share
+  local modeledSales=math.min(farmed,demandCap,farmed*saleWeight)
+  return modeledSales*market.price*.95/kills,nil,saleWeight,lower,modeledSales,farmed,demandCap
 end
-function core.FarmValue(mob,getMarket)
+function core.FarmValue(mob,getMarket,kills,share)
   local gross,score,priced,scored,missingPrice,missingRate,missingActivity,missingSupply,missingSample,stale=0,0,0,0,0,0,0,0,0,0
   for _,drop in ipairs(mob.drops or {}) do
     if type(drop[8])~='number' then missingRate=missingRate+1
     else
       local market=getMarket(drop[1])
       if market and type(market.price)=='number' and market.price>0 then gross=gross+market.price*drop[8]/100;priced=priced+1 else missingPrice=missingPrice+1 end
-      local value,reason=core.FarmDropScore(drop,market)
+      local value,reason=core.FarmDropScore(drop,market,kills,share)
       if value~=nil then
         score=score+value;scored=scored+1
         local a=market.activity;local now=(GetServerTime and GetServerTime()) or time()
