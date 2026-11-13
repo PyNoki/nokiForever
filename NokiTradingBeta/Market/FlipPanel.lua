@@ -15,7 +15,20 @@ local resaleQueue,resaleIndex,resaleEpoch,resaleChecked,resaleUnavailable,resale
 local resaleInflight,resaleOpenRequest,resaleScanTime=false,nil,nil
 local resaleCache
 local knownButton, captureButton, minProfitLabel, searchHint
-local sortLabels = {gain="Gain per unit", roi="Return %", activity="Est. sales/day"}
+local sortLabels = {gain="Gain per unit", roi="Return %", activity="Est. sales/day",gap="Gap"}
+local gapAscending=false
+local function marketGap(item)
+  local sales=item.remote and item.remote.sales
+  if item.variant or type(item.quantity)~="number" or type(sales)~="number" then return nil end
+  return sales-item.quantity
+end
+local function gapLess(a,b)
+  local av,bv=marketGap(a),marketGap(b)
+  if av==nil or bv==nil then if av~=bv then return av~=nil end
+  elseif av~=bv then if gapAscending then return av<bv else return av>bv end end
+  if a.name~=b.name then return a.name:lower()<b.name:lower() end
+  return tostring(a.key or a.id)<tostring(b.key or b.id)
+end
 local ROWS_PER_PAGE = 7
 
 local function copper(value)
@@ -178,6 +191,7 @@ local function render()
     else row:Hide() end
   end
   if found then setSelected(found) elseif not selectedID and filtered[1] then setSelected(filtered[1]) end
+  if headerTexts[8] and (viewMode=="flips" or viewMode=="lookup") then headerTexts[8]:SetText("GAP"..(sortMode=="gap" and (gapAscending and " ^" or " v") or "")) end
   pageText:SetText((#filtered == 0 and "0" or (scrollOffset + 1) .. "-" .. math.min(scrollOffset + ROWS_PER_PAGE, #filtered)) .. " OF " .. #filtered .. (viewMode == "lookup" and " ITEMS" or " CANDIDATES") .. "  |  SCROLL TO BROWSE")
 end
 local function filterAndSort(resetScroll)
@@ -188,6 +202,7 @@ local function filterAndSort(resetScroll)
   end
   table.sort(filtered, function(a,b)
     if viewMode=="resale" then if a.unitGain==b.unitGain then return a.id<b.id end;return a.unitGain>b.unitGain end
+    if sortMode=="gap" and (viewMode=="flips" or viewMode=="lookup") then return gapLess(a,b) end
     if viewMode == "craft" then
       local av,bv
       if sortMode=="activity" then av,bv=a.sales,b.sales
@@ -490,7 +505,7 @@ local function createPanel()
   searchBox=CreateFrame("EditBox",nil,panel,"InputBoxTemplate");searchBox:SetSize(125,24);searchBox:SetPoint("TOPLEFT",panel,"TOPLEFT",330,-54);searchBox:SetAutoFocus(false);searchBox:SetMaxLetters(60);searchBox:SetScript("OnTextChanged",function() if panel and status then filterAndSort(true) end end);searchBox:SetScript("OnEscapePressed",function(self) self:ClearFocus() end)
   searchBox:SetScript("OnEnterPressed",function(self) self:ClearFocus();scrollOffset=0;if viewMode=="resale" then filterAndSort() else calculate() end end)
   searchHint=makeText(panel,nil,365,-80,130,"GameFontDisableSmall");searchHint:SetText("Search name, vendor or ID")
-  sortButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");sortButton:SetSize(140,24);sortButton:SetPoint("TOPLEFT",panel,"TOPLEFT",470,-54);sortButton:SetText("Sort: " .. sortLabels[sortMode]);sortButton:SetScript("OnClick",function() sortMode=sortMode=="gain" and "roi" or sortMode=="roi" and "activity" or "gain";sortButton:SetText("Sort: " .. (viewMode=="craft" and sortMode=="gain" and "Gain per craft" or sortLabels[sortMode]));filterAndSort(true) end)
+  sortButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");sortButton:SetSize(140,24);sortButton:SetPoint("TOPLEFT",panel,"TOPLEFT",470,-54);sortButton:SetText("Sort: " .. sortLabels[sortMode]);sortButton:SetScript("OnClick",function() sortMode=sortMode=="gain" and "roi" or sortMode=="roi" and "activity" or sortMode=="activity" and viewMode=="flips" and "gap" or "gain";gapAscending=false;sortButton:SetText("Sort: " .. (viewMode=="craft" and sortMode=="gain" and "Gain per craft" or sortLabels[sortMode]));filterAndSort(true) end)
   local pricing=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");pricing:SetSize(95,24);pricing:SetPoint("TOPLEFT",panel,"TOPLEFT",620,-54)
   local undercut=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");undercut:SetSize(110,24);undercut:SetPoint("TOPLEFT",panel,"TOPLEFT",720,-54)
   local function updatePricing()
@@ -510,8 +525,16 @@ local function createPanel()
   minStackProfitBox=CreateFrame("EditBox",nil,panel,"InputBoxTemplate");minStackProfitBox:SetSize(48,20);minStackProfitBox:SetPoint("TOPLEFT",panel,"TOPLEFT",155,-74);minStackProfitBox:SetAutoFocus(false);minStackProfitBox:SetFontObject("GameFontHighlight");minStackProfitBox:SetText(tostring((NokiBetaMarketDB and NokiBetaMarketDB.flipMinPackProfitSilver) or 0));minStackProfitBox:SetScript("OnEnterPressed",function(self) self:ClearFocus();calculate() end);minStackProfitBox:SetScript("OnEscapePressed",function(self) self:ClearFocus() end)
   status=makeText(panel,nil,18,-101,690,"GameFontHighlightSmall");status:SetText("Waiting for auction data.")
   local header=CreateFrame("Frame",nil,panel,"BackdropTemplate");header:SetPoint("TOPLEFT",panel,"TOPLEFT",10,-122);header:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-10,-122);header:SetHeight(22);header:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});header:SetBackdropColor(0.13,0.18,0.17,1)
-  local cols={{"ITEM / VENDOR",8,245},{"BUY / UNIT",265,95},{"SELL / UNIT",370,95},{"GAIN / UNIT",475,95},{"GAIN / PACK",580,100},{"ACTIVITY",690,90},{"LISTED",790,75},{"GAP / 1D",875,90}}
+  local cols={{"ITEM / VENDOR",8,245},{"BUY / UNIT",265,95},{"SELL / UNIT",370,95},{"GAIN / UNIT",475,95},{"GAIN / PACK",580,100},{"ACTIVITY",690,90},{"LISTED",790,75},{"GAP",875,90}}
   for i,c in ipairs(cols) do local t=makeText(header,nil,c[2],-5,c[3],"GameFontNormalSmall");t:SetText(c[1]);headerTexts[i]=t end
+  local gapHeader=CreateFrame("Button",nil,header);gapHeader:SetPoint("TOPLEFT",header,"TOPLEFT",875,0);gapHeader:SetSize(90,22)
+  gapHeader:SetScript("OnClick",function()
+    if viewMode~="flips" and viewMode~="lookup" then return end
+    if sortMode=="gap" then gapAscending=not gapAscending else sortMode="gap";gapAscending=false end
+    sortButton:SetText("Sort: "..sortLabels[sortMode]);filterAndSort(true)
+  end)
+  gapHeader:SetScript("OnEnter",function(self) if viewMode=="flips" or viewMode=="lookup" then GameTooltip:SetOwner(self,"ANCHOR_TOP");GameTooltip:AddLine("Sort by gap");GameTooltip:AddLine("Estimated sales per day minus the quantity listed. Click again to reverse.",1,1,1,true);GameTooltip:Show() end end)
+  gapHeader:SetScript("OnLeave",function() GameTooltip:Hide() end)
   rows={}
   for i=1,ROWS_PER_PAGE do
     local row=CreateFrame("Button",nil,panel,"BackdropTemplate");row:SetPoint("TOPLEFT",panel,"TOPLEFT",10,-145-(i-1)*34);row:SetPoint("TOPRIGHT",panel,"TOPRIGHT",-32,-145-(i-1)*34);row:SetHeight(33);row:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});row:SetBackdropColor(i%2==0 and 0.10 or 0.075,0.10,0.11,0.95)
@@ -558,6 +581,7 @@ local function createPanel()
   local applyButton=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate");applyButton:SetSize(110,22);applyButton:SetPoint("TOPLEFT",panel,"TOPLEFT",470,-77);applyButton:SetText("Apply / Search");applyButton:SetScript("OnClick",function() scrollOffset=0;calculate() end)
   applyMode=function(preserveResale)
     local lookup=viewMode=="lookup";local resale=viewMode=="resale";local simple=lookup or resale;local craft=viewMode=="craft"
+    if craft and sortMode=="gap" then sortMode="gain" end
     applyButton:SetText(resale and "Refresh list" or "Apply / Search")
     searchBox:ClearAllPoints();searchBox:SetPoint("TOPLEFT",panel,"TOPLEFT",simple and 90 or 330,-54)
     searchHint:ClearAllPoints();searchHint:SetPoint("TOPLEFT",panel,"TOPLEFT",simple and 18 or 365,simple and -59 or -80);searchHint:SetText(simple and "SEARCH" or "Search name, vendor or ID")
@@ -577,7 +601,7 @@ local function createPanel()
     modeButton:SetText(lookup and "Vendor flips" or resale and "Item lookup" or "Vendor resale")
     title:SetText(lookup and "ITEM LOOKUP" or resale and "SELL TO VENDOR" or craft and "CRAFTING PROFIT" or "VENDOR FLIP FINDER")
     subtitle:SetText(lookup and "Search loaded items by name, vendor or ID." or resale and "Automatically checks all listings priced below each item's vendor value." or craft and "Buy materials at AH lows; profit is per craft. Capture recipes with a profession open." or "One-pack vendor cost vs sell price per unit. Select a row for details.")
-    local labels=resale and {"ITEM","AH / UNIT","VENDOR / UNIT","GAIN / UNIT","BUY QTY","BUY TOTAL","PROFIT TOTAL","VIEW"} or lookup and {"ITEM / VARIANT","VENDOR / UNIT","AH LOW / UNIT","LISTED","VENDOR PACK","EST. / DAY","","GAP / 1D"} or craft and {"RECIPE / PROFESSION","COST / CRAFT","SELL / UNIT","GAIN / CRAFT","YIELD","EST. / DAY","",""} or {"ITEM / VENDOR","BUY / UNIT","SELL / UNIT","GAIN / UNIT","GAIN / PACK","EST. / DAY","LISTED","GAP / 1D"}
+    local labels=resale and {"ITEM","AH / UNIT","VENDOR / UNIT","GAIN / UNIT","BUY QTY","BUY TOTAL","PROFIT TOTAL","VIEW"} or lookup and {"ITEM / VARIANT","VENDOR / UNIT","AH LOW / UNIT","LISTED","VENDOR PACK","EST. / DAY","","GAP"} or craft and {"RECIPE / PROFESSION","COST / CRAFT","SELL / UNIT","GAIN / CRAFT","YIELD","EST. / DAY","",""} or {"ITEM / VENDOR","BUY / UNIT","SELL / UNIT","GAIN / UNIT","GAIN / PACK","EST. / DAY","LISTED","GAP"}
     for i,label in ipairs(labels) do headerTexts[i]:SetText(label) end
     if preserveResale then render() else calculate() end
   end
