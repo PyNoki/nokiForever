@@ -1,5 +1,6 @@
 local core=NokiUnifiedCore
-local frame, body, title, mini, coinCheck, filter, search, rows, summary
+local frame, body, title, mini, coinCheck, filter, maxFilter, search, rows, summary, areaCheck, sortButton
+local sortMode='value'
 local detail, detailRows, detailTitle, detailNote, detailPageText, selected, detailPage, detailDrops
 local page, currentTab, results = 1, 'Bag', {}
 local itemRequests={}
@@ -89,32 +90,38 @@ local function showDetails(item)
 end
 local function refresh()
   if not frame or not frame:IsShown() then return end
-  body:SetShown(currentTab=='Bag');filter:SetShown(currentTab=='Farm');search:SetShown(currentTab=='Farm');summary:SetShown(currentTab=='Farm')
+  body:SetShown(currentTab=='Bag');filter:SetShown(currentTab=='Farm');maxFilter:SetShown(currentTab=='Farm');search:SetShown(currentTab=='Farm');summary:SetShown(currentTab=='Farm');areaCheck:SetShown(currentTab=='Farm');sortButton:SetShown(currentTab=='Farm')
   for _,r in ipairs(rows) do r:Hide() end
   title:SetText(currentTab=='Bag' and 'BAG TOOLS' or 'FARMING  |  MONSTER DROPS')
   if currentTab=='Bag' then coinCheck:SetChecked(NokiBetaCoreDB.bagCoinEnabled==true);return end
-  local level=tonumber(filter:GetText());local query=search:GetText():lower();results={}
+  local minLevel=tonumber(filter:GetText());local maxLevel=tonumber(maxFilter:GetText());local query=search:GetText():lower();results={}
+  local zone=(GetRealZoneText and GetRealZoneText()) or (GetZoneText and GetZoneText())
+  if issecretvalue and issecretvalue(zone) then zone=nil end
+  local prices={};local function cachedPrice(id) if prices[id]==nil then prices[id]=price(id) or false end;return prices[id] end
   for id,mob in pairs(NokiTradingLoot.mobs) do
     local low,high,levelSource=levelFor(id,mob)
     local location=table.concat(mob.locations or {},' | ')
-    if (not level or (low>0 and low<=level and high>=level)) and (query=='' or mob.name:lower():find(query,1,true) or (mob.zone or ''):lower():find(query,1,true) or location:lower():find(query,1,true)) then
-      local missing,lowSamples=0,0
-      for _,d in ipairs(mob.drops) do if not price(d[1]) then missing=missing+1 end;if d[7] or type(d[8])~='number' then lowSamples=lowSamples+1 end end
-      results[#results+1]={id=id,mob=mob,missing=missing,lowSamples=lowSamples,low=low,high=high,levelSource=levelSource}
+    if (not minLevel and not maxLevel or (low>0 and (not minLevel or high>=minLevel) and (not maxLevel or low<=maxLevel))) and (not areaCheck:GetChecked() or core.FarmInZone(mob,zone)) and (query=='' or mob.name:lower():find(query,1,true) or (mob.zone or ''):lower():find(query,1,true) or location:lower():find(query,1,true)) then
+      local estimate=core.FarmValue(mob,cachedPrice)
+      results[#results+1]={id=id,mob=mob,estimate=estimate,low=low,high=high,levelSource=levelSource}
     end
   end
-  table.sort(results,function(a,b) if a.mob.name==b.mob.name then return a.id<b.id end return a.mob.name:lower()<b.mob.name:lower() end)
+  table.sort(results,function(a,b)
+    if sortMode=='value' and (a.estimate.value or -1)~=(b.estimate.value or -1) then return (a.estimate.value or -1)>(b.estimate.value or -1) end
+    if sortMode=='level' then local al=a.low>0 and a.low or 9999;local bl=b.low>0 and b.low or 9999;if al~=bl then return al<bl end end
+    if a.mob.name==b.mob.name then return a.id<b.id end return a.mob.name:lower()<b.mob.name:lower()
+  end)
   page=math.max(1,math.min(page,math.max(1,math.ceil(#results/8))))
-  summary:SetText('Click a mob for loot and AH prices. Hover for level source. Page '..page..' / '..math.max(1,math.ceil(#results/8)))
+  summary:SetText((areaCheck:GetChecked() and ('Zone: '..(zone or 'unavailable')..' | ') or '')..'* = partial estimate. Hover for details. Page '..page..' / '..math.max(1,math.ceil(#results/8)))
   for i,r in ipairs(rows) do
     local item=results[(page-1)*8+i];if item then
-      r.item=item;r.name:SetText(item.mob.name..'  |cff899998'..(item.low>0 and (item.low..'-'..item.high) or 'level ?')..'|r');r.value:SetText(#item.mob.drops..' drops');r.note:SetText(item.mob.zone~='' and item.mob.zone or 'Zone unknown');r:Show()
+      local e=item.estimate;r.item=item;r.name:SetText(item.mob.name..'  |cff899998'..(item.low>0 and (item.low..'-'..item.high) or 'level ?')..'|r');r.value:SetText(e.value and (money(e.value)..((e.missingPrice+e.missingRate)>0 and '*' or '')) or '--');r.note:SetText(item.mob.zone~='' and item.mob.zone or 'Zone unknown');r:Show()
     end
   end
 end
 local function build()
   if frame then return end
-  frame=CreateFrame('Frame','NokiTradingMenu',UIParent,'BackdropTemplate');frame:SetSize(630,480);frame:SetPoint('CENTER');frame:SetMovable(true);frame:EnableMouse(true);frame:RegisterForDrag('LeftButton');frame:SetClampedToScreen(true)
+  frame=CreateFrame('Frame','NokiTradingMenu',UIParent,'BackdropTemplate');frame:SetSize(630,520);frame:SetPoint('CENTER');frame:SetMovable(true);frame:EnableMouse(true);frame:RegisterForDrag('LeftButton');frame:SetClampedToScreen(true)
   frame:SetScript('OnDragStart',function(s)s:StartMoving()end);frame:SetScript('OnDragStop',function(s)s:StopMovingOrSizing()end)
   frame:SetBackdrop({bgFile='Interface\\Buttons\\WHITE8X8',edgeFile='Interface\\Buttons\\WHITE8X8',edgeSize=1});frame:SetBackdropColor(.035,.055,.055,.98);frame:SetBackdropBorderColor(.55,.42,.19,1)
   local brand=text(frame,'GameFontNormalLarge',22,-20);brand:SetText('NOKI  |  TRADING')
@@ -131,12 +138,18 @@ local function build()
   button(body,'Bag selling rules',24,-265,160,function()if core.ToggleBagRules then core.ToggleBagRules()end end)
   button(body,'Excluded items',192,-265,160,function()if core.ShowBagExclusions then core.ShowBagExclusions()end end)
   local hint=text(body,'GameFontHighlightSmall',24,-310,550);hint:SetText('The coin tooltip shows estimated bag value. Selling rules and exclusions use your existing settings.')
-  filter=CreateFrame('EditBox',nil,frame,'InputBoxTemplate');filter:SetSize(85,25);filter:SetPoint('TOPLEFT',31,-151);filter:SetAutoFocus(false);filter:SetNumeric(true);filter:SetMaxLetters(2);filter:SetScript('OnEnterPressed',function(s)s:ClearFocus();page=1;refresh()end);filter:SetScript('OnEscapePressed',function(s)s:ClearFocus()end)
-  local fl=text(frame,'GameFontHighlightSmall',125,-155);fl:SetText('Level')
+  filter=CreateFrame('EditBox',nil,frame,'InputBoxTemplate');filter:SetSize(48,25);filter:SetPoint('TOPLEFT',31,-151);filter:SetAutoFocus(false);filter:SetNumeric(true);filter:SetMaxLetters(3);filter:SetScript('OnEnterPressed',function(s)s:ClearFocus();page=1;refresh()end);filter:SetScript('OnEscapePressed',function(s)s:ClearFocus()end)
+  maxFilter=CreateFrame('EditBox',nil,frame,'InputBoxTemplate');maxFilter:SetSize(48,25);maxFilter:SetPoint('TOPLEFT',112,-151);maxFilter:SetAutoFocus(false);maxFilter:SetNumeric(true);maxFilter:SetMaxLetters(3);maxFilter:SetScript('OnEnterPressed',function(s)s:ClearFocus();page=1;refresh()end);maxFilter:SetScript('OnEscapePressed',function(s)s:ClearFocus()end)
+  local fl=text(frame,'GameFontHighlightSmall',83,-155);fl:SetText('to')
+  local fl2=text(frame,'GameFontHighlightSmall',168,-155);fl2:SetText('Level range')
   search=CreateFrame('EditBox',nil,frame,'InputBoxTemplate');search:SetSize(180,25);search:SetPoint('TOPLEFT',305,-151);search:SetAutoFocus(false);search:SetMaxLetters(50);search:SetScript('OnEnterPressed',function(s)s:ClearFocus();page=1;refresh()end);search:SetScript('OnEscapePressed',function(s)s:ClearFocus()end)
   local searchLabel=text(frame,'GameFontHighlightSmall',500,-155);searchLabel:SetText('Name / zone; Enter')
+  areaCheck=CreateFrame('CheckButton',nil,frame,'UICheckButtonTemplate');areaCheck:SetSize(25,25);areaCheck:SetPoint('TOPLEFT',23,-181);areaCheck:SetScript('OnClick',function()page=1;refresh()end)
+  local areaLabel=text(frame,'GameFontHighlightSmall',53,-187);areaLabel:SetText('Current zone')
+  sortButton=button(frame,'Sort: Value',160,-180,125,function()sortMode=sortMode=='value' and 'level' or sortMode=='level' and 'name' or 'value';sortButton:SetText('Sort: '..(sortMode=='value' and 'Value' or sortMode=='level' and 'Level' or 'Name'));page=1;refresh()end)
+  local valueLabel=text(frame,'GameFontNormalSmall',298,-187);valueLabel:SetText('EST. / KILL')
   rows={};for i=1,8 do
-    local row=CreateFrame('Button',nil,frame,'BackdropTemplate');row:SetPoint('TOPLEFT',22,-188-(i-1)*27);row:SetSize(585,26);row:SetBackdrop({bgFile='Interface\\Buttons\\WHITE8X8'});row:SetBackdropColor(i%2==0 and .10 or .07,.13,.12,.95)
+    local row=CreateFrame('Button',nil,frame,'BackdropTemplate');row:SetPoint('TOPLEFT',22,-218-(i-1)*27);row:SetSize(585,26);row:SetBackdrop({bgFile='Interface\\Buttons\\WHITE8X8'});row:SetBackdropColor(i%2==0 and .10 or .07,.13,.12,.95)
     row.name=text(row,'GameFontHighlightSmall',8,-6,260);row.value=text(row,'GameFontNormalSmall',275,-6,95);row.note=text(row,'GameFontHighlightSmall',375,-6,205)
     row:EnableMouse(true);row:SetScript('OnEnter',function(s)
       local v=s.item;if not v then return end
@@ -145,13 +158,16 @@ local function build()
       for _,location in ipairs(v.mob.locations or {}) do GameTooltip:AddLine(location,.75,.85,.8,true) end
       GameTooltip:AddLine(v.low>0 and ('Level source: '..v.levelSource) or 'Level unknown',1,1,1,true)
       if v.low>0 and v.levelSource:find('observed') then GameTooltip:AddLine('Observed levels may not include the full range.',1,1,1,true) end
-      GameTooltip:AddLine(#v.mob.drops..' recorded drops; '..v.missing..' unpriced; '..v.lowSamples..' low sample.',1,1,1,true)
+      local e=v.estimate
+      GameTooltip:AddLine('Estimated value per kill: '..(e.value and money(e.value) or 'unavailable'),1,1,1,true)
+      GameTooltip:AddLine('Uses recorded drop rates per looted corpse and one item per drop; stack quantities and coin are unavailable.',1,1,1,true)
+      GameTooltip:AddLine(e.missingPrice..' drops without AH price; '..e.missingRate..' without a usable rate. Prices may be stale; fees excluded.',1,.8,.3,true)
       GameTooltip:AddLine('Click for individual drop observations and AH prices.',1,.8,.3,true);GameTooltip:Show()
     end);row:SetScript('OnLeave',function()GameTooltip:Hide()end);row:SetScript('OnClick',function(s)if s.item then showDetails(s.item) end end);rows[i]=row
   end
-  summary=text(frame,'GameFontHighlightSmall',24,-412,580)
-  local prev=button(frame,'Previous',24,-443,85,function()page=page-1;refresh()end);local nextb=button(frame,'Next',117,-443,85,function()page=page+1;refresh()end)
-  local oldRefresh=refresh;refresh=function()oldRefresh();local show=currentTab=='Farm';fl:SetShown(show);searchLabel:SetShown(show);prev:SetShown(show);nextb:SetShown(show)end
+  summary=text(frame,'GameFontHighlightSmall',24,-444,580)
+  local prev=button(frame,'Previous',24,-478,85,function()page=page-1;refresh()end);local nextb=button(frame,'Next',117,-478,85,function()page=page+1;refresh()end)
+  local oldRefresh=refresh;refresh=function()oldRefresh();local show=currentTab=='Farm';fl:SetShown(show);fl2:SetShown(show);areaLabel:SetShown(show);valueLabel:SetShown(show);searchLabel:SetShown(show);prev:SetShown(show);nextb:SetShown(show)end
   frame:SetScript('OnShow',function()refresh()end);frame:Hide()
 end
 function core.OpenTradingMenu(tab) build();currentTab=tab or 'Bag';frame:Show();refresh() end
