@@ -1,3 +1,3 @@
 # Repository instructions
 
-Place all versioned Noki Trading and Noki Trading Beta ZIP release packages in `NokiTradingVersions/`. Update download links to point to that folder when publishing a new version.
+Noki Forever is maintained in this repository. Marketeer Forever and its versioned releases are maintained at https://github.com/PyNoki/Marketeer-Forever.
