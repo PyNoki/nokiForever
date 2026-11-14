@@ -27,7 +27,10 @@ local plateText, plateOwner, plateMarker
 local bagFramesHooked, scalingBag = {}, false
 local function setBagScale(frame)
   local scale = ForeverRangeAccessDB and ForeverRangeAccessDB.bagScale
-  if not scale or InCombatLockdown() or scalingBag then return end
+  if not scale or scalingBag then return end
+  -- The default bag layout can reset its scale on open. Reapply the saved
+  -- scale during combat only if this frame is not protected.
+  if InCombatLockdown() and (not frame.IsProtected or frame:IsProtected()) then return end
   scalingBag = true
   pcall(frame.SetScale, frame, scale)
   scalingBag = false
